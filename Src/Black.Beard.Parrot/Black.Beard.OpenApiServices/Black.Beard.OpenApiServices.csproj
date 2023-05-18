@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Embedded\Program.cs" />
+    <Compile Remove="Embedded\ServiceProcessor.cs" />
+    <Compile Remove="Embedded\Setup.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Embedded\Program.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Embedded\ServiceProcessor.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Embedded\Setup.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Clones\Black.Beard.Roslyn\Src\Black.Beard.Build.Models\Black.Beard.Projects.Models.csproj" />
+    <ProjectReference Include="..\..\..\Clones\Black.Beard.Roslyn\Src\Black.Beard.Roslyn\Black.Beard.Roslyn.csproj" />
+    <ProjectReference Include="..\Black.Beard.OpenApi\Black.Beard.OpenApi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

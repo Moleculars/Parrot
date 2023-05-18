@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33516.290
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Black.Beard.Projects.Models", "..\..\Clones\Black.Beard.Roslyn\Src\Black.Beard.Build.Models\Black.Beard.Projects.Models.csproj", "{DEF27F60-8282-421C-8DD7-8F974D92511C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Black.Beard.Roslyn", "..\..\Clones\Black.Beard.Roslyn\Src\Black.Beard.Roslyn\Black.Beard.Roslyn.csproj", "{E544ED9F-F11D-41A2-A589-1A2C1050A0EF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Black.Beard.OpenApi", "Black.Beard.OpenApi\Black.Beard.OpenApi.csproj", "{C6492EC4-ABA9-4227-89EB-017630C0AF67}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Black.Beard.ParrotServices", "Black.Beard.ParrotServices\Black.Beard.ParrotServices.csproj", "{0A6A4EBA-0442-46EE-8721-2B92B45FCBCC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Black.Beard.OpenApiServices", "Black.Beard.OpenApiServices\Black.Beard.OpenApiServices.csproj", "{2DD22F4F-A701-45E7-9D30-E8A92542F2C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{110520CB-50A5-4CEF-8A05-3865535B6325}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DEF27F60-8282-421C-8DD7-8F974D92511C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEF27F60-8282-421C-8DD7-8F974D92511C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEF27F60-8282-421C-8DD7-8F974D92511C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEF27F60-8282-421C-8DD7-8F974D92511C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E544ED9F-F11D-41A2-A589-1A2C1050A0EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E544ED9F-F11D-41A2-A589-1A2C1050A0EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E544ED9F-F11D-41A2-A589-1A2C1050A0EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E544ED9F-F11D-41A2-A589-1A2C1050A0EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6492EC4-ABA9-4227-89EB-017630C0AF67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6492EC4-ABA9-4227-89EB-017630C0AF67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6492EC4-ABA9-4227-89EB-017630C0AF67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6492EC4-ABA9-4227-89EB-017630C0AF67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A6A4EBA-0442-46EE-8721-2B92B45FCBCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A6A4EBA-0442-46EE-8721-2B92B45FCBCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A6A4EBA-0442-46EE-8721-2B92B45FCBCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A6A4EBA-0442-46EE-8721-2B92B45FCBCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DD22F4F-A701-45E7-9D30-E8A92542F2C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DD22F4F-A701-45E7-9D30-E8A92542F2C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DD22F4F-A701-45E7-9D30-E8A92542F2C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DD22F4F-A701-45E7-9D30-E8A92542F2C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{110520CB-50A5-4CEF-8A05-3865535B6325}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{110520CB-50A5-4CEF-8A05-3865535B6325}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{110520CB-50A5-4CEF-8A05-3865535B6325}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{110520CB-50A5-4CEF-8A05-3865535B6325}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DFE72D88-A39D-4255-B2A3-457F46614593}
+	EndGlobalSection
+EndGlobal
