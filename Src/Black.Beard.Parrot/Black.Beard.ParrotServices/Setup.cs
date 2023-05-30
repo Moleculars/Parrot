@@ -1,12 +1,25 @@
-﻿using log4net;
+﻿using Bb.Json.Jslt.CustomServices;
+using Bb.ParrotServices.Middlewares;
+using log4net;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
+using Microsoft.OpenApi.Models;
 
-namespace Black.Beard.ParrotServices
+
+
+
+
+namespace Bb.ParrotServices
 {
 
 
     public class Setup
     {
+
+        public Setup()
+        {
+            this._datas = new Dictionary<string, object>();
+        }
 
         public Setup Initialize(WebApplicationBuilder builder)
         {
@@ -18,6 +31,18 @@ namespace Black.Beard.ParrotServices
         {
             _builder = WebApplication.CreateBuilder(args);
             return this;
+        }        
+
+        /// <summary>
+        /// Add a variable
+        /// </summary>
+        /// <param name="varName">Name of the variable.</param>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
+        public Setup Variable(string varName, object value)
+        {
+            this._datas.Add(varName, value);
+            return this;
         }
 
         public Setup Services()
@@ -25,9 +50,7 @@ namespace Black.Beard.ParrotServices
 
             _builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            _builder.Services.AddEndpointsApiExplorer();
-            _builder.Services.AddSwaggerGen();
-
+            _builder.Services.AddEndpointsApiExplorer();                        
             return this;
 
         }
@@ -67,6 +90,7 @@ namespace Black.Beard.ParrotServices
 
             app.MapControllers();
 
+            app.UseMiddleware<ReverseProxyMiddleware>();
 
             return this;
 
@@ -82,13 +106,16 @@ namespace Black.Beard.ParrotServices
         {
             try
             {
-
                 _app.Run();
+
+                _app.Run(async (context) =>
+                {
+                    await context.Response.WriteAsync("<a href='/googleforms/d/e/1FAIpQLSdJwmxHIl_OCh-CI1J68G1EVSr9hKaYFLh3dHh8TLnxjxCJWw/viewform?hl=en'>Register to receive a T-shirt</a>");
+                });
 
             }
             catch (Exception)
             {
-
                 throw;
             }
             finally
@@ -102,7 +129,7 @@ namespace Black.Beard.ParrotServices
 
         private WebApplicationBuilder _builder;
         private WebApplication _app;
-
+        private readonly Dictionary<string, object> _datas;
     }
 
 

@@ -1,9 +1,5 @@
-﻿using NSwag;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi.Readers;
 
 namespace Bb
 {
@@ -13,12 +9,12 @@ namespace Bb
         public static OpenApiDocument LoadOpenApiContract(this string pathFile)
         {
 
-            var taskDocument = OpenApiDocument.FromFileAsync(pathFile);
-            var awaiter = taskDocument.GetAwaiter();
-            var document = awaiter.GetResult();
-            //var schema = document.Components.Schemas;
+            using (FileStream fs = File.Open(pathFile, FileMode.Open))
+            {
+                var openApiDocument = new OpenApiStreamReader().Read(fs, out var diagnostic);               
+                return openApiDocument;
+            }
 
-            return document;
         }
 
 

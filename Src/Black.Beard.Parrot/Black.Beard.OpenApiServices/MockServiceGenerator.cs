@@ -1,9 +1,10 @@
 ﻿using Bb;
 using Bb.Codings;
 using Bb.Projects;
-using NSwag;
-using System.Linq;
 using System.Text;
+using Bb.Json.Jslt.Asts;
+using System.Net;
+using Microsoft.OpenApi.Models;
 
 namespace Black.Beard.OpenApiServices
 {
@@ -18,6 +19,8 @@ namespace Black.Beard.OpenApiServices
             var directoryName = baseDirectory ?? AppContext.BaseDirectory;
             _dir = new DirectoryInfo(Path.Combine(directoryName, name));
         }
+
+        public string Directory => _dir.FullName;
 
         public MockServiceGenerator InitializeContract(string openApiDocument)
         {
@@ -58,17 +61,18 @@ namespace Black.Beard.OpenApiServices
 
             _project.Save();
 
-            var code = new OpenApiGenerateModel("models", this.Namespace).VisitDocument(_document) as CSharpArtifact;
-            _project.AppendDocument("Models.cs", code.Code());
+            var ctx = new ContextGenerator(_project.Directory.FullName);
 
-            code = new OpenApiGenerateServices("services", this.Namespace).VisitDocument(_document) as CSharpArtifact;
-            _project.AppendDocument("Controllers", "Service.cs", code.Code());
+            new OpenApiGenerateDataTemplate().Parse(_document, ctx);
+            new OpenApiGenerateModel("models", this.Namespace).Parse(_document, ctx);
+            new OpenApiGenerateServices("services", this.Namespace).Parse(_document, ctx);
 
             return this;
 
         }
 
         public string Namespace { get; set; }
+
         public string Description { get; set; }
 
 
@@ -84,38 +88,58 @@ namespace Black.Beard.OpenApiServices
                      .ImplicitUsings(true)
                      .UserSecretsId("d6db51a2-9287-431c-93bd-2c255dedbc2a")
                      .DockerDefaultTargetOS(DockerDefaultTargetOS.Linux)
-                    //.RazorLangVersion(Version.Parse("3.0"))
-                    //.AddRazorSupportForMvc(true)
-                    //.GenerateDocumentationFile(true)
-                    //.RootNamespace(Namespace ?? "Bb")
-                    //.Description(Description)
-                    //.LangVersion(Version.Parse("8.0"))
-                    //.RepositoryUrl(new System.Uri("http://github.com"))
+                     .GenerateDocumentationFile(true)
                     ;
                 })
                 .Packages(p =>
                 {
-                    p.PackageReference("Black.Beard.Jslt")
+                    p.PackageReference("Black.Beard.Jslt", "1.0.190")
+                     .PackageReference("Black.Beard.Helpers.ContentLoaders", "2.0.1")
+                     .PackageReference("Black.Beard.Helpers.ContentLoaders.Files", "2.0.1")
+                     .PackageReference("Black.Beard.Helpers.ContentLoaders.Newtonsoft", "2.0.1")
+                     //.PackageReference("Black.Beard.Helpers.Roslyn", "1.0.29")
                      .PackageReference("log4net", "2.0.15")
                      .PackageReference("Microsoft.Extensions.Configuration.Binder", "7.0.4")
-                     .PackageReference("Microsoft.Extensions.Configuration.Json")
-                     .PackageReference("Microsoft.Extensions.Configuration.NewtonsoftJson")
+                     .PackageReference("Microsoft.Extensions.Configuration.Json", "7.0.0")
+                     //.PackageReference("Microsoft.Extensions.Configuration.NewtonsoftJson", "5.0.1")
                      .PackageReference("Microsoft.Extensions.Logging.Log4Net.AspNetCore", "6.1.0")
-                     .PackageReference("Microsoft.Extensions.PlatformAbstractions")
-                     .PackageReference("Microsoft.OpenApi")
-                     .PackageReference("Microsoft.VisualStudio.Azure.Containers.Tools.Targets")
-                     .PackageReference("Swashbuckle.AspNetCore", "6.2.3")
-                    //p.PackageReference("Microsoft.AspNetCore.Mvc.Core", new Version("2.2.5"))
-                    //p.PackageReference("Black.Beard.ComponentModel", new Version("1.0.36"))
-                     .PackageReference("Black.Beard.Helpers.ContentLoaders")
-                     .PackageReference("Black.Beard.Helpers.ContentLoaders.Files")
-                     .PackageReference("Black.Beard.Helpers.ContentLoaders.Newtonsoft")
+                     //.PackageReference("Microsoft.Extensions.PlatformAbstractions", "1.1.0")
+                     .PackageReference("Microsoft.OpenApi", "1.6.4")
+                     .PackageReference("Microsoft.VisualStudio.Azure.Containers.Tools.Targets", "1.18.1")
+                     //.PackageReference("Newtonsoft.Json", "13.0.1")
+                     .PackageReference("Swashbuckle.AspNetCore", "6.5.0")                     
                     ;
                 });
 
-            project.AppendDocument("Program.cs", new StringBuilder(@"Embedded\Program.cs".LoadFromFile()));
-            project.AppendDocument("Setup.cs", new StringBuilder(@"Embedded\Setup.cs".LoadFromFile()));
-            project.AppendDocument("ServiceProcessor.cs", new StringBuilder(@"Embedded\ServiceProcessor.cs".LoadFromFile()));
+            bool withApiKey = false;
+            string inArgument = "Header";
+
+            project.AppendDocument("Program.cs",
+                @"Embedded\Program.cs"
+                    .LoadFromFile()
+                    .Replace("{{title}}", _document.Info.Title ?? string.Empty)
+                    .Replace("{{version}}", _document.Info.Version ?? "v1.0")
+                    .Replace("{{description}}", _document.Info.Description ?? "A set of REST APIs mock generated")
+                    .Replace("{{testApiKey}}", withApiKey ? "true" : "false")
+                    .Replace("{{apiSecureIn}}", inArgument)
+                );
+
+            project.AppendDocument("SwaggerExtension.cs", @"Embedded\SwaggerExtension.cs".LoadFromFile());
+            project.AppendDocument("Setup.cs", @"Embedded\Setup.cs".LoadFromFile());
+            project.AppendDocument("ServiceProcessor.cs", @"Embedded\ServiceProcessor.cs".LoadFromFile());
+            project.AppendDocument("log4net.config", @"Embedded\log4net.config".LoadFromFile());
+
+            project.ItemGroup(i =>
+            {
+
+                i.Content(c =>
+                {
+                    c.Update("log4net.config")
+                     .CopyToOutputDirectory(StrategyCopyEnum.Always)
+                     ;
+                });
+
+            });
 
             return project;
 

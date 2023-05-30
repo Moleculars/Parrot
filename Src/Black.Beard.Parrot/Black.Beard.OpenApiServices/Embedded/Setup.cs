@@ -2,14 +2,20 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 using System;
 
-namespace Black.Beard.ParrotServices
+namespace Bb.ParrotServices
 {
 
 
     public class Setup
     {
+
+        public Setup()
+        {
+            this._datas = new Dictionary<string, object>();
+        }
 
         public Setup Initialize(WebApplicationBuilder builder)
         {
@@ -25,31 +31,34 @@ namespace Black.Beard.ParrotServices
 
         public Setup Services()
         {
-
-            _builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            _builder.Services.AddEndpointsApiExplorer();
-            _builder.Services.AddSwaggerGen();
-
+            if (_builder != null)
+            {
+                _builder.Services.AddControllers();
+                // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+                _builder.Services.AddEndpointsApiExplorer();
+            }
             return this;
-
         }
 
         public Setup Services(Action<WebApplicationBuilder> action)
         {
-            action(_builder);
+            if (_builder != null)
+                action(_builder);
             return this;
         }
 
         public Setup Build()
         {
-            _app = _builder.Build();
+            if (_builder != null)
+                _app = _builder.Build();
             return this;
         }
 
         public Setup Configure()
         {
-            return Configure(_app);
+            if (_app != null)
+                return Configure(_app);
+            return this;
         }
 
         public Setup Configure(WebApplication app)
@@ -77,7 +86,8 @@ namespace Black.Beard.ParrotServices
 
         public Setup Configure(Action<WebApplication> action)
         {
-            action(_app);
+            if (_app != null)
+                action(_app);
             return this;
         }
 
@@ -86,12 +96,12 @@ namespace Black.Beard.ParrotServices
             try
             {
 
-                _app.Run();
+                if (_app != null)
+                    _app.Run();
 
             }
             catch (Exception)
             {
-
                 throw;
             }
             finally
@@ -103,8 +113,9 @@ namespace Black.Beard.ParrotServices
             return this;
         }
 
-        private WebApplicationBuilder _builder;
-        private WebApplication _app;
+        private WebApplicationBuilder? _builder;
+        private WebApplication? _app;
+        private readonly Dictionary<string, object> _datas;
 
     }
 

@@ -1,5 +1,8 @@
-﻿using NJsonSchema;
-using NSwag;
+﻿
+using Microsoft.OpenApi.Models;
+using System.Security;
+using System.Text;
+using System.Xml.Schema;
 
 namespace Bb.OpenApi
 {
@@ -8,137 +11,202 @@ namespace Bb.OpenApi
     {
 
 
-        public static bool IsJson(this JsonSchema self)
+        public static string ResolveName(this OpenApiSchema schema)
         {
 
-            switch (self.Type)
+            if (schema.Items != null)
             {
-
-                case JsonObjectType.Array:
-                case JsonObjectType.None:
-                case JsonObjectType.Object:
-                    return true;
-
-                case JsonObjectType.Boolean:
-                case JsonObjectType.Integer:
-                case JsonObjectType.Number:
-                case JsonObjectType.String:
-                case JsonObjectType.Null:
-                    return false;
-
-                case JsonObjectType.File:
-                default:
-                    break;
+                OpenApiReference r = schema.Items.Reference;
+                if (r != null)
+                    return r.Id;
             }
 
-            return false;
+            if (schema.Reference != null)
+                return schema.Reference.Id;
 
-        }
-
-        public static string ResolveType(this JsonSchema self, OpenApiComponents root)
-        {
-
-            switch (self.Type)
-            {
-                case JsonObjectType.None:
-                    return self.Reference.ResolveName(root);
-
-                case JsonObjectType.Boolean:
-                    return nameof(Boolean);
-
-                case JsonObjectType.Integer:
-                    return nameof(Int32);
-
-                case JsonObjectType.Number:
-                    return nameof(Decimal);
-
-                case JsonObjectType.String:
-                    return nameof(String);
-
-                case JsonObjectType.Array:
-                    return self.Item?.ResolveName(root);
-
-                case JsonObjectType.Object:
-                    return self.ResolveName(root);
-
-                case JsonObjectType.File:
-                    break;
-
-                case JsonObjectType.Null:
-                    break;
-                default:
-                    break;
-
-            }
-
+            Stop();
 
             return null;
 
         }
 
-        public static string ResolveName(this JsonSchema self, OpenApiComponents root)
+
+        public static bool IsJson(this OpenApiSchema self)
+        {
+            var type = self.ConvertTypeName();
+            return type == typeof(Array) || type == typeof(object);
+        }
+
+        public static string ResolveDescription(this OpenApiSchema self)
         {
 
-            foreach (var item in root.Schemas)
-                if (item.Value == self)
-                    return item.Key;
+            var type = self.ConvertTypeName();
 
-            return string.Empty;
+            if (type != null)
+            {
+                if (type == typeof(Object))
+                {
+                    Stop();
+                    return self.Description;
+                }
+                else if (type == typeof(Array))
+                {
+                    if (self.Items != null)
+                        return self.Items.Description;
+
+                }
+
+                return type.Name;
+
+            }
+            else if (self.Items != null)
+                return self.Items.ResolveType();
+
+            else if (self.OneOf != null && self.OneOf.Count > 0)
+            {
+                Stop();
+            }
+
+            Stop();
+            return null;
 
         }
 
-        //public static JsonSchema GetRoot(this JsonSchema self)
-        //{
 
-        //    JsonSchema p = self.Parent as JsonSchema;
-
-        //    while (p.Parent != null)
-        //    {
-        //        p = p.Parent as JsonSchema;
-        //        if (p.Parent == null)
-        //            break;
-        //    }
-
-        //    return p;
-
-        //}
-
-        public static Type ConvertTypeName(this JsonObjectType typeName)
+        public static string ResolveType(this OpenApiSchema self)
         {
 
-            switch (typeName)
+            var r = self.Reference;
+            if (r != null && !string.IsNullOrEmpty(r.Id))
+                return r.Id;
+
+            if (self.Type == "array")
+            {
+                if (self.Items != null)
+                    return BuildTypename("List", self.Items.ResolveType()).ToString();
+
+                if (self.OneOf != null && self.OneOf.Count > 0)
+                {
+                    Stop();
+                }
+
+            }
+
+            var type = self.ConvertTypeName();
+
+            if (type != null)
+                return type.Name;
+
+            Stop();
+            return null;
+
+        }
+
+        public static Type ConvertTypeName(this OpenApiSchema schema)
+        {
+            return schema.Type.ConvertTypeName(schema.Format);
+        }
+
+        public static Type ConvertTypeName(this string typeName, string format)
+        {
+
+            switch (typeName.ToLower())
             {
 
-                case JsonObjectType.Boolean:
+                case "boolean":
                     return typeof(bool);
 
-                case JsonObjectType.Integer:
+                case "integer":
                     return typeof(int);
 
-                case JsonObjectType.Number:
-                    return typeof(decimal);
+                //case JsonObjectType.Number:
+                //    return typeof(decimal);
 
-                case JsonObjectType.String:
+                case "string":
+                    if (!string.IsNullOrEmpty(format))
+                    {
+                        switch (format)
+                        {
+
+                            case "email":
+                            case "hostname":
+                            case "ipv4":
+                            case "ipv6":
+                                break;
+
+                            case "uri":
+                                return typeof(Uri);
+
+                            case "binary":
+                                return typeof(byte[]);
+
+                            case "byte":
+                                return typeof(byte[]);
+
+                            case "password":
+                                return typeof(SecureString);
+
+                            case "uuid":
+                                return typeof(Guid);
+
+                            case "date-time":
+                                return typeof(DateTime);
+
+                            default:
+                                break;
+                        }
+                    }
+
                     return typeof(string);
 
-                case JsonObjectType.Array:
+                case "array":
                     return typeof(Array);
 
-                case JsonObjectType.Object:
+                case "object":
                     return typeof(object);
 
-                case JsonObjectType.Null:
+                //case JsonObjectType.Null:
 
-                case JsonObjectType.File:
-                case JsonObjectType.None:
+                //case JsonObjectType.File:
+                //case JsonObjectType.None:
                 default:
                     break;
             }
 
-
-            return typeof(void);
+            return null;
 
         }
+
+        private static StringBuilder BuildTypename(this string self, params string[] genericArguments)
+        {
+            StringBuilder sb = new StringBuilder(self);
+            if (genericArguments != null && genericArguments.Length > 0)
+            {
+
+                sb.Append("<");
+
+                var g = genericArguments[0];
+                sb.Append(g);
+
+                for (int i = 1; i < genericArguments.Length; i++)
+                {
+                    sb.Append(", ");
+                    g = genericArguments[i];
+                    sb.Append(g);
+                }
+                sb.Append(">");
+            }
+
+            return sb;
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.Diagnostics.DebuggerNonUserCode]
+        private static void Stop()
+        {
+            System.Diagnostics.Debugger.Break();
+        }
+
 
     }
 

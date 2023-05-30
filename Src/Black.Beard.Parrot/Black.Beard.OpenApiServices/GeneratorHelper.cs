@@ -1,8 +1,9 @@
 ﻿using Bb.Codings;
-using NSwag;
+using Microsoft.OpenApi.Models;
 
 namespace Black.Beard.OpenApiServices
 {
+
     public static class GeneratorHelper
     {
 
@@ -84,8 +85,11 @@ namespace Black.Beard.OpenApiServices
         }
 
 
-        public static void ApplyHttpMethod(this string key, CsMethodDeclaration method)
+        public static void ApplyHttpMethod(this string keyText, CsMethodDeclaration method)
         {
+
+            var key = keyText.ToLower();
+
             if (key == "get")
                 method.Attribute("HttpGet");
 
@@ -113,46 +117,31 @@ namespace Black.Beard.OpenApiServices
 
         public static void ApplyAttributes(this CsParameterDeclaration self, OpenApiParameter source)
         {
-            switch (source.Kind)
+            switch (source.In.Value)
             {
-                case OpenApiParameterKind.Undefined:
-                    break;
 
-                case OpenApiParameterKind.Body:
-                    self.Attribute("FromBody");
-                    //CodeHelper.Stop();
-                    break;
-
-                case OpenApiParameterKind.Query: // 'scheme://server:port/path?cursor=toto'
+                case ParameterLocation.Query:
                     self.Attribute("FromQuery");
-                    //CodeHelper.Stop();
                     break;
 
-                case OpenApiParameterKind.Path:
-                    self.Attribute("FromRoute");
-                    CodeHelper.Stop();
-                    break;
-
-                case OpenApiParameterKind.Header:
+                case ParameterLocation.Header:
                     self.Attribute("FromHerader");
-                    CodeHelper.Stop();
                     break;
 
-                case OpenApiParameterKind.FormData:
-                    CodeHelper.Stop();
+                case ParameterLocation.Path:
+                    self.Attribute("FromRoute");
                     break;
 
-                case OpenApiParameterKind.ModelBinding:
-                    CodeHelper.Stop();
-                    break;
-
-                case OpenApiParameterKind.Cookie:
+                case ParameterLocation.Cookie:
                     CodeHelper.Stop();
                     break;
 
                 default:
+                    CodeHelper.Stop();
                     break;
+
             }
+
         }
 
 

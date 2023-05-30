@@ -1,7 +1,10 @@
+using Bb.Process;
 using Black.Beard.OpenApiServices;
+using System.Diagnostics;
 
 namespace UnitTests
 {
+
     public class UnitTest1
     {
 
@@ -30,7 +33,17 @@ namespace UnitTests
             .Generate()
             ;
 
-            ;
+            var dir = Path.Combine(generator.Directory, name + ".csproj");
+
+
+            using (var cmd = new ProcessCommand()
+                     .Command($"dotnet.exe" , $"build \"{dir}\" -c release /p:Version=1.0.0.0")
+                     .OutputOnTraces()
+                     .Run())
+            {
+                cmd.Wait();
+            }
+
 
         }
 

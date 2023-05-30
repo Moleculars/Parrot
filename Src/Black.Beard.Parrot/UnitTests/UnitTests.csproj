@@ -23,13 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Clones\Black.Beard.Roslyn\Src\Black.Beard.Process\Black.Beard.Process.csproj" />
     <ProjectReference Include="..\Black.Beard.OpenApiServices\Black.Beard.OpenApiServices.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="swagger.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

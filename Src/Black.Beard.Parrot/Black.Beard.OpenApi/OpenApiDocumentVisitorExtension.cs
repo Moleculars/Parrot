@@ -1,5 +1,5 @@
-﻿using NJsonSchema;
-using NSwag;
+﻿using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
 
 namespace Bb.OpenApi
 {
@@ -51,16 +51,17 @@ namespace Bb.OpenApi
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiResponse self, IOpenApiDocumentVisitor<T> visitor)
+        public static T Accept<T>(this OpenApiSchema self, string kind, string key, IOpenApiDocumentVisitor<T> visitor)
         {
-            return visitor.VisitResponse(self);
+            return visitor.VisitJsonSchema(kind, key, self);
         }
+
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiOperationDescription self, IOpenApiDocumentVisitor<T> visitor)
+        public static T Accept<T>(this OpenApiResponse self, IOpenApiDocumentVisitor<T> visitor)
         {
-            return visitor.VisitOperationDescription(self);
+            return visitor.VisitResponse(self);
         }
 
         [System.Diagnostics.DebuggerStepThrough]
@@ -70,19 +71,12 @@ namespace Bb.OpenApi
             return visitor.VisitInfo(self);
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
-        [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiExternalDocumentation self, IOpenApiDocumentVisitor<T> visitor)
-        {
-            return visitor.VisitExternalDocumentation(self);
-        }
-
-        [System.Diagnostics.DebuggerStepThrough]
-        [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this JsonSchema self, IOpenApiDocumentVisitor<T> visitor)
-        {
-            return visitor.VisitJsonSchema(self);
-        }
+        //[System.Diagnostics.DebuggerStepThrough]
+        //[System.Diagnostics.DebuggerNonUserCode]
+        //public static T Accept<T>(this OpenApiExternalDocumentation self, IOpenApiDocumentVisitor<T> visitor)
+        //{
+        //    return visitor.VisitExternalDocumentation(self);
+        //}       
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
@@ -128,24 +122,17 @@ namespace Bb.OpenApi
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this JsonSchema self, string key, IOpenApiDocumentVisitor<T> visitor)
-        {
-            return visitor.VisitJsonSchema(key, self);
-        }
-
-        [System.Diagnostics.DebuggerStepThrough]
-        [System.Diagnostics.DebuggerNonUserCode]
         public static T Accept<T>(this OpenApiSecurityScheme self, string key, IOpenApiDocumentVisitor<T> visitor)
         {
             return visitor.VisitSecurityScheme(key, self);
         }
 
-        [System.Diagnostics.DebuggerStepThrough]
-        [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this JsonSchemaProperty self, IOpenApiDocumentVisitor<T> visitor)
-        {
-            return visitor.VisitJsonSchemaProperty(self);
-        }
+        //[System.Diagnostics.DebuggerStepThrough]
+        //[System.Diagnostics.DebuggerNonUserCode]
+        //public static T Accept<T>(this JsonSchemaProperty self, IOpenApiDocumentVisitor<T> visitor)
+        //{
+        //    return visitor.VisitJsonSchemaProperty(self);
+        //}
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
@@ -159,6 +146,13 @@ namespace Bb.OpenApi
         public static T Accept<T>(this OpenApiOperation self, string key, IOpenApiDocumentVisitor<T> visitor)
         {
             return visitor.VisitOperation(key, self);
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.Diagnostics.DebuggerNonUserCode]
+        public static T Accept<T>(this IOpenApiPrimitive self, IOpenApiDocumentVisitor<T> visitor)
+        {
+            return visitor.VisitEnumPrimitive(self);
         }
 
 

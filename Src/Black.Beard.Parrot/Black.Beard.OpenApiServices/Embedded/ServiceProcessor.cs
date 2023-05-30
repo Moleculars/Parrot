@@ -1,12 +1,11 @@
 ﻿using System;
 using Bb.Json.Jslt.Services;
 using System.Text;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using Bb;
+using Oldtonsoft.Json;
+using Oldtonsoft.Json.Linq;
 
 
-namespace Black.Beard.OpenApiServices.Embedded
+namespace Bb.ParrotServices
 {
 
     public class ServiceProcessor<TTarget>
@@ -15,13 +14,13 @@ namespace Black.Beard.OpenApiServices.Embedded
         public ServiceProcessor()
         {
             _serializer = new JsonSerializer();
-            this._sources = new Dictionary<string, object>();
+            this._sources = new Dictionary<string, JToken>();
         }
 
-        public TTarget GetDatas(string templateFile, string datas)
+        public TTarget? GetDatas(string templateFile, string datas)
         {
 
-            TTarget result = default(TTarget);
+            TTarget? result = default;
 
             // Intialization of the configuration
             var configuration = new TranformJsonAstConfiguration()
@@ -34,7 +33,7 @@ namespace Black.Beard.OpenApiServices.Embedded
 
 
             //Build the template translator
-            var sbPayloadTemplate = new StringBuilder(templateFile.LoadFile());
+            var sbPayloadTemplate = new StringBuilder(templateFile.LoadFromFile());
             JsltTemplate template = Templateprovider.GetTemplate(sbPayloadTemplate, false, "name of the template file");
 
 
@@ -52,9 +51,8 @@ namespace Black.Beard.OpenApiServices.Embedded
                 var payload = ctx.TokenResult;
                 result = payload.ToObject<TTarget>(_serializer);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-
                 throw;
             }
 
@@ -64,11 +62,14 @@ namespace Black.Beard.OpenApiServices.Embedded
 
         public void Add(string keyVariable, object value)
         {
-            _sources.Add(keyVariable, value);
+            if (value is JToken t)
+                _sources.Add(keyVariable, t);
+            else
+                _sources.Add(keyVariable, JToken.FromObject(value));
         }
 
         private readonly JsonSerializer _serializer;
-        private IDictionary<string, object> _sources;
+        private IDictionary<string, JToken> _sources;
 
 
     }

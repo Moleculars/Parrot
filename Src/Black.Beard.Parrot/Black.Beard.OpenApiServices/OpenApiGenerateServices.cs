@@ -1,50 +1,43 @@
-﻿using Bb.Codings;
+﻿using Bb;
+using Bb.Codings;
 using Bb.OpenApi;
-using Namotion.Reflection;
-using NJsonSchema;
-using NSwag;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
+using System.Diagnostics;
+using System.Net;
 
 namespace Black.Beard.OpenApiServices
 {
-    public class OpenApiGenerateServices : IOpenApiDocumentVisitor<CSMemberDeclaration>
+
+
+    public class OpenApiGenerateServices : OpenApiGeneratorCSharpBase
     {
 
         public OpenApiGenerateServices(string artifactName, string @namespace)
+            : base(artifactName, @namespace, "Bb.Json.Jslt.Services",
+                    "Bb.ParrotServices",
+                    "Microsoft.AspNetCore.Http",
+                    "Microsoft.AspNetCore.Mvc",
+                    "Microsoft.Extensions.Logging",
+                    "System",
+                    "System.Text",
+                    "Newtonsoft.Json",
+                    "Newtonsoft.Json.Linq")
         {
-
-            _cs = new CSharpArtifact(artifactName)
-                .Usings("System",
-                "Microsoft.Extensions.Logging",
-                "Microsoft.AspNetCore.Mvc",
-                "Microsoft.AspNetCore.Http",
-                "Bb.Json.Jslt.Services",
-                "System.Text",
-                "Newtonsoft.Json.Linq",
-                "Bb.Mock",
-                "Black.Beard.OpenApiServices.Embedded"
-
-                );
-            ;
-
-            _ns = _cs.Namespace(@namespace);
-
+         
         }
 
-        public CSMemberDeclaration VisitDocument(OpenApiDocument self)
+        public override CSMemberDeclaration VisitDocument(OpenApiDocument self)
         {
-            _self = self;
+
             foreach (var item in self.Paths)
-            {
+                item.Value.Accept(item.Key, this);
 
-                var service = item.Value.Accept(item.Key, this);
-                if (service != null)
-                    _ns.Add(service);
+            return null;
 
-            }
-            return _cs;
         }
 
-        public CSMemberDeclaration VisitPathItem(string key, OpenApiPathItem self)
+        public override CSMemberDeclaration VisitPathItem(string key, OpenApiPathItem self)
         {
 
             var _n = key.Trim('/');
@@ -74,18 +67,25 @@ namespace Black.Beard.OpenApiServices
                 .Argument(key.Literal())
                 ;
 
-            foreach (var item in self)
+            foreach (var item in self.Operations)
             {
-                var r = item.Value.Accept(item.Key, this);
+                OpenApiOperation o = item.Value;
+                var r = o.Accept(item.Key.ToString(), this);
                 if (r != null)
                     crl.Add(r);
             }
 
-            return crl;
+            var cs = CreateArtifact(name);
+            var ns = CreateNamespace(cs);
+            ns.Add(crl);
+
+             _ctx.AppendDocument("Controllers", name + ".cs", cs.Code().ToString());
+
+            return null;
 
         }
 
-        public CSMemberDeclaration VisitOperation(string key, OpenApiOperation self)
+        public override CSMemberDeclaration VisitOperation(string key, OpenApiOperation self)
         {
 
             string typeReturn = null;
@@ -99,6 +99,23 @@ namespace Black.Beard.OpenApiServices
             using (var c = _tree.Stack(method))
             {
 
+                if (self.RequestBody != null)
+                    foreach(var item2 in self.RequestBody.Content)
+                    {
+                        var name = item2.Value.Schema.ResolveType();
+                        if (name != null)
+                        {                            
+                            var p = new CsParameterDeclaration("queryBody", name);
+                            p.Attribute("FromQuery");
+                            var description = item2.Value.Schema.ResolveDescription();
+                            if (!string.IsNullOrEmpty(description))
+                                method.Documentation.Parameter(name, () => description);
+                            method.Add(p);
+                        }
+
+                    }
+                
+
                 foreach (var item1 in self.Parameters)
                 {
                     var p = item1.Accept(this);
@@ -106,13 +123,10 @@ namespace Black.Beard.OpenApiServices
                         method.Add(p);
                 }
 
-
                 typeReturn = ResolveReturnType(self, method);
-
 
                 foreach (var item2 in self.Responses)
                     item2.Value.Accept(item2.Key, this);
-
 
             }
 
@@ -135,7 +149,7 @@ namespace Black.Beard.OpenApiServices
                 {
                     var p = "_logger".Identifier().Call("LogError", "ex".Identifier(), "ex".Identifier().MemberAccess("Message"));
                     lst.Add(p.ToStatement());
-                    lst.Thrown("ex".Identifier());
+                    lst.Thrown();
                 })
                 )
                 ;
@@ -152,24 +166,24 @@ namespace Black.Beard.OpenApiServices
 
             string result = null;
 
-            List<KeyValuePair<string, JsonSchema>> _resultTypes = new List<KeyValuePair<string, JsonSchema>>();
+            List<KeyValuePair<string, OpenApiSchema>> _resultTypes = new List<KeyValuePair<string, OpenApiSchema>>();
             foreach (var item2 in self.Responses)
                 if (item2.Key.StartsWith("2"))
                 {
                     var t2 = item2.Value.Content.FirstOrDefault().Value;
                     if (t2 != null)
                     {
-                        var t = t2.Schema;
-                        var v = t.ResolveType(this._self.Components);
+                        OpenApiSchema t = t2.Schema;
+                        var v = t.ResolveType();
                         if (v != null)
-                            _resultTypes.Add(new KeyValuePair<string, JsonSchema>(item2.Key, t));
+                            _resultTypes.Add(new KeyValuePair<string, OpenApiSchema>(item2.Key, t));
                     }
                 }
 
             var item3 = _resultTypes.OrderBy(c => c.Key).FirstOrDefault().Value;
             if (item3 != null)
             {
-                result = item3.ResolveType(this._self.Components);
+                result = item3.ResolveType();
                 method.ReturnType(result);
                 if (item3.IsJson())
                     _tree.Current.Attribute("Produces")
@@ -180,20 +194,14 @@ namespace Black.Beard.OpenApiServices
 
         }
 
-        public CSMemberDeclaration VisitParameter(OpenApiParameter self)
+        public override CSMemberDeclaration VisitParameter(OpenApiParameter self)
         {
 
             var n = self.Name;
-            var t = self.Schema.ResolveType(this._self.Components);
+            var t = self.Schema.ConvertTypeName();
 
             var p = new CsParameterDeclaration(n, t);
             p.ApplyAttributes(self);
-
-            if (self.Kind == OpenApiParameterKind.Body)
-            {
-                _tree.Current.Attribute("Consumes")
-                    .Argument("application/json".Literal());
-            }
 
             if (!string.IsNullOrEmpty(self.Description))
             {
@@ -205,136 +213,81 @@ namespace Black.Beard.OpenApiServices
 
         }
 
-        public CSMemberDeclaration VisitResponse(string key, OpenApiResponse self)
+        public override CSMemberDeclaration VisitResponse(string key, OpenApiResponse self)
         {
-
-            var description = self.Description;
-            var c = self.Content;
-            foreach (var item in c)
-            {
-                string _key = item.Key;
-                var schema = item.Value.Schema;
-
-                var attr = new CsAttributeDeclaration("ProducesResponseType");
-                attr.Argument(key.CodeHttp());
-                var type = schema.ResolveType(this._self.Components);
-                if (type != null)
-                    attr.Argument("Type", CodeHelper.TypeOf(type.AsType()));
-
-                _tree.Current.Add(attr);
-
-            }
-
-            return null;
-
-        }
-
-        public CSMemberDeclaration VisitJsonSchema(JsonSchema self)
-        {
-            throw new NotImplementedException();
-        }
-
-        public CSMemberDeclaration VisitComponents(OpenApiComponents self)
-        {
-
-            //foreach (var item in self.Schemas)
-            //{
-            //    var cls = item.Value.Accept(item.Key, this);
-            //    if (cls != null)
-            //        _ns.Add(cls);
-            //}
-
-            return _ns;
-
-        }
-
-        public CSMemberDeclaration VisitJsonSchema(string key, JsonSchema self)
-        {
-
-
-
             return null;
         }
 
-        public CSMemberDeclaration VisitJsonSchemaProperty(JsonSchemaProperty self)
+        public override CSMemberDeclaration VisitComponents(OpenApiComponents self)
         {
-
-
             return null;
-
         }
 
-
-        public CSMemberDeclaration VisitCallback(string key, OpenApiCallback self)
+        public override CSMemberDeclaration VisitJsonSchema(string kind, string key, OpenApiSchema self)
+        {
+            return null;
+        }
+   
+        public override CSMemberDeclaration VisitCallback(string key, OpenApiCallback self)
         {
             throw new NotImplementedException();
         }
 
-        public CSMemberDeclaration VisitExternalDocumentation(OpenApiExternalDocumentation self)
+        public override CSMemberDeclaration VisitInfo(OpenApiInfo self)
         {
             throw new NotImplementedException();
         }
 
-        public CSMemberDeclaration VisitInfo(OpenApiInfo self)
+        public override CSMemberDeclaration VisitLink(string key, OpenApiLink self)
         {
             throw new NotImplementedException();
         }
 
-        public CSMemberDeclaration VisitLink(string key, OpenApiLink self)
+        public override CSMemberDeclaration VisitParameter(string key, OpenApiParameter self)
         {
             throw new NotImplementedException();
         }
 
-        public CSMemberDeclaration VisitOperationDescription(OpenApiOperationDescription self)
+        public override CSMemberDeclaration VisitResponse(OpenApiResponse self)
         {
             throw new NotImplementedException();
         }
 
-        public CSMemberDeclaration VisitParameter(string key, OpenApiParameter self)
+        public override CSMemberDeclaration VisitSchema(OpenApiSchema self)
         {
             throw new NotImplementedException();
         }
 
-        public CSMemberDeclaration VisitResponse(OpenApiResponse self)
+        public override CSMemberDeclaration VisitSecurityRequirement(OpenApiSecurityRequirement self)
         {
             throw new NotImplementedException();
         }
 
-        public CSMemberDeclaration VisitSchema(OpenApiSchema self)
+        public override CSMemberDeclaration VisitSecurityScheme(OpenApiSecurityScheme self)
         {
             throw new NotImplementedException();
         }
 
-        public CSMemberDeclaration VisitSecurityRequirement(OpenApiSecurityRequirement self)
+        public override CSMemberDeclaration VisitSecurityScheme(string key, OpenApiSecurityScheme self)
         {
             throw new NotImplementedException();
         }
 
-        public CSMemberDeclaration VisitSecurityScheme(OpenApiSecurityScheme self)
+        public override CSMemberDeclaration VisitServer(OpenApiServer self)
         {
             throw new NotImplementedException();
         }
 
-        public CSMemberDeclaration VisitSecurityScheme(string key, OpenApiSecurityScheme self)
+        public override CSMemberDeclaration VisitTag(OpenApiTag self)
         {
             throw new NotImplementedException();
         }
 
-        public CSMemberDeclaration VisitServer(OpenApiServer self)
+        public override CSMemberDeclaration VisitEnumPrimitive(IOpenApiPrimitive self)
         {
             throw new NotImplementedException();
         }
 
-        public CSMemberDeclaration VisitTag(OpenApiTag self)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        private DeclarationBloc _tree = new DeclarationBloc();
-        private OpenApiDocument _self;
-        private readonly CSharpArtifact _cs;
-        private readonly CSNamespace _ns;
 
     }
 

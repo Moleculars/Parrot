@@ -10,10 +10,23 @@
     <Compile Remove="Embedded\Program.cs" />
     <Compile Remove="Embedded\ServiceProcessor.cs" />
     <Compile Remove="Embedded\Setup.cs" />
+    <Compile Remove="Embedded\SwaggerExtension.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Embedded\log4net.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Embedded\log4net.config" CopyToOutputDirectory="PreserveNewest">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
     <Content Include="Embedded\Program.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Embedded\SwaggerExtension.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Embedded\ServiceProcessor.cs">
@@ -25,24 +38,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Black.Beard.Roslyn" Version="1.0.36" />
+    <PackageReference Include="Microsoft.OpenApi" Version="1.6.4" />
+    <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Clones\Black.Beard.Roslyn\Src\Black.Beard.Build.Models\Black.Beard.Projects.Models.csproj" />
-    <ProjectReference Include="..\..\..\Clones\Black.Beard.Roslyn\Src\Black.Beard.Roslyn\Black.Beard.Roslyn.csproj" />
+    <ProjectReference Include="..\..\..\Clones\jslt\src\Black.Beard.Jslt\Black.Beard.Jslt.csproj" />
     <ProjectReference Include="..\Black.Beard.OpenApi\Black.Beard.OpenApi.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
