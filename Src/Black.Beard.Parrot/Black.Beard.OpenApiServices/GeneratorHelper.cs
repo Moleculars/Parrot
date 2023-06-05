@@ -1,7 +1,7 @@
 ﻿using Bb.Codings;
 using Microsoft.OpenApi.Models;
 
-namespace Black.Beard.OpenApiServices
+namespace Bb.OpenApiServices
 {
 
     public static class GeneratorHelper
@@ -15,6 +15,8 @@ namespace Black.Beard.OpenApiServices
                 case "100": return "StatusCodes.Status100Continue";
                 case "101": return "StatusCodes.Status101SwitchingProtocols";
                 case "102": return "StatusCodes.Status102Processing";
+
+        //  Ok
                 case "200": return "StatusCodes.Status200OK";
                 case "201": return "StatusCodes.Status201Created";
                 case "202": return "StatusCodes.Status202Accepted";
@@ -25,6 +27,8 @@ namespace Black.Beard.OpenApiServices
                 case "207": return "StatusCodes.Status207MultiStatus";
                 case "208": return "StatusCodes.Status208AlreadyReported";
                 case "226": return "StatusCodes.Status226IMUsed";
+
+        // 
                 case "300": return "StatusCodes.Status300MultipleChoices";
                 case "301": return "StatusCodes.Status301MovedPermanently";
                 case "302": return "StatusCodes.Status302Found";
@@ -34,6 +38,8 @@ namespace Black.Beard.OpenApiServices
                 case "306": return "StatusCodes.Status306SwitchProxy";                      // RFC 2616, removed
                 case "307": return "StatusCodes.Status307TemporaryRedirect";
                 case "308": return "StatusCodes.Status308PermanentRedirect";
+        
+        // request Error
                 case "400": return "StatusCodes.Status400BadRequest";
                 case "401": return "StatusCodes.Status401Unauthorized";
                 case "402": return "StatusCodes.Status402PaymentRequired";
@@ -66,6 +72,8 @@ namespace Black.Beard.OpenApiServices
                 case "429": return "StatusCodes.Status429TooManyRequests";
                 case "431": return "StatusCodes.Status431RequestHeaderFieldsTooLarge";
                 case "451": return "StatusCodes.Status451UnavailableForLegalReasons";
+
+        // Internals Error
                 case "500": return "StatusCodes.Status500InternalServerError";
                 case "501": return "StatusCodes.Status501NotImplemented";
                 case "502": return "StatusCodes.Status502BadGateway";

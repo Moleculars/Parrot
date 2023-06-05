@@ -4,6 +4,9 @@ using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Bb.Process;
+using Bb.ParrotServices.Services;
+using System.Diagnostics.Contracts;
 
 internal class Program
 {
@@ -27,9 +30,12 @@ internal class Program
             s =>
             {
 
+                s.Services.Add(ServiceDescriptor.Singleton(typeof(ProcessCommandService), typeof(ProcessCommandService)));
+                s.Services.Add(ServiceDescriptor.Singleton(typeof(ProjectBuilderProvider), typeof(ProjectBuilderProvider)));
+
                 s.Logging.AddLog4Net();
                 //s.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
-                //s.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+                //s.Configuration.AddJsoProjectBuildernFile("appsettings.json", optional: true, reloadOnChange: false);
                 s.Configuration.AddEnvironmentVariables();
 
                 // OpenAPI
@@ -37,22 +43,18 @@ internal class Program
                 {
                     c.DescribeAllParametersInCamelCase();
                     c.IgnoreObsoleteActions();
-                    //c.DocInclusionPredicate((f, a) =>
-                    //{
-                    //    return a.ActionDescriptor is ControllerActionDescriptor b && b.MethodInfo.GetCustomAttributes<ExternalApiRouteAttribute>().Any();
-                    //});
+                    //c.DocInclusionPredicate((f, a) => { return a.ActionDescriptor is ControllerActionDescriptor b && b.MethodInfo.GetCustomAttributes<ExternalApiRouteAttribute>().Any(); });
 
                     c.SwaggerDoc("v1", new OpenApiInfo
                     {
                         Title = "Parrot APIs",
                         Version = "v1",
-                        Description = "A set of REST APIs used by Parrot for manage mock service generator",
+                        Description = "A set of REST APIs used by Parrot for manage service generator",
                         License = new OpenApiLicense() { Name = "Only usable with a valid PU partner contract." },
                     });
+
                     c.IncludeXmlComments(() => SwaggerExtension.LoadXmlFiles());
-
                     c.AddSecurityDefinition("key", new OpenApiSecurityScheme { Scheme = "ApiKey", In = ParameterLocation.Header });
-
                     c.TagActionsBy(a => new List<string> { a.ActionDescriptor is ControllerActionDescriptor b ? b.ControllerTypeInfo.Assembly.FullName.Split('.')[2].Split(',')[0].Replace("Web", "") : a.ActionDescriptor.DisplayName });
 
                 });
@@ -63,6 +65,9 @@ internal class Program
             .Configure()
             .Configure(c =>
             {
+
+                var projectBuilder = (ProjectBuilderProvider)c.Services.GetService(typeof(ProjectBuilderProvider));
+                projectBuilder.Initialize(Directory.GetCurrentDirectory());
 
             })
             .Run()

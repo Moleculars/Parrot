@@ -59,7 +59,7 @@ internal class Program
                     c.TagActionsBy(a =>
                     {
 
-                        var result = new List<string> { "mock", "{{title}}" };
+                        var result = new List<string> { "{{title}}" };
 
                         string? c;
                         var b = a.ActionDescriptor as ControllerActionDescriptor;

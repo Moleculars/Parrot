@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace Black.Beard.ParrotServices.Exceptions
+namespace Bb.ParrotServices.Exceptions
 {
     [Serializable]
     public class MockHttpException : ParrotException

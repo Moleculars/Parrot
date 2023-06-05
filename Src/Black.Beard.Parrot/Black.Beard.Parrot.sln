@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Black.Beard.Jslt", "..\..\C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Black.Beard.Process", "..\..\Clones\Black.Beard.Roslyn\Src\Black.Beard.Process\Black.Beard.Process.csproj", "{B1FABBBC-A082-4122-A0DE-5952ECF7E236}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Black.Beard.Roslyn", "..\..\Clones\Black.Beard.Roslyn\Src\Black.Beard.Roslyn\Black.Beard.Roslyn.csproj", "{DF8A88B5-EE6A-488F-B56E-8D8B9BC8D676}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{B1FABBBC-A082-4122-A0DE-5952ECF7E236}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1FABBBC-A082-4122-A0DE-5952ECF7E236}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1FABBBC-A082-4122-A0DE-5952ECF7E236}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF8A88B5-EE6A-488F-B56E-8D8B9BC8D676}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF8A88B5-EE6A-488F-B56E-8D8B9BC8D676}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF8A88B5-EE6A-488F-B56E-8D8B9BC8D676}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF8A88B5-EE6A-488F-B56E-8D8B9BC8D676}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

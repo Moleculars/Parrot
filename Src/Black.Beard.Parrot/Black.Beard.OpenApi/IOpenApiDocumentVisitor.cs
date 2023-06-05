@@ -41,6 +41,7 @@ namespace Bb.OpenApi
         T VisitOperation(string key, OpenApiOperation self);
 
         T VisitParameter(OpenApiParameter self);
+
         T VisitEnumPrimitive(IOpenApiPrimitive self);
     }
 

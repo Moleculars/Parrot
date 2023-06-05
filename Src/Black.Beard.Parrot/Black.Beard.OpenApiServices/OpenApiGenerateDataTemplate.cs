@@ -11,11 +11,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Xml.Schema;
 
-namespace Black.Beard.OpenApiServices
+namespace Bb.OpenApiServices
 {
 
     public class OpenApiGenerateDataTemplate : OpenApiGeneratorJsltBase
     {
+        private bool error;
 
         public OpenApiGenerateDataTemplate()
         {
@@ -46,43 +47,23 @@ namespace Black.Beard.OpenApiServices
         public override JsltBase VisitOperation(string key, OpenApiOperation self)
         {
 
-            foreach (var item in ResolveResponseSchemas(self))
+            foreach (var item in ResolveResponseSchemas(self, "2"))
             {
+                GenerateTemplate(self, item, string.Empty);
+            }
 
-                string name = ResolveName(item);
-                var templateName = $"template_{name}_jslt.json";
-                var content = item.Accept(this);
+            foreach (var item in ResolveResponseSchemas(self, "4"))
+            {
+                GenerateTemplate(self, item, "400");
+            }
 
-                _ctx.AppendDocument("Templates", templateName, content.ToString());
-
+            foreach (var item in ResolveResponseSchemas(self, "5"))
+            {
+                GenerateTemplate(self, item, "500");
             }
 
             return null;
 
-        }
-
-        private static string ResolveName(OpenApiSchema item)
-        {
-            string name = "";
-            var reference = item.Reference;
-            if (reference != null && reference.Id != null)
-                name = reference.Id;
-            else
-            {
-                var o = item.Items;
-                if (o != null)
-                {
-                    reference = o.Reference;
-                    if (reference != null && reference.Id != null)
-                        name = reference.Id;
-                }
-                else
-                {
-
-                }
-            }
-
-            return name;
         }
 
         public override JsltBase VisitSchema(OpenApiSchema self)
@@ -157,68 +138,98 @@ namespace Black.Beard.OpenApiServices
             else
             {
 
-                var required = this._code.CurrentBlock.Datas.GetData<bool>("required");
+                // var required = this._code.CurrentBlock.Datas.GetData<bool>("required");
 
                 var type = self.ResolveType();
 
+                JsltBase result = null;
+                
                 switch (self?.Format?.ToLower() ?? string.Empty)
                 {
                     case "int32":
-                        return new JsltFunctionCall("getrandom_integer"
+                        result = new JsltFunctionCall("getrandom_integer"
                             , new JsltConstant(self.Minimum), new JsltConstant(self.ExclusiveMinimum), new JsltConstant(self.Maximum), new JsltConstant(self.ExclusiveMaximum)
                         );
+                        break;
+
                     case "date-time":
-                        return new JsltFunctionCall("getrandom_datatime");
+                        result = new JsltFunctionCall("getrandom_datatime");
+                        break;
+
                     case "email":
-                        return new JsltFunctionCall("getrandom_email");
+                        result = new JsltFunctionCall("getrandom_email");
+                        break;
+
                     case "hostname":
-                        return new JsltFunctionCall("getrandom_hostname");
+                        result = new JsltFunctionCall("getrandom_hostname");
+                        break;
+
                     case "ipv4":
-                        return new JsltFunctionCall("getrandom_ipv4");
+                        result = new JsltFunctionCall("getrandom_ipv4");
+                        break;
+
                     case "ipv6":
-                        return new JsltFunctionCall("getrandom_ipv6");
+                        result = new JsltFunctionCall("getrandom_ipv6");
+                        break;
+
                     case "uri":
-                        return new JsltFunctionCall("getrandom_uri");
+                        result = new JsltFunctionCall("getrandom_uri");
+                        break;
+
                     case "binary":
-                        return new JsltFunctionCall("getrandom_binary", new JsltConstant(self.MinLength), new JsltConstant(self.MaxLength));
+                        result = new JsltFunctionCall("getrandom_binary", new JsltConstant(self.MinLength), new JsltConstant(self.MaxLength));
+                        break;
+
                     case "password":
-                        return new JsltFunctionCall("getrandom_password", new JsltConstant(self.MinLength), new JsltConstant(self.MaxLength));
+                        result = new JsltFunctionCall("getrandom_password", new JsltConstant(self.MinLength), new JsltConstant(self.MaxLength));
+                        break;
+
                     case "uuid":
-                        return new JsltFunctionCall("uuid");
+                        result = new JsltFunctionCall("uuid");
+                        break;
+
 
                     case "":
                         switch (type.ToLower())
                         {
                             case "string":
-                                return new JsltFunctionCall("getrandom_string"
-                                    , new JsltConstant(self.MinLength), new JsltConstant(self.MaxLength)
-                                    , new JsltConstant(self.Pattern)
+                                result = new JsltFunctionCall("getrandom_string"
+                                       , new JsltConstant(self.MinLength), new JsltConstant(self.MaxLength)
+                                       , new JsltConstant(self.Pattern)
                                 );
+                                break;
+
                             case "int32":
-                                return new JsltFunctionCall("getrandom_integer"
-                                    , new JsltConstant(self.Minimum), new JsltConstant(self.Maximum)
-                                    , new JsltConstant(self.ExclusiveMinimum), new JsltConstant(self.ExclusiveMaximum)
+                                result = new JsltFunctionCall("getrandom_integer"
+                                       , new JsltConstant(self.Minimum), new JsltConstant(self.Maximum)
+                                       , new JsltConstant(self.ExclusiveMinimum), new JsltConstant(self.ExclusiveMaximum)
                                 );
+                                break;
 
                             case "boolean":
-                                return new JsltFunctionCall("getrandom_boolean");
+                                result = new JsltFunctionCall("getrandom_boolean");
+                                break;
 
                             default:
-                                return new JsltFunctionCall("getrandom_" + type
-                                    , new JsltConstant(self.MinLength)
-                                    , new JsltConstant(self.MaxLength)
-                                    , new JsltConstant(self.Pattern)
-                                    , new JsltConstant(self.Minimum)
-                                    , new JsltConstant(self.Maximum)
-                                    , new JsltConstant(self.ExclusiveMinimum)
-                                    , new JsltConstant(self.ExclusiveMaximum)
+                                result = new JsltFunctionCall("getrandom_" + type
+                                       , new JsltConstant(self.MinLength)
+                                       , new JsltConstant(self.MaxLength)
+                                       , new JsltConstant(self.Pattern)
+                                       , new JsltConstant(self.Minimum)
+                                       , new JsltConstant(self.Maximum)
+                                       , new JsltConstant(self.ExclusiveMinimum)
+                                       , new JsltConstant(self.ExclusiveMaximum)
                                 );
+                                break;
                         }
-
+                        break;
 
                     default:
                         break;
                 }
+
+                if (result != null)
+                    return result;
 
             }
 
@@ -296,14 +307,14 @@ namespace Black.Beard.OpenApiServices
             throw new NotImplementedException();
         }
 
-        private IEnumerable<OpenApiSchema> ResolveResponseSchemas(OpenApiOperation self)
+        private IEnumerable<OpenApiSchema> ResolveResponseSchemas(OpenApiOperation self, string code)
         {
 
             string result = null;
 
             List<KeyValuePair<string, OpenApiSchema>> _resultTypes = new List<KeyValuePair<string, OpenApiSchema>>();
             foreach (var item2 in self.Responses)
-                if (item2.Key.StartsWith("2"))
+                if (item2.Key.StartsWith(code))
                 {
                     var t2 = item2.Value.Content.FirstOrDefault().Value;
                     if (t2 != null)
@@ -318,6 +329,44 @@ namespace Black.Beard.OpenApiServices
             var item3 = _resultTypes.OrderBy(c => c.Key).Select(c => c.Value);
 
             return item3;
+
+        }
+
+        private static string ResolveName(OpenApiSchema item)
+        {
+            string name = "";
+            var reference = item.Reference;
+            if (reference != null && reference.Id != null)
+                name = reference.Id;
+            else
+            {
+                var o = item.Items;
+                if (o != null)
+                {
+                    reference = o.Reference;
+                    if (reference != null && reference.Id != null)
+                        name = reference.Id;
+                }
+                else
+                {
+
+                }
+            }
+
+            return name;
+        }
+
+        private void GenerateTemplate(OpenApiOperation self, OpenApiSchema item, string code)
+        {
+
+            this.error = code != "2";
+
+            string name = ResolveName(item);
+            var templateName = $"template_{name}_jslt.json";
+            var content = item.Accept(this);
+
+            var target = _ctx.AppendDocument("Templates", templateName, content.ToString());
+            _ctx.GetDataFor(self).SetData("templateName" + code, target);
 
         }
 

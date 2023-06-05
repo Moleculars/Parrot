@@ -1,7 +1,9 @@
 ﻿using Bb;
+using Bb.Codings;
+using System.Runtime.Remoting;
 using System.Text;
 
-namespace Black.Beard.OpenApiServices
+namespace Bb.OpenApiServices
 {
     public class ContextGenerator
     {
@@ -9,11 +11,11 @@ namespace Black.Beard.OpenApiServices
         public ContextGenerator(string path)
         {
             this.TargetPath = path;
-            this.Datas = new Dictionary<object, object>();
+            this._datas = new Dictionary<object, Data>();
             this._files = new HashSet<string>();
         }
 
-
+        #region Append documents
 
         /// <summary>
         /// create a new document on filesystem with specified content
@@ -96,6 +98,15 @@ namespace Black.Beard.OpenApiServices
 
         }
 
+        public string GetRelativePath(string path)
+        {
+            Uri path1 = new Uri(Path.Combine(this.TargetPath, "."));
+            Uri path2 = new Uri(path);
+            Uri diff = path1.MakeRelativeUri(path2);
+            return diff.ToString();
+        }
+
+
         /// <summary>
         /// Computes the full path for the target file.
         /// </summary>
@@ -115,13 +126,28 @@ namespace Black.Beard.OpenApiServices
 
         }
 
+        #endregion Append documents
+
         public string TargetPath { get; }
 
-        public Dictionary<object, object> Datas { get; }
+        public Data GetDataFor(object key)
+        {
 
-        public IEnumerable<string> Files => _files; 
+            if (!_datas.TryGetValue(key, out var data))
+                _datas.Add(key, data = new Data());
+
+            return data;
+
+        }
+
+        private Dictionary<object, Data> _datas;
+
+        public IEnumerable<string> Files => _files;
 
         private HashSet<string> _files;
+
     }
+
+
 
 }

@@ -5,9 +5,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System;
 
+#pragma warning disable CS1591
+
 namespace Bb.ParrotServices
 {
-
 
     public class Setup
     {

@@ -10,7 +10,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Timers;
 using System.Xml.Linq;
 
-namespace Black.Beard.OpenApiServices
+namespace Bb.OpenApiServices
 {
 
 
@@ -19,7 +19,7 @@ namespace Black.Beard.OpenApiServices
 
 
         internal OpenApiGenerateModel(string artifactName, string @namespace)
-            : base(artifactName, @namespace, 
+            : base(artifactName, @namespace,
                   "Newtonsoft.Json",
                   "System",
                   "System.Collections.Generic",
@@ -39,13 +39,13 @@ namespace Black.Beard.OpenApiServices
         public override CSMemberDeclaration VisitComponents(OpenApiComponents self)
         {
 
-          
+
             foreach (var item in self.Schemas)
             {
 
                 var cs = CreateArtifact(item.Key);
                 var ns = CreateNamespace(cs);
-                ns.DisableWarning("CS8618");
+                ns.DisableWarning("CS8618", "CS1591");
 
                 CSMemberDeclaration member = null;
 
@@ -99,15 +99,20 @@ namespace Black.Beard.OpenApiServices
                     this._datas.SetData("class_key", key);
                     foreach (var item in self.Properties)
                     {
+
+                        var isRequired = self.Required?.Contains(item.Key) != null;
                         var property = item.Value.Accept("property", item.Key, this);
+
                         if (property != null)
                         {
 
-                            if (self.Required?.Contains(item.Key) != null)
+                            if (isRequired)
                                 property.Attribute(typeof(RequiredAttribute));
 
                             cls2.Add(property);
                         }
+
+
                     }
                     return cls2;
 
@@ -181,7 +186,7 @@ namespace Black.Beard.OpenApiServices
             ;
 
             return result;
-        
+
         }
 
         public CSMemberDeclaration VisitJsonSchemaProperty(string propertyName, OpenApiSchema self)
@@ -246,38 +251,25 @@ namespace Black.Beard.OpenApiServices
 
 
                 if (self.MinLength.HasValue && self.MinLength > 0)
-                {
-                    Stop();
-
                     property.Attribute(typeof(MinLengthAttribute), a =>
                     {
                         a.Argument(self.MinLength.Value.Literal())
                         ;
                     });
-                }
 
                 if (self.MaxLength.HasValue && self.MaxLength > 0)
-                {
-                    Stop();
                     property.Attribute(typeof(MaxLengthAttribute), a =>
                     {
                         a.Argument(self.MaxLength.Value.Literal())
                         ;
                     });
-                }
 
                 if (!string.IsNullOrEmpty(self.Pattern))
-                {
-
                     property.Attribute(typeof(RegularExpressionAttribute), a =>
                     {
                         a.Argument(self.Pattern.Literal())
                         ;
                     });
-
-                    // Stop();
-
-                }
 
 
                 if (self.Minimum.HasValue && self.Minimum > 0)

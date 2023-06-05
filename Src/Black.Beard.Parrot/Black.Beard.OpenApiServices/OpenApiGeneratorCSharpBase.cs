@@ -5,7 +5,7 @@ using Microsoft.OpenApi.Models;
 using System.Net;
 using System.Xml.Linq;
 
-namespace Black.Beard.OpenApiServices
+namespace Bb.OpenApiServices
 {
 
     public abstract class OpenApiGeneratorCSharpBase : IOpenApiDocumentVisitor<CSMemberDeclaration>

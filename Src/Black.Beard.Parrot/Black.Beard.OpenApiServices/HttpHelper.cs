@@ -1,7 +1,29 @@
-﻿namespace Black.Beard.OpenApiServices
+﻿using System.Text;
+
+namespace Bb.OpenApiServices
 {
-    public static class HttpPortHelper
+
+    public static class HttpHelper
     {
+
+
+        public static Uri GetLocalUri(bool securised, int port = 0)
+        {
+            var uri = new UriBuilder();
+            uri.Scheme = securised ? "https" : "http";
+            uri.Host = "localhost";
+            uri.Port = port;
+            return uri.Uri;
+        }
+
+        public static Uri GetUri(bool securised, string host, int port = 0)
+        {
+            var uri = new UriBuilder();
+            uri.Scheme = securised ? "https" : "http";
+            uri.Host = host;
+            uri.Port = port;
+            return uri.Uri;
+        }
 
         public static int GetAvailablePort(int startingPort)
         {
@@ -35,7 +57,7 @@
 
             return 0;
         }
-                
+
     }
 
 

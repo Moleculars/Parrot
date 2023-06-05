@@ -4,11 +4,13 @@ using System.Text;
 using Oldtonsoft.Json;
 using Oldtonsoft.Json.Linq;
 
+#pragma warning disable CS0162
+#pragma warning disable CS1591
 
 namespace Bb.ParrotServices
 {
 
-    public class ServiceProcessor<TTarget>
+    public class ServiceProcessor<TResult>
     {
 
         public ServiceProcessor()
@@ -17,10 +19,10 @@ namespace Bb.ParrotServices
             this._sources = new Dictionary<string, JToken>();
         }
 
-        public TTarget? GetDatas(string templateFile, string datas)
+        public TResult GetDatas(string templateFile, bool withDebug = false)
         {
 
-            TTarget? result = default;
+            TResult result = default;
 
             // Intialization of the configuration
             var configuration = new TranformJsonAstConfiguration()
@@ -28,28 +30,26 @@ namespace Bb.ParrotServices
                 OutputPath = Environment.CurrentDirectory,
             };
 
-
             TemplateTransformProvider Templateprovider = new TemplateTransformProvider(configuration);
-
 
             //Build the template translator
             var sbPayloadTemplate = new StringBuilder(templateFile.LoadFromFile());
-            JsltTemplate template = Templateprovider.GetTemplate(sbPayloadTemplate, false, "name of the template file");
+            JsltTemplate template = Templateprovider.GetTemplate(sbPayloadTemplate, withDebug, "name of the template file");
 
 
             // load mocked datas from file source
             // Create the sources object with the primary source of data and datas argument of the service
-            var source = SourceJson.GetFromFile(datas);
+            //var source = SourceJson.GetFromFile(datas);
+            var source = SourceJson.GetEmpty();
             var src = new Sources(source);
             src.Variables.Add(this._sources);
-
 
 
             try
             {
                 RuntimeContext ctx = template.Transform(src);
                 var payload = ctx.TokenResult;
-                result = payload.ToObject<TTarget>(_serializer);
+                result = payload.ToObject<TResult>(_serializer);
             }
             catch (Exception)
             {

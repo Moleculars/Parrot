@@ -5,7 +5,7 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using System.Reflection.Emit;
 
-namespace Black.Beard.OpenApiServices
+namespace Bb.OpenApiServices
 {
 
     public abstract class OpenApiGeneratorJsltBase : IOpenApiDocumentVisitor<JsltBase>

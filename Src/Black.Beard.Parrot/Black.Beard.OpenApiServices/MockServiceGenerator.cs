@@ -5,58 +5,45 @@ using System.Text;
 using Bb.Json.Jslt.Asts;
 using System.Net;
 using Microsoft.OpenApi.Models;
+using System.Xml.Linq;
 
-namespace Black.Beard.OpenApiServices
+namespace Bb.OpenApiServices
 {
 
 
-    public class MockServiceGenerator
+    public class MockServiceGenerator : ServiceGenerator<MockServiceGeneratorConfig>
     {
 
-        public MockServiceGenerator(string name, string baseDirectory)
-        {
-            this._name = name;
-            var directoryName = baseDirectory ?? AppContext.BaseDirectory;
-            _dir = new DirectoryInfo(Path.Combine(directoryName, name));
-        }
-
-        public string Directory => _dir.FullName;
-
-        public MockServiceGenerator InitializeContract(string openApiDocument)
+        internal override void InitializeDatas(string openApiDocument)
         {
 
             _document = OpenApiHelper.LoadOpenApiContract(openApiDocument);
 
-            if (string.IsNullOrEmpty(Namespace))
+            if (string.IsNullOrEmpty(this.Configuration.Namespace))
             {
                 if (!string.IsNullOrEmpty(_document.Info.Title))
-                    Namespace = _document.Info.Title.ConvertToNamespace();
+                    this.Configuration.Namespace = _document.Info.Title.ConvertToNamespace();
                 else
-                    Namespace = "Bb";
+                    this.Configuration.Namespace = "Bb";
             }
 
             if (string.IsNullOrEmpty(Description))
             {
                 if (!string.IsNullOrEmpty(_document.Info.Description))
-                    Description = this._name + " " + _document.Info.Description;
+                    Description = this.Name + " " + _document.Info.Description;
                 else
                     Description = Path.GetFileNameWithoutExtension(openApiDocument);
             }
 
             _project = GenerateProject();
 
-            return this;
 
         }
 
-        public MockServiceGenerator ConfigureProject(Action<MsProject> action)
-        {
-            if (action != null)
-                action(_project);
-            return this;
-        }
 
-        public MockServiceGenerator Generate()
+        public MsProject Project => _project;
+
+        public override void Generate()
         {
 
             _project.Save();
@@ -64,22 +51,20 @@ namespace Black.Beard.OpenApiServices
             var ctx = new ContextGenerator(_project.Directory.FullName);
 
             new OpenApiGenerateDataTemplate().Parse(_document, ctx);
-            new OpenApiGenerateModel("models", this.Namespace).Parse(_document, ctx);
-            new OpenApiGenerateServices("services", this.Namespace).Parse(_document, ctx);
-
-            return this;
+            new OpenApiGenerateModel("models", this.Configuration.Namespace).Parse(_document, ctx);
+            new OpenApiGenerateServices("services", this.Configuration.Namespace).Parse(_document, ctx);
+            GenerateWatchdog.Generate(ctx, this.Configuration.Namespace);
 
         }
 
-        public string Namespace { get; set; }
 
-        public string Description { get; set; }
+        private string Description;
 
 
         private MsProject GenerateProject()
         {
 
-            var project = new MsProject(_name, _dir)
+            var project = new MsProject(Name, _dir)
                 .Sdk(ProjectSdk.MicrosoftNETSdkWeb)
                 .SetPropertyGroup(c =>
                 {
@@ -93,7 +78,7 @@ namespace Black.Beard.OpenApiServices
                 })
                 .Packages(p =>
                 {
-                    p.PackageReference("Black.Beard.Jslt", "1.0.190")
+                    p.PackageReference("Black.Beard.Jslt", "1.0.206")
                      .PackageReference("Black.Beard.Helpers.ContentLoaders", "2.0.1")
                      .PackageReference("Black.Beard.Helpers.ContentLoaders.Files", "2.0.1")
                      .PackageReference("Black.Beard.Helpers.ContentLoaders.Newtonsoft", "2.0.1")
@@ -107,7 +92,7 @@ namespace Black.Beard.OpenApiServices
                      .PackageReference("Microsoft.OpenApi", "1.6.4")
                      .PackageReference("Microsoft.VisualStudio.Azure.Containers.Tools.Targets", "1.18.1")
                      //.PackageReference("Newtonsoft.Json", "13.0.1")
-                     .PackageReference("Swashbuckle.AspNetCore", "6.5.0")                     
+                     .PackageReference("Swashbuckle.AspNetCore", "6.5.0")
                     ;
                 });
 
@@ -145,8 +130,6 @@ namespace Black.Beard.OpenApiServices
 
         }
 
-        private readonly DirectoryInfo _dir;
-        private readonly string _name;
         private MsProject _project;
         private OpenApiDocument _document;
     }

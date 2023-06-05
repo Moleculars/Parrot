@@ -1,6 +1,7 @@
 using Bb.Process;
-using Black.Beard.OpenApiServices;
+using Bb.OpenApiServices;
 using System.Diagnostics;
+using Bb.OpenApiServices;
 
 namespace UnitTests
 {
@@ -21,15 +22,13 @@ namespace UnitTests
 
             var name = "Black.Beard.Mock";
             var @namespace = "Bb.Mock";
-            var generator = new MockServiceGenerator(name, this._baseDirectory.FullName)
-            {
-                Namespace = @namespace
-            }
-            .InitializeContract(_file)
-            .ConfigureProject(prj =>
-            {
+            var generator = new MockServiceGenerator();
 
-            })
+            generator.Configuration = new MockServiceGeneratorConfig() { Namespace = @namespace};
+
+            generator
+            .Initialize(name, this._baseDirectory.FullName)
+            .InitializeDataSources(_file)
             .Generate()
             ;
 
@@ -38,7 +37,7 @@ namespace UnitTests
 
             using (var cmd = new ProcessCommand()
                      .Command($"dotnet.exe" , $"build \"{dir}\" -c release /p:Version=1.0.0.0")
-                     .OutputOnTraces()
+                     //.OutputOnTraces()
                      .Run())
             {
                 cmd.Wait();
