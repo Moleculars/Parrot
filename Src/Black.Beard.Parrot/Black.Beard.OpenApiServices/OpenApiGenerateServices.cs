@@ -114,7 +114,7 @@ namespace Bb.OpenApiServices
                         if (name != null)
                         {
                             var p = new CsParameterDeclaration("queryBody", name);
-                            p.Attribute("FromQuery");
+                            p.Attribute("FromBody");
                             var description = item2.Value.Schema.ResolveDescription();
                             if (!string.IsNullOrEmpty(description))
                                 method.Documentation.Parameter(name, () => description);
@@ -134,6 +134,26 @@ namespace Bb.OpenApiServices
                     item2.Value.Accept(item2.Key, this);
 
                 typeReturn = ResolveReturnType(self, method, "2");
+
+                // Attribute ProduceResponse
+                foreach (var item2 in self.Responses)
+                {
+
+                    var t2 = item2.Value.Content.FirstOrDefault().Value;
+                    if (t2 != null)
+                    {
+                        OpenApiSchema t = t2.Schema;
+                        var v = t.ResolveType();
+                        if (v != null)
+                        {
+                            method.Attribute("ProducesResponseType", a =>
+                            {
+                                a.Argument(GeneratorHelper.CodeHttp(item2.Key));
+                                a.Argument("Type", CodeHelper.TypeOf(v));
+                            });
+                        }
+                    }
+                }
 
             }
 
@@ -207,6 +227,8 @@ namespace Bb.OpenApiServices
 
             List<KeyValuePair<string, OpenApiSchema>> _resultTypes = new List<KeyValuePair<string, OpenApiSchema>>();
             foreach (var item2 in self.Responses)
+            {
+
                 if (item2.Key.StartsWith(code))
                 {
                     var t2 = item2.Value.Content.FirstOrDefault().Value;
@@ -219,6 +241,7 @@ namespace Bb.OpenApiServices
                     }
                 }
 
+            }
 
             var item3 = _resultTypes.OrderBy(c => c.Key).FirstOrDefault().Value;
             if (item3 != null)
@@ -226,16 +249,17 @@ namespace Bb.OpenApiServices
 
                 result = item3.ResolveType();
 
+                var typeReturn = CodeHelper.BuildTypename("ActionResult", result).ToString();
+                method.ReturnType(typeReturn);
+
                 if (code == "2")
                 {
-                    var typeReturn = CodeHelper.BuildTypename("ActionResult", result).ToString();
-                    method.ReturnType(typeReturn);
-
                     if (item3.IsJson())
                         _tree.Current.Attribute("Produces")
                             .Argument("application/json".Literal());
                 }
             }
+
 
 
             return result;

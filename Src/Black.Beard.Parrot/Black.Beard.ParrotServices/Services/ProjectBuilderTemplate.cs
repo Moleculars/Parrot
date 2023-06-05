@@ -3,6 +3,7 @@ using Bb.OpenApiServices;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using Bb.Projects.Properties;
+using Bb.Services;
 
 namespace Bb.ParrotServices.Services
 {
@@ -151,12 +152,7 @@ namespace Bb.ParrotServices.Services
 
             using (var cmd = new ProcessCommand()
                      .Command($"dotnet.exe", $"build \"{projectFile.FullName}\" -c release /p:Version=1.0.0.0")
-                     //.Output(c =>
-                     //{
-
-                     //    Trace.WriteLine(c.Datas);
-
-                     //})
+                     .Intercept(Intercept)
                      .Run())
             {
                 cmd.Wait();
@@ -164,69 +160,82 @@ namespace Bb.ParrotServices.Services
 
         }
 
+        private void Intercept(object sender, TaskEventArgs args)
+        {
+
+            var logger = this._rootParent._host._logger;
+
+            switch (args.Status)
+            {
+
+                case TaskEventEnum.Started:
+                    logger.LogTrace("Started");
+                    break;
+
+                case TaskEventEnum.ErrorReceived:
+                    logger.LogError(args.DateReceived.Data);
+                    break;
+
+                case TaskEventEnum.DataReceived:
+                    logger.LogInformation(args.DateReceived.Data);
+                    break;
+
+                case TaskEventEnum.Completed:
+                    logger.LogTrace("Completed");
+                    var instance = args.Process.Tag as ServiceReferentialInstance;
+                    _rootParent._referential.Remove(instance);
+                    break;
+
+                case TaskEventEnum.CompletedWithException:
+                    logger.LogError("Completed with exception");
+                    break;
+
+                default:
+                    break;
+
+            }
+
+        }
+
         /// <summary>
         /// Run the contract
         /// </summary>
-        public Uri[] Run(int currentPort)
+        public int[] Run(int currentPort)
         {
 
             var projectFile = GetFileProject();
 
-            #region lauchsettings
 
             var port1 = HttpHelper.GetAvailablePort(currentPort);
-            var port2 = HttpHelper.GetAvailablePort(port1 + 1);
+            var port2 = HttpHelper.GetAvailablePort(HttpHelper.GetAvailablePort(port1 + 1));
             var uri1 = HttpHelper.GetLocalUri(false, port1);
             var uri2 = HttpHelper.GetLocalUri(true, port2);
-
-            var content = LaunchSettingsBuilder.New(c =>
-            {
-                c.Profiles("mock", d =>
-                {
-                    d.CommandName("Project")
-                    .LaunchBrowser(true)
-                    .EnvironmentVariables(e =>
-                    {
-                        e.Add("ASPNETCORE_ENVIRONMENT", "Development");
-                    })
-                    .ApplicationUrl(uri1, uri2)
-                    ;
-                });
-            }).ToString();
-
-            var appsettingFilename = Path.Combine(projectFile.Directory.FullName, "Properties", "appsettings.json");
-            appsettingFilename.Save(content);
-
-            #endregion lauchsettings
+            string urls = "\"" + uri1.ToString().Trim('/') + ";" +  uri2.ToString().Trim('/') + "\"";
 
 
-            var pa = new Uri(Environment.CurrentDirectory).MakeRelativeUri(new Uri(projectFile.FullName));
+            var workingDirectory = projectFile.Directory.FullName;
 
             Guid id = Guid.NewGuid();
 
+            var instance = _rootParent._referential.Get(this._parent.Contract, this.Template, id, uri1, uri2);
+           
             this._rootParent._host
-                .Intercept((sender, args) =>
-                {
-                    if (args.Status == TaskEventEnum.ErrorReceived)
-                    {
-                        Trace.WriteLine(args.DateReceived.Data);
-                    }
-                })               
+                .Intercept(Intercept)               
                 .Run(id, c =>
-                {
-                    
+                {                    
                     c.Command($"dotnet.exe")
-                     .Arguments($"run --project \"{pa.ToString()}\" -c release -p:Version=1.0.0.0")
+                     .SetWorkingDirectory(workingDirectory)
+                     .Arguments($"run \"{projectFile.Name}\" --urls {urls}") // -c Development 
                      ;
-
-                })
+                }, instance)
                 .Wait(s =>
                 {
                     
 
                 });
-          
-            return new Uri[] { uri1, uri2 };
+
+
+            return new int[] { port1, port2 };
         }
 
         private FileInfo GetFileProject()

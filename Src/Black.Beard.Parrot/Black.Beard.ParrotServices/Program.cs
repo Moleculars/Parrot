@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Bb.Process;
 using Bb.ParrotServices.Services;
 using System.Diagnostics.Contracts;
+using Bb.Services;
 
 internal class Program
 {
@@ -29,9 +30,10 @@ internal class Program
             .Services(
             s =>
             {
-
-                s.Services.Add(ServiceDescriptor.Singleton(typeof(ProcessCommandService), typeof(ProcessCommandService)));
+                               
+                s.Services.Add(ServiceDescriptor.Singleton(typeof(LocalProcessCommandService), typeof(LocalProcessCommandService)));
                 s.Services.Add(ServiceDescriptor.Singleton(typeof(ProjectBuilderProvider), typeof(ProjectBuilderProvider)));
+                s.Services.Add(ServiceDescriptor.Singleton(typeof(ServiceReferential), typeof(ServiceReferential)));
 
                 s.Logging.AddLog4Net();
                 //s.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);

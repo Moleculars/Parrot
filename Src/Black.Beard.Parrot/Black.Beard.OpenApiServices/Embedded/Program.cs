@@ -60,7 +60,7 @@ internal class Program
                     {
 
                         var result = new List<string> { "{{title}}" };
-
+                        /*
                         string? c;
                         var b = a.ActionDescriptor as ControllerActionDescriptor;
                         if (b != null)
@@ -72,7 +72,7 @@ internal class Program
 
                         if (c != null)
                             result.Add(c);
-
+                        */
                         return result;
 
                     });

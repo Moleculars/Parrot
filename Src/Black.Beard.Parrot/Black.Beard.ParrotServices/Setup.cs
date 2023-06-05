@@ -75,7 +75,7 @@ namespace Bb.ParrotServices
         public Setup Configure(WebApplication app)
         {
 
-            this._app = app;
+            this._app = app;            
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

@@ -19,12 +19,12 @@ namespace Bb.ParrotServices
             this._sources = new Dictionary<string, JToken>();
         }
 
-        public TResult GetDatas(string templateFile, bool withDebug = false)
+        public TResult? GetDatas(string templateFile, bool withDebug = false)
         {
 
-            TResult result = default;
+            TResult? result = default;
 
-            // Intialization of the configuration
+            // Initialization of the configuration
             var configuration = new TranformJsonAstConfiguration()
             {
                 OutputPath = Environment.CurrentDirectory,

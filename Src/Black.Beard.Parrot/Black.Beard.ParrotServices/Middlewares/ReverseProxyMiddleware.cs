@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Bb.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Primitives;
 using System;
@@ -12,6 +13,9 @@ using System.Threading.Tasks;
 namespace Bb.ParrotServices.Middlewares
 {
 
+    // https://localhost:7033/proxy/parcel/mock
+    // https://localhost:7033/proxy/parcel/mock/swagger
+
     public class ReverseProxyMiddleware
     {
 
@@ -23,22 +27,31 @@ namespace Bb.ParrotServices.Middlewares
 
         public async Task Invoke(HttpContext context)
         {
-            var targetUri = BuildTargetUri(context.Request);
+            var path = context.Request.Path;
 
-            if (targetUri != null)
+            if (path.StartsWithSegments("/proxy"))
             {
-                var targetRequestMessage = CreateTargetMessage(context, targetUri);
 
-                using (var responseMessage = await _httpClient.SendAsync(targetRequestMessage, HttpCompletionOption.ResponseHeadersRead, context.RequestAborted))
+
+                var services = (ServiceReferential)context.RequestServices.GetService(typeof(ServiceReferential));
+                var targetUri = BuildTargetUri(context.Request, services);
+
+                if (targetUri != null)
                 {
-                    context.Response.StatusCode = (int)responseMessage.StatusCode;
+                    var targetRequestMessage = CreateTargetMessage(context, targetUri);
 
-                    CopyFromTargetResponseHeaders(context, responseMessage);
+                    using (var responseMessage = await _httpClient.SendAsync(targetRequestMessage, HttpCompletionOption.ResponseHeadersRead, context.RequestAborted))
+                    {
+                        context.Response.StatusCode = (int)responseMessage.StatusCode;
 
-                    await ProcessResponseContent(context, responseMessage);
+                        CopyFromTargetResponseHeaders(context, responseMessage);
+
+                        await ProcessResponseContent(context, responseMessage);
+                    }
+
+                    return;
                 }
 
-                return;
             }
 
             await _nextMiddleware(context);
@@ -164,8 +177,10 @@ namespace Bb.ParrotServices.Middlewares
             return new HttpMethod(method);
         }
 
-        private Uri BuildTargetUri(HttpRequest request)
+        private Uri BuildTargetUri(HttpRequest request, ServiceReferential referential)
         {
+
+            var instance = referential.TryToMatch(request.Path);
 
             Uri targetUri = null;
             PathString remainingPath;

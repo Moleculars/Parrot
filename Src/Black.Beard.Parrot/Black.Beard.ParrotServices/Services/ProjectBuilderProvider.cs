@@ -1,9 +1,12 @@
 ﻿using Bb.Process;
 using Bb.OpenApiServices;
 using Newtonsoft.Json.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Bb.Services;
 
 namespace Bb.ParrotServices.Services
 {
+
 
     public class ProjectBuilderProvider
     {
@@ -14,8 +17,9 @@ namespace Bb.ParrotServices.Services
             BuildGeneratorList();
         }
 
-        public ProjectBuilderProvider(ProcessCommandService host)
+        public ProjectBuilderProvider(LocalProcessCommandService host, ServiceReferential referential)
         {
+            _referential = referential;
             _host = host;
             this._items = new Dictionary<string, ProjectBuilderContract>();
         }
@@ -93,7 +97,8 @@ namespace Bb.ParrotServices.Services
 
         public string Root => _root;
 
-        internal readonly ProcessCommandService _host;
+        internal readonly ServiceReferential _referential;
+        internal readonly LocalProcessCommandService _host;
         private readonly Dictionary<string, ProjectBuilderContract> _items;
         private string _baseDirectory;
         private string _root;

@@ -5,6 +5,7 @@ using Bb.ParrotServices.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Text;
+using Bb.Services;
 
 namespace Bb.ParrotServices.Controllers
 {
@@ -105,8 +106,8 @@ namespace Bb.ParrotServices.Controllers
 
             if (templateObject.Exists())
             {
-                var uris = templateObject.Run(port);
-                return Ok(uris);
+                var ports = templateObject.Run(port);
+                return Ok(ports);
             }
 
             else
