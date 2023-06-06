@@ -180,33 +180,19 @@ namespace Bb.ParrotServices.Middlewares
         private Uri BuildTargetUri(HttpRequest request, ServiceReferential referential)
         {
 
-            var instance = referential.TryToMatch(request.Path);
+            // https://localhost:7033/proxy/parcel/mock/swagger
+            ServiceReferentialInstance instance = referential.TryToMatch(request.Path);
 
             Uri targetUri = null;
             PathString remainingPath;
 
-            if (request.Path.StartsWithSegments("/mock", out remainingPath))
-            {
-                targetUri = new Uri("https://docs.google.com/forms" + remainingPath);
-            }
-
-
-            if (request.Path.StartsWithSegments("/googleforms", out remainingPath))
-            {
-                targetUri = new Uri("https://docs.google.com/forms" + remainingPath);
-            }
-
-            if (request.Path.StartsWithSegments("/google", out remainingPath))
-            {
-                targetUri = new Uri("https://www.google.com" + remainingPath);
-            }
-
-            if (request.Path.StartsWithSegments("/googlestatic", out remainingPath))
-            {
-                targetUri = new Uri(" https://www.gstatic.com" + remainingPath);
-            }
+            foreach (var item in instance.Uris)
+                if (item.Value.Scheme == request.Scheme)
+                    if (request.Path.StartsWithSegments(item.Key, out remainingPath))
+                        targetUri = new Uri(item.Value, remainingPath);
 
             return targetUri;
+        
         }
 
 

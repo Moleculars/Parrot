@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using SharpYaml.Tokens;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Net;
 using System.Xml.Schema;
 

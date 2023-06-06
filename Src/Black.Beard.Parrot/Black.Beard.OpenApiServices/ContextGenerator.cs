@@ -1,10 +1,12 @@
 ﻿using Bb;
 using Bb.Codings;
+using System.Diagnostics;
 using System.Runtime.Remoting;
 using System.Text;
 
 namespace Bb.OpenApiServices
 {
+
     public class ContextGenerator
     {
 
@@ -26,6 +28,9 @@ namespace Bb.OpenApiServices
         /// <returns></returns>
         public string AppendDocument(string? path, string filename, string content)
         {
+
+            Trace.WriteLine(" -  " + Path.GetFileNameWithoutExtension(filename) + " has generated.");
+
             var file = ComputeFullPath(path, filename);
             file.Save(content);
             return file;

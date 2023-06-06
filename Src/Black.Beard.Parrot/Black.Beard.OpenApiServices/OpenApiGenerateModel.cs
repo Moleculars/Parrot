@@ -7,6 +7,7 @@ using Namotion.Reflection;
 using Newtonsoft.Json;
 using SharpYaml.Tokens;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Timers;
 using System.Xml.Linq;
 
@@ -30,6 +31,7 @@ namespace Bb.OpenApiServices
 
         public override CSMemberDeclaration VisitDocument(OpenApiDocument self)
         {
+
             self.Components.Accept(this);
             foreach (var item in self.Paths)
                 item.Value.Accept(item.Key, this);

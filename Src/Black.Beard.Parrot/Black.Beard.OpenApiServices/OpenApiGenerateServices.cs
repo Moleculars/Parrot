@@ -249,11 +249,13 @@ namespace Bb.OpenApiServices
 
                 result = item3.ResolveType();
 
-                var typeReturn = CodeHelper.BuildTypename("ActionResult", result).ToString();
-                method.ReturnType(typeReturn);
-
                 if (code == "2")
                 {
+
+                    var typeReturn = CodeHelper.BuildTypename("ActionResult", result).ToString();
+                    method.ReturnType(typeReturn);
+
+
                     if (item3.IsJson())
                         _tree.Current.Attribute("Produces")
                             .Argument("application/json".Literal());

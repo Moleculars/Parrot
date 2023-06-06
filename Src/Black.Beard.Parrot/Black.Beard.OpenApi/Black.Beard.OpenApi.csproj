@@ -23,8 +23,4 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Clones\Black.Beard.Roslyn\Src\Black.Beard.Roslyn\Black.Beard.Roslyn.csproj" />
-  </ItemGroup>
-
 </Project>

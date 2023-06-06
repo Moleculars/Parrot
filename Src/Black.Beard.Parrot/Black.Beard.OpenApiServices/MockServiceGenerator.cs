@@ -37,7 +37,6 @@ namespace Bb.OpenApiServices
 
             _project = GenerateProject();
 
-
         }
 
 
@@ -63,7 +62,7 @@ namespace Bb.OpenApiServices
 
         private MsProject GenerateProject()
         {
-
+            
             var project = new MsProject(Name, _dir)
                 .Sdk(ProjectSdk.MicrosoftNETSdkWeb)
                 .SetPropertyGroup(c =>
@@ -78,7 +77,7 @@ namespace Bb.OpenApiServices
                 })
                 .Packages(p =>
                 {
-                    p.PackageReference("Black.Beard.Jslt", "1.0.206")
+                    p.PackageReference("Black.Beard.Jslt", "1.0.212")
                      .PackageReference("Black.Beard.Helpers.ContentLoaders", "2.0.1")
                      .PackageReference("Black.Beard.Helpers.ContentLoaders.Files", "2.0.1")
                      .PackageReference("Black.Beard.Helpers.ContentLoaders.Newtonsoft", "2.0.1")

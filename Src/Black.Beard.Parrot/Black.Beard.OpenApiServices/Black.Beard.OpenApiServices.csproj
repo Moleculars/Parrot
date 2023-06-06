@@ -39,13 +39,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Black.Beard.Jslt" Version="1.0.212" />
+    <PackageReference Include="Black.Beard.Projects.Models" Version="1.0.41" />
+    <PackageReference Include="Black.Beard.Roslyn" Version="1.0.41" />
     <PackageReference Include="Microsoft.OpenApi" Version="1.6.4" />
     <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.4" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Clones\Black.Beard.Roslyn\Src\Black.Beard.Build.Models\Black.Beard.Projects.Models.csproj" />
-    <ProjectReference Include="..\..\..\Clones\jslt\src\Black.Beard.Jslt\Black.Beard.Jslt.csproj" />
     <ProjectReference Include="..\Black.Beard.OpenApi\Black.Beard.OpenApi.csproj" />
   </ItemGroup>
 

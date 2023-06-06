@@ -8,6 +8,7 @@ using Bb.Process;
 using Bb.ParrotServices.Services;
 using System.Diagnostics.Contracts;
 using Bb.Services;
+using System.Diagnostics;
 
 internal class Program
 {
@@ -34,6 +35,7 @@ internal class Program
                 s.Services.Add(ServiceDescriptor.Singleton(typeof(LocalProcessCommandService), typeof(LocalProcessCommandService)));
                 s.Services.Add(ServiceDescriptor.Singleton(typeof(ProjectBuilderProvider), typeof(ProjectBuilderProvider)));
                 s.Services.Add(ServiceDescriptor.Singleton(typeof(ServiceReferential), typeof(ServiceReferential)));
+                s.Services.Add(ServiceDescriptor.Singleton(typeof(Log4netTraceListener), typeof(Log4netTraceListener)));
 
                 s.Logging.AddLog4Net();
                 //s.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
@@ -70,6 +72,9 @@ internal class Program
 
                 var projectBuilder = (ProjectBuilderProvider)c.Services.GetService(typeof(ProjectBuilderProvider));
                 projectBuilder.Initialize(Directory.GetCurrentDirectory());
+
+                var tracelistener = (Log4netTraceListener)c.Services.GetService(typeof(Log4netTraceListener));
+                System.Diagnostics.Trace.Listeners.Add(tracelistener);
 
             })
             .Run()

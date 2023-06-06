@@ -2,6 +2,7 @@
 using Bb.OpenApi;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using System.Diagnostics;
 using System.Net;
 using System.Xml.Linq;
 
@@ -22,6 +23,9 @@ namespace Bb.OpenApiServices
 
         public void Parse(OpenApiDocument self, ContextGenerator ctx)
         {
+
+            Trace.WriteLine("Generating " + _artifactName);
+
             _self = self;
             _ctx = ctx;
             self.Accept(this);

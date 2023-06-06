@@ -5,7 +5,6 @@ using System.Collections.Generic;
 namespace Bb.Services
 {
 
-
     public class ServiceReferential
     {
 
@@ -66,115 +65,6 @@ namespace Bb.Services
 
         private readonly Dictionary<string, ServiceReferentialContract> _contracts;
         private volatile object _lock = new object();
-    }
-
-    public class ServiceReferentialContract
-    {
-
-        public ServiceReferentialContract(ServiceReferential parent, string name)
-        {
-            this.Parent = parent;
-            this.Name = name;
-            this._templates = new Dictionary<string, ServiceReferentialTemplate>();
-        }
-
-
-        public ServiceReferentialInstance TryGet(string[] route, int index)
-        {
-
-            var templateName = route[index];
-
-            if (_templates.TryGetValue(templateName, out var template))
-                return template.TryGet();
-
-            return null;
-
-        }
-
-        public ServiceReferentialTemplate Get(string template)
-        {
-
-            if (!_templates.TryGetValue(template, out var project))
-                _templates.Add(template, project = new ServiceReferentialTemplate(this, template));
-
-            return project;
-
-        }
-
-        public ServiceReferential Parent { get; }
-
-        public string Name { get; }
-
-        private readonly Dictionary<string, ServiceReferentialTemplate> _templates;
-             
-    }
-
-    public class ServiceReferentialTemplate
-    {
-
-        public ServiceReferentialTemplate(ServiceReferentialContract parent, string name)
-        {
-            this.Parent = parent;
-            this.Template = name;
-            this._instances = new Dictionary<Guid, ServiceReferentialInstance>();
-        }
-
-        public ServiceReferentialInstance TryGet()
-        {
-            return _instances.Values.FirstOrDefault();
-        }
-
-
-        public ServiceReferentialInstance Get(Guid instanceId)
-        {
-
-            if (!_instances.TryGetValue(instanceId, out var instance))
-                _instances.Add(instanceId, instance = new ServiceReferentialInstance(this, instanceId));
-
-            return instance;
-
-        }
-
-        public void Remove(ServiceReferentialInstance instance)
-        {
-
-            if (_instances.ContainsKey(instance.Id))
-                _instances.Remove(instance.Id);
-
-        }
-
-        public ServiceReferentialContract Parent { get; }
-
-        public string Template { get; }
-
-        private readonly Dictionary<Guid, ServiceReferentialInstance> _instances;
-
-    }
-
-    public class ServiceReferentialInstance
-    {
-
-        public ServiceReferentialInstance(ServiceReferentialTemplate parent, Guid id)
-        {
-            this.Parent = parent;
-            this.Id = id;
-            this.Uris = new List<Uri>();
-        }
-
-        public ServiceReferentialTemplate Parent { get; }
-
-        public Guid Id { get; }
-
-        public List<Uri> Uris { get; }
-
-        public void Register(params Uri[] uris)
-        {
-
-            foreach (var uri in uris)
-                Uris.Add(uri);
-
-        }
-
     }
 
 }
