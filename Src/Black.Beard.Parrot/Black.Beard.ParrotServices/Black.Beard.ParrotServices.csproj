@@ -13,6 +13,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Black.Beard.Jslt" Version="1.0.212" />
+		<PackageReference Include="Black.Beard.Process" Version="1.0.42" />
 		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.42" />
 		<PackageReference Include="Black.Beard.Projects.Models" Version="1.0.42" />
 		<PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
