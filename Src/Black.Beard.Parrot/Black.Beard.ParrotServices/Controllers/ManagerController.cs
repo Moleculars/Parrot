@@ -6,13 +6,14 @@ using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Text;
 using Bb.Services;
+using Bb.Models;
 
 namespace Bb.ParrotServices.Controllers
 {
 
 
     [ApiController]
-    [Route("[controller]/{contract}/{template}")]
+    [Route("[controller]/{template}")]
     public class ManagerController : ControllerBase
     {
 
@@ -30,8 +31,8 @@ namespace Bb.ParrotServices.Controllers
         /// <returns></returns>
         /// <exception cref="Bb.ParrotServices.Exceptions.BadRequestException">No file received</exception>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpPost("upload_openapi")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProjectDocument))]
+        [HttpPost("{contract}/upload")]
         [Consumes("multipart/form-data")]
         [Produces("application/json")]
         [RequestSizeLimit(100_000_000)]
@@ -59,16 +60,27 @@ namespace Bb.ParrotServices.Controllers
             templateObject.WriteOnDisk(upfile, filepath);
 
             // Generate project
-            templateObject.GenerateProject(filepath);
+            var result = templateObject.GenerateProject(filepath);
 
-            return Ok();
+            return Ok(result);
 
+        }
+
+
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ProjectDocument>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [HttpGet]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetGeneratedServicesByTemplate([FromRoute] string template)
+        {
+            var items = _builder.ListByTemplate(template);
+            return Ok(items);
         }
 
 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpGet("build")]
+        [HttpGet("{contract}/build")]
         [Consumes("multipart/form-data")]
         [Produces("application/json")]
         public async Task<IActionResult> Build([FromRoute] string contract, [FromRoute] string template)
@@ -92,7 +104,7 @@ namespace Bb.ParrotServices.Controllers
 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpGet("run")]
+        [HttpGet("{contract}/run")]
         [Consumes("multipart/form-data")]
         [Produces("application/json")]
         public async Task<IActionResult> Run([FromRoute] string contract, [FromRoute] string template)
@@ -120,9 +132,21 @@ namespace Bb.ParrotServices.Controllers
         }
 
 
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ProjectRunning>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [HttpGet("runnings")]
+        [Consumes("multipart/form-data")]
+        [Produces("application/json")]
+        public async Task<IActionResult> Runnings([FromRoute] string template)
+        {
+            var items = await _builder.ListRunningsByTemplate(template);
+            return Ok(items);
+        }
+
+
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpPost("upload_template")]
+        [HttpPost("{contract}/upload_template")]
         [Consumes("multipart/form-data")]
         [Produces("application/json")]
         public async Task<IActionResult> UploadDataTemplate([FromRoute] string contract, IFormFile file)
@@ -153,7 +177,6 @@ namespace Bb.ParrotServices.Controllers
 
         internal readonly ProjectBuilderProvider _builder;
         private readonly ILogger<ManagerController> _logger;
-
 
     }
 

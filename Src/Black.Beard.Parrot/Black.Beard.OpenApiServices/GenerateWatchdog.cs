@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Namotion.Reflection;
 using System.Xml.Linq;
 
 namespace Bb.OpenApiServices
@@ -38,6 +39,11 @@ namespace Bb.OpenApiServices
                 c.Base("Controller");
                 c.Field("_logger", "ILogger<WatchdogController>");
 
+                c.Attribute("ApiController");
+                c.Attribute("Route")
+                    .Argument("\"[controller]\"")
+                    ;
+
                 c.Ctor(ctor =>
                 {
                     ctor.Body(b =>
@@ -48,14 +54,22 @@ namespace Bb.OpenApiServices
 
                 .Method("IsUpAndRunning", "ActionResult<WatchdogResult>", m =>
                 {
-                    m.Attribute("HttpGet");
+                    m.Attribute("HttpGet", a => a.Argument("\"isupandrunning\""));
                     m.Attribute("Produces", a => a.Argument(@"application/json".Literal()));
                     m.Body(b =>
                     {
                         b.TryCatchs(t =>
                         {
-                            var argument = "WatchdogResult".AsType().NewObject();
-                            t.Return(CodeHelper.This().Call("Ok", argument));
+                            t.DeclareLocalVar("WatchdogResult".AsType(), "result", "WatchdogResult".AsType().NewObject());
+                            t.DeclareLocalVar("WatchdogResultItem".AsType(), "item", "WatchdogResultItem".AsType().NewObject());
+
+                            t.Set("item.Name".Identifier(), "current_datetime".Literal());
+                            t.Set("item.Value".Identifier(), "DateTime.UtcNow".AsType().Call("ToString", "u".Literal()));
+                            t.Add("result.Items".Identifier().Call("Add", "item".Identifier()));
+
+
+                            t.Return(CodeHelper.This().Call("Ok", "result".Identifier()));
+
                         }, "Exception".AsType().Catch("ex", lst =>
                         {
                             lst.Add(CodeHelper.DeclareLocalVar("errorId", "Guid".AsType(), "Guid".Identifier().Call("NewGuid")));
@@ -83,7 +97,15 @@ namespace Bb.OpenApiServices
 
             ns.Class("WatchdogResult", c =>
             {
+
                 c.Ctor(ctor =>
+                {                                       
+                    ctor.Body(b =>
+                    {
+                        b.Add("Items".Identifier().Set("List<WatchdogResultItem>".AsType().NewObject()));
+                    });
+                })
+                .Ctor(ctor =>
                 {
 
                     ctor.Parameter("items", "WatchdogResultItem", p =>
@@ -95,7 +117,7 @@ namespace Bb.OpenApiServices
 
                     ctor.Body(b =>
                     {
-                        b.Add("Items".Identifier().Set("List<WatchdogResultItem>".AsType().NewObject()));
+                        b.Add("Items".Identifier().Set("List<WatchdogResultItem>".AsType().NewObject("items".Identifier())));
                     });
                 })
                 .Property("Items", "List<WatchdogResultItem>", p =>

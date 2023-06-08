@@ -77,11 +77,10 @@ namespace Bb.OpenApiServices
                 })
                 .Packages(p =>
                 {
-                    p.PackageReference("Black.Beard.Jslt", "1.0.212")
+                    p.PackageReference("Black.Beard.Jslt", "1.0.214")
                      .PackageReference("Black.Beard.Helpers.ContentLoaders", "2.0.1")
                      .PackageReference("Black.Beard.Helpers.ContentLoaders.Files", "2.0.1")
                      .PackageReference("Black.Beard.Helpers.ContentLoaders.Newtonsoft", "2.0.1")
-                     //.PackageReference("Black.Beard.Helpers.Roslyn", "1.0.29")
                      .PackageReference("log4net", "2.0.15")
                      .PackageReference("Microsoft.Extensions.Configuration.Binder", "7.0.4")
                      .PackageReference("Microsoft.Extensions.Configuration.Json", "7.0.0")

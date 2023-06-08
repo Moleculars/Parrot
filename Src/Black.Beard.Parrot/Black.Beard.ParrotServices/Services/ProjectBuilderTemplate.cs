@@ -1,9 +1,12 @@
 ﻿using Bb.Process;
 using Bb.OpenApiServices;
-using System.Diagnostics;
 using Newtonsoft.Json;
-using Bb.Projects.Properties;
 using Bb.Services;
+using Flurl;
+using System.Security.Cryptography.X509Certificates;
+using Bb.Models;
+using Flurl.Http;
+using Bb.Mock;
 
 namespace Bb.ParrotServices.Services
 {
@@ -38,7 +41,7 @@ namespace Bb.ParrotServices.Services
             _configurationType = instance.ConfigurationType;
             _defaultConfig = JsonConvert.SerializeObject(instance.GetConfiguration(), jsonSerializerSettings);
 
-        }              
+        }
 
 
         public string GetPath(string filename)
@@ -81,7 +84,7 @@ namespace Bb.ParrotServices.Services
 
         private object GetConfig(out string control)
         {
-            
+
             if (File.Exists(_templateConfigFilename))
                 control = _templateConfigFilename.LoadFromFile();
 
@@ -115,7 +118,7 @@ namespace Bb.ParrotServices.Services
         /// Generate project
         /// </summary>
         /// <param name="file"></param>
-        public void GenerateProject(string file)
+        public ProjectDocument GenerateProject(string file)
         {
 
             var config = Config();
@@ -133,6 +136,7 @@ namespace Bb.ParrotServices.Services
 
             }
 
+            return List();
 
         }
 
@@ -182,7 +186,7 @@ namespace Bb.ParrotServices.Services
 
                 case TaskEventEnum.Completed:
                     logger.LogTrace("Completed");
-                    var instance = args.Process.Tag as ServiceReferentialInstance;
+                    var instance = args.Process.Tag as ServiceReferentialTemplate;
                     _rootParent._referential.Remove(instance);
                     break;
 
@@ -200,7 +204,7 @@ namespace Bb.ParrotServices.Services
         /// <summary>
         /// Run the contract
         /// </summary>
-        public int[] Run(int currentPort)
+        public ProjectItem Run(int currentPort)
         {
 
             var projectFile = GetFileProject();
@@ -210,19 +214,19 @@ namespace Bb.ParrotServices.Services
             var port2 = HttpHelper.GetAvailablePort(HttpHelper.GetAvailablePort(port1 + 1));
             var uri1 = HttpHelper.GetLocalUri(false, port1);
             var uri2 = HttpHelper.GetLocalUri(true, port2);
-            string urls = "\"" + uri1.ToString().Trim('/') + ";" +  uri2.ToString().Trim('/') + "\"";
+            string urls = "\"" + uri1.ToString().Trim('/') + ";" + uri2.ToString().Trim('/') + "\"";
 
 
             var workingDirectory = projectFile.Directory.FullName;
 
             Guid id = Guid.NewGuid();
 
-            var instance = _rootParent._referential.Get(this._parent.Contract, this.Template, id, uri1, uri2);
-           
+            var instance = _rootParent._referential.Get(this._parent.Contract, this.Template, uri1, uri2);
+
             this._rootParent._host
-                .Intercept(Intercept)               
+                .Intercept(Intercept)
                 .Run(id, c =>
-                {                    
+                {
                     c.Command($"dotnet.exe")
                      .SetWorkingDirectory(workingDirectory)
                      .Arguments($"run \"{projectFile.Name}\" --urls {urls}") // -c Development 
@@ -230,12 +234,73 @@ namespace Bb.ParrotServices.Services
                 }, instance)
                 .Wait(s =>
                 {
-                    
 
                 });
 
 
-            return new int[] { port1, port2 };
+            this.Running = new ProjectItem()
+            {
+
+                Contract = this._parent.Contract,
+                Template = this.Template,
+
+                Services = new Listener()
+                {
+                    Http = new Swagger()
+                    {
+                        ReverseProxyUrl = new Url("http", "localhost", currentPort, "proxy", this._parent.Contract, this.Template),
+                        HostedInternalServiceUrl = new Url(uri1),
+                    },
+
+                    Https =
+                    new Swagger()
+                    {
+                        ReverseProxyUrl = new Url("https", "localhost", currentPort, "proxy", this._parent.Contract, this.Template, "swagger"),
+                        HostedInternalServiceUrl = new Url(uri2).AppendPathSegments("swagger"),
+                    }
+                },
+
+                Swaggers = new Listener()
+                {
+                    Http = new Swagger()
+                    {
+                        ReverseProxyUrl = new Url("http", "localhost", currentPort, "proxy", this._parent.Contract, this.Template, "swagger"),
+                        HostedInternalServiceUrl = new Url(uri1).AppendPathSegments("swagger"),
+                    },
+
+                    Https =
+                    new Swagger()
+                    {
+                        ReverseProxyUrl = new Url("https", "localhost", currentPort, "proxy", this._parent.Contract, this.Template, "swagger"),
+                        HostedInternalServiceUrl = new Url(uri2).AppendPathSegments("swagger"),
+                    }
+                },
+
+                IsUpAndRunningServices =
+                new Listener()
+                {
+                    Http = new Swagger()
+                    {
+                        ReverseProxyUrl = new Url("http", "localhost", currentPort, "proxy", this._parent.Contract, this.Template, "Watchdog", "isupandrunning"),
+                        HostedInternalServiceUrl = new Url(uri1).AppendPathSegments("Watchdog", "isupandrunning"),
+                    },
+
+                    Https =
+                    new Swagger()
+                    {
+                        ReverseProxyUrl = new Url("https", "localhost", currentPort, "proxy", this._parent.Contract, this.Template, "Watchdog", "isupandrunning"),
+                        HostedInternalServiceUrl = new Url(uri2).AppendPathSegments("Watchdog", "isupandrunning"),
+                    }
+                },
+
+
+
+
+            };
+
+
+            return this.Running;
+
         }
 
         private FileInfo GetFileProject()
@@ -246,7 +311,55 @@ namespace Bb.ParrotServices.Services
         }
 
 
-        private ServiceGenerator? GetGenerator() =>  (ServiceGenerator) Activator.CreateInstance(_generatorType);
+        private ServiceGenerator? GetGenerator() => (ServiceGenerator)Activator.CreateInstance(_generatorType);
+
+        public ProjectDocument List()
+        {
+
+            ProjectDocument result = new ProjectDocument()
+            {
+                Contract = this._parent.Contract,
+                Template = this.Template,
+            };
+
+            var dirRoot = new DirectoryInfo(Path.Combine(Root, "service", "Templates"));
+            var files = dirRoot.GetFiles("*.json");
+            foreach (var item in files)
+            {
+                var relative = new Uri(Root).MakeRelativeUri(new Uri(item.FullName));
+                result.Documents.Add(new Document() { Kind = "jslt", File = relative.ToString() });
+            }
+
+            return result;
+
+        }
+
+        public async Task<ProjectRunning> ListRunnings()
+        {
+
+            ProjectRunning result = new ProjectRunning(this.Running)
+            {
+                Contract = this._parent.Contract,
+                Template = this.Template,
+            };
+
+            if (this.Running != null)
+            {
+
+                /*
+                 curl -X 'GET' \
+                    'https://localhost:55865/Watchdog/isupandrunning' \
+                    -H 'accept: application/json'
+                */
+
+                var serviceResult = await this.Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl.GetJsonAsync<WatchdogResult>();
+                result.UpAndRunningResult = serviceResult;
+
+            }
+
+            return result;
+
+        }
 
         public readonly string Template;
         public readonly string Root;
@@ -258,6 +371,8 @@ namespace Bb.ParrotServices.Services
         private static readonly JsonSerializerSettings jsonSerializerSettings;
         private readonly Type _configurationType;
         private readonly string _defaultConfig;
+
+        public ProjectItem Running { get; private set; }
     }
 
 }

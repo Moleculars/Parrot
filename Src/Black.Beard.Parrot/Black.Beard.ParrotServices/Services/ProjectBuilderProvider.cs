@@ -3,6 +3,7 @@ using Bb.OpenApiServices;
 using Newtonsoft.Json.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Bb.Services;
+using Bb.Models;
 
 namespace Bb.ParrotServices.Services
 {
@@ -84,6 +85,51 @@ namespace Bb.ParrotServices.Services
                     if (!type.IsAbstract && typeof(ServiceGenerator).IsAssignableFrom(type))
                         yield return type;
         }
+
+        public List<ProjectDocument> ListByTemplate(string templateName)
+        {
+
+            var result = new List<ProjectDocument>();
+
+            var dirRoot = new DirectoryInfo(_root);
+            var dirs = dirRoot.GetDirectories();
+            foreach (var dir in dirs)
+            {
+                var contract = Contract(dir.Name);
+                if (contract.TemplateExist(templateName))
+                {
+                    var template = contract.Template(templateName);
+                    var item = template.List();
+                    result.Add(item);
+                }
+            }
+
+            return result;
+
+        }
+
+        public async Task<List<ProjectRunning>> ListRunningsByTemplate(string templateName)
+        {
+
+            var result = new List<ProjectRunning>();
+
+            var dirRoot = new DirectoryInfo(_root);
+            var dirs = dirRoot.GetDirectories();
+            foreach (var dir in dirs)
+            {
+                var contract = Contract(dir.Name);
+                if (contract.TemplateExist(templateName))
+                {
+                    var template = contract.Template(templateName);
+                    var item = await template.ListRunnings();
+                    result.Add(item);
+                }
+            }
+
+            return result;
+
+        }
+
 
         public bool ContractExists
         {

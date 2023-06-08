@@ -9,38 +9,37 @@
         {
             this.Parent = parent;
             this.Template = name;
-            this._instances = new Dictionary<Guid, ServiceReferentialInstance>();
+            this._contract = parent.Name;
+            this.HttpsUris = new List<KeyValuePair<string, Uri>>();
+            this.HttpUris = new List<KeyValuePair<string, Uri>>();
         }
 
-        public ServiceReferentialInstance TryGet()
+        public List<KeyValuePair<string, Uri>> HttpsUris { get; }
+        public List<KeyValuePair<string, Uri>> HttpUris { get; }
+
+
+        internal void Register(params Uri[] uris)
         {
-            return _instances.Values.FirstOrDefault();
+            foreach (var redirect in uris)
+            {
+            
+                var request = $"/proxy/{_contract}/{this.Template}";
+
+                if (redirect.Scheme == "http")
+                    HttpUris.Add(new KeyValuePair<string, Uri>(request, redirect));
+                else
+                    HttpsUris.Add(new KeyValuePair<string, Uri>(request, redirect));
+            
+            }
         }
 
-
-        public ServiceReferentialInstance Get(Guid instanceId)
-        {
-
-            if (!_instances.TryGetValue(instanceId, out var instance))
-                _instances.Add(instanceId, instance = new ServiceReferentialInstance(this, instanceId));
-
-            return instance;
-
-        }
-
-        public void Remove(ServiceReferentialInstance instance)
-        {
-
-            if (_instances.ContainsKey(instance.Id))
-                _instances.Remove(instance.Id);
-
-        }
+        private readonly string _contract;
 
         public ServiceReferentialContract Parent { get; }
 
         public string Template { get; }
 
-        private readonly Dictionary<Guid, ServiceReferentialInstance> _instances;
+
 
     }
 

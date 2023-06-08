@@ -1,4 +1,6 @@
-﻿namespace Bb.Services
+﻿using System.Diagnostics.Contracts;
+
+namespace Bb.Services
 {
     public class ServiceReferentialContract
     {
@@ -11,19 +13,19 @@
         }
 
 
-        public ServiceReferentialInstance TryGet(string[] route, int index)
+        internal ServiceReferentialTemplate TryGet(string[] route, int index)
         {
 
             var templateName = route[index];
 
             if (_templates.TryGetValue(templateName, out var template))
-                return template.TryGet();
+                return template;
 
             return null;
 
         }
 
-        public ServiceReferentialTemplate Get(string template)
+        internal ServiceReferentialTemplate Get(string template)
         {
 
             if (!_templates.TryGetValue(template, out var project))
@@ -33,12 +35,17 @@
 
         }
 
+        internal void Remove(ServiceReferentialTemplate template)
+        {
+            _templates.Remove(template.Template);
+        }
+
         public ServiceReferential Parent { get; }
 
         public string Name { get; }
 
         private readonly Dictionary<string, ServiceReferentialTemplate> _templates;
-             
+
     }
 
 }

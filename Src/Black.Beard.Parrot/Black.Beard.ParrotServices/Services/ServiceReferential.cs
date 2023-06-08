@@ -1,4 +1,5 @@
-﻿using Bb.Projects;
+﻿using Bb.Json.Jslt.CustomServices.MultiCsv;
+using Bb.Projects;
 using System;
 using System.Collections.Generic;
 
@@ -13,20 +14,47 @@ namespace Bb.Services
             this._contracts = new Dictionary<string, ServiceReferentialContract>();
         }
 
-        public ServiceReferentialInstance Get(string serviceName, string templateName, Guid id, params Uri[] uris)
+        public ServiceReferentialTemplate Get(string serviceName, string templateName, params Uri[] uris)
         {
-
-            lock(_lock)
+            lock (_lock)
             {
-                var instance = Get(serviceName).Get(templateName).Get(id);
+                var instance = Get(serviceName).Get(templateName);
                 instance.Register(uris);
                 return instance;
+            }
+        }
+
+        internal void Remove(ServiceReferentialTemplate? template)
+        {
+            lock (_lock)
+            {
+
+                template.Parent.Remove(template);
+            
             }
 
         }
 
 
-        public ServiceReferentialInstance TryGet(string[] route, int index)
+        internal ServiceReferentialContract Get(string serviceName)
+        {
+
+            if (!_contracts.TryGetValue(serviceName, out var project))
+                _contracts.Add(serviceName, project = new ServiceReferentialContract(this, serviceName));
+
+            return project;
+
+        }
+
+
+        internal ServiceReferentialTemplate TryToMatch(PathString path)
+        {
+            var route = path.Value.Trim('/').Split('/');
+            var result = TryGet(route, 1);
+            return result;
+        }
+
+        private ServiceReferentialTemplate TryGet(string[] route, int index)
         {
 
             var serviceName = route[index];
@@ -38,33 +66,10 @@ namespace Bb.Services
 
         }
 
-        public ServiceReferentialContract Get(string serviceName)
-        {
-
-            if (!_contracts.TryGetValue(serviceName, out var project))
-                _contracts.Add(serviceName, project = new ServiceReferentialContract(this, serviceName));
-
-            return project;
-
-        }
-
-        public void Remove(ServiceReferentialInstance? instance)
-        {
-            lock (_lock)
-            {
-                instance.Parent.Remove(instance);
-            }
-        }
-
-        internal ServiceReferentialInstance TryToMatch(PathString path)
-        {
-            var route = path.Value.Trim('/').Split('/');
-            var result = TryGet(route, 1);
-            return result;
-        }
-
         private readonly Dictionary<string, ServiceReferentialContract> _contracts;
+        private int _version = 0;
         private volatile object _lock = new object();
+
     }
 
 }

@@ -1,12 +1,17 @@
-﻿using Bb.Services;
+﻿using Bb.Json.Jslt.CustomServices;
+using Bb.Middlewares;
+using Bb.ParrotServices.Controllers;
+using Bb.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,6 +28,8 @@ namespace Bb.ParrotServices.Middlewares
         public ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         {
             _nextMiddleware = nextMiddleware;
+            this._transformers = new ProxyTransformResponseMatcher()
+                .Register<ProxyTransformHtmlResponse>("text/html");
         }
 
         public async Task Invoke(HttpContext context)
@@ -32,172 +39,97 @@ namespace Bb.ParrotServices.Middlewares
             if (path.StartsWithSegments("/proxy"))
             {
 
+                Uri targetUri = null;
+                string AliasUri = null;
 
-                var services = (ServiceReferential)context.RequestServices.GetService(typeof(ServiceReferential));
-                var targetUri = BuildTargetUri(context.Request, services);
-
-                if (targetUri != null)
+                if (_services == null)
                 {
-                    var targetRequestMessage = CreateTargetMessage(context, targetUri);
+                    _services = (ServiceReferential)context.RequestServices.GetService(typeof(ServiceReferential));
+                    _logger = (ILogger<ReverseProxyMiddleware>)context.RequestServices.GetService(typeof(ILogger<ReverseProxyMiddleware>));
+                }
 
-                    using (var responseMessage = await _httpClient.SendAsync(targetRequestMessage, HttpCompletionOption.ResponseHeadersRead, context.RequestAborted))
+                var template = _services.TryToMatch(path);
+
+                if (template != null)
+                {
+
+                    List<KeyValuePair<string, Uri>> list;
+                    if (context.Request.IsHttps)
+                        list = template.HttpsUris;
+                    else
+                        list = template.HttpUris;
+
+                    for (int i = 0; i < list.Count; i++)
                     {
-                        context.Response.StatusCode = (int)responseMessage.StatusCode;
-
-                        CopyFromTargetResponseHeaders(context, responseMessage);
-
-                        await ProcessResponseContent(context, responseMessage);
+                        var item = list[i];
+                        targetUri = item.Value;
+                        AliasUri = item.Key;
                     }
 
-                    return;
+                    if (targetUri != null)
+                    {
+                        if (context.Request.Path.StartsWithSegments(AliasUri, out var relativePath))
+                        {
+
+                            //if (relativePath.ToString().StartsWith("/swagger-ui"))
+                            //{
+                            //    relativePath = "/swagger" + relativePath;
+                            //}
+
+                            Uri newUri = new Uri(targetUri, relativePath);
+                            var targetRequestMessage = CreateTargetMessage(context, newUri);
+
+                            using (var responseMessage = await _httpClient.SendAsync(targetRequestMessage, HttpCompletionOption.ResponseHeadersRead, context.RequestAborted))
+                            {
+
+                                context.Response.StatusCode = (int)responseMessage.StatusCode;
+
+                                if (context.Response.StatusCode != 200)
+                                {
+
+                                }
+                                // _logger.LogDebug(newUri.ToString() + " return code " + context.Response.StatusCode);
+
+                                responseMessage.CopyFromTargetResponseHeaders(context);
+
+                                await _transformers.Transform(context, responseMessage, targetUri, AliasUri);
+
+                            }
+
+                            return;
+
+                        }
+                    }
+                
                 }
+
+            }
+
+            else
+            {
 
             }
 
             await _nextMiddleware(context);
         }
 
-
-        //public static async Task<HttpRequestMessage> CloneHttpRequestMessageAsync(HttpRequestMessage req)
-        //{
-
-        //    HttpRequestMessage clone = new HttpRequestMessage(req.Method, req.RequestUri);
-
-        //    // Copy the request's content (via a MemoryStream) into the cloned object
-        //    var ms = new MemoryStream();
-        //    if (req.Content != null)
-        //    {
-        //        await req.Content.CopyToAsync(ms).ConfigureAwait(false);
-        //        ms.Position = 0;
-        //        clone.Content = new StreamContent(ms);
-        //        // Copy the content headers
-        //        foreach (var h in req.Content.Headers)
-        //            clone.Content.Headers.Add(h.Key, h.Value);
-        //    }
-
-        //    clone.Version = req.Version;
-
-        //    foreach (KeyValuePair<string, object?> option in req.Options)
-        //        clone.Options.Set(new HttpRequestOptionsKey<object?>(option.Key), option.Value);
-
-        //    foreach (KeyValuePair<string, IEnumerable<string>> header in req.Headers)
-        //        clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
-
-        //    return clone;
-        //}
-
-
-        private async Task ProcessResponseContent(HttpContext context, HttpResponseMessage responseMessage)
-        {
-
-            var content = await responseMessage.Content.ReadAsByteArrayAsync();
-
-            if (IsContentOfType(responseMessage, "text/html") || IsContentOfType(responseMessage, "text/javascript"))
-            {
-                var stringContent = Encoding.UTF8.GetString(content);
-                var newContent = stringContent.Replace("https://www.google.com", "/google")
-                    .Replace("https://www.gstatic.com", "/googlestatic")
-                    .Replace("https://docs.google.com/forms", "/googleforms");
-                await context.Response.WriteAsync(newContent, Encoding.UTF8);
-            } else
-            {
-                await context.Response.Body.WriteAsync(content);
-            }
-
-        }
-
-        private bool IsContentOfType(HttpResponseMessage responseMessage, string type)
-        {
-            var result = false;
-
-            if (responseMessage.Content?.Headers?.ContentType != null)
-            {
-                result = responseMessage.Content.Headers.ContentType.MediaType == type;
-            }
-
-            return result;
-        }
-
         private HttpRequestMessage CreateTargetMessage(HttpContext context, Uri targetUri)
         {
-            var requestMessage = new HttpRequestMessage();
-            CopyFromOriginalRequestContentAndHeaders(context, requestMessage);
-
-            targetUri = new Uri(QueryHelpers.AddQueryString(targetUri.OriginalString, new Dictionary<string, string>() { { "entry.1884265043", "John Doe" }}));
-
+            var requestMessage = context.CopyFromOriginalRequestContentAndHeaders();
+            //requestMessage.Version = ???
             requestMessage.RequestUri = targetUri;
             requestMessage.Headers.Host = targetUri.Host;
-            requestMessage.Method = GetMethod(context.Request.Method);
-           
+            requestMessage.Method = context.Request.GetMethod();
             return requestMessage;
         }
-
-        private void CopyFromOriginalRequestContentAndHeaders(HttpContext context, HttpRequestMessage requestMessage)
-        {
-            var requestMethod = context.Request.Method;
-
-            if (!HttpMethods.IsGet(requestMethod) &&
-                !HttpMethods.IsHead(requestMethod) &&
-                !HttpMethods.IsDelete(requestMethod) &&
-                !HttpMethods.IsTrace(requestMethod))
-            {
-                var streamContent = new StreamContent(context.Request.Body);
-                requestMessage.Content = streamContent;
-            }
-
-            foreach (var header in context.Request.Headers)
-            {
-                requestMessage.Content?.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
-            }
-        }
-
-        private void CopyFromTargetResponseHeaders(HttpContext context, HttpResponseMessage responseMessage)
-        {
-            foreach (var header in responseMessage.Headers)
-            {
-                context.Response.Headers[header.Key] = header.Value.ToArray();
-            }
-
-            foreach (var header in responseMessage.Content.Headers)
-            {
-                context.Response.Headers[header.Key] = header.Value.ToArray();
-            }
-            context.Response.Headers.Remove("transfer-encoding");
-        }
-        
-        private static HttpMethod GetMethod(string method)
-        {
-            if (HttpMethods.IsDelete(method)) return HttpMethod.Delete;
-            if (HttpMethods.IsGet(method)) return HttpMethod.Get;
-            if (HttpMethods.IsHead(method)) return HttpMethod.Head;
-            if (HttpMethods.IsOptions(method)) return HttpMethod.Options;
-            if (HttpMethods.IsPost(method)) return HttpMethod.Post;
-            if (HttpMethods.IsPut(method)) return HttpMethod.Put;
-            if (HttpMethods.IsTrace(method)) return HttpMethod.Trace;
-            return new HttpMethod(method);
-        }
-
-        private Uri BuildTargetUri(HttpRequest request, ServiceReferential referential)
-        {
-
-            // https://localhost:7033/proxy/parcel/mock/swagger
-            ServiceReferentialInstance instance = referential.TryToMatch(request.Path);
-
-            Uri targetUri = null;
-            PathString remainingPath;
-
-            foreach (var item in instance.Uris)
-                if (item.Value.Scheme == request.Scheme)
-                    if (request.Path.StartsWithSegments(item.Key, out remainingPath))
-                        targetUri = new Uri(item.Value, remainingPath);
-
-            return targetUri;
-        
-        }
-
+                
 
         private static readonly HttpClient _httpClient = new HttpClient();
         private readonly RequestDelegate _nextMiddleware;
+        private readonly ProxyTransformResponseMatcher _transformers;
+        private ServiceReferential _services;
+        private ILogger<ReverseProxyMiddleware>? _logger;
 
     }
+
 }

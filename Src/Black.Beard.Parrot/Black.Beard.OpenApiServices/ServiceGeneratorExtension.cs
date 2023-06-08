@@ -18,7 +18,7 @@
         {
             self.Name = name;
             var directoryName = baseDirectory ?? AppContext.BaseDirectory;
-            self._dir = new DirectoryInfo(Path.Combine(directoryName, name));
+            self._dir = new DirectoryInfo(Path.Combine(directoryName, "service"));
 
             return self;
 
