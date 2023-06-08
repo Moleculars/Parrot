@@ -1,7 +1,5 @@
 using Bb.Process;
 using Bb.OpenApiServices;
-using System.Diagnostics;
-using Bb.OpenApiServices;
 
 namespace UnitTests
 {
