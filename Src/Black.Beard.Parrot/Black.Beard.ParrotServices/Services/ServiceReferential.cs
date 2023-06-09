@@ -26,13 +26,15 @@ namespace Bb.Services
 
         internal void Remove(ServiceReferentialContract? contract)
         {
-            lock (_lock)
+            if (contract != null)
             {
+                lock (_lock)
+                {
 
-                contract.Parent.Remove(contract);
-            
+                    contract.Parent.Remove(contract);
+
+                }
             }
-
         }
 
 

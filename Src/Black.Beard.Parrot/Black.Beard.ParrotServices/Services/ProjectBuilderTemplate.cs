@@ -189,7 +189,8 @@ namespace Bb.ParrotServices.Services
                 case TaskEventEnum.Completed:
                     logger.LogTrace("Completed");
                     var instance = args.Process.Tag as ServiceReferentialContract;
-                    _rootParent._referential.Remove(instance);
+                    if (instance != null)
+                        _rootParent._referential.Remove(instance);
                     break;
 
                 case TaskEventEnum.CompletedWithException:
@@ -261,7 +262,7 @@ namespace Bb.ParrotServices.Services
 
             if (httpsCurrentPort.HasValue)
             {
-                this.Running.Services.Https.HostedInternalServiceUrl = new Url("https", publicHost, httpsCurrentPort.Value, "proxy", this.Template, this._parent.Contract, "swagger");
+                this.Running.Services.Https.ExposedReverseProxyUrl = new Url("https", publicHost, httpsCurrentPort.Value, "proxy", this.Template, this._parent.Contract, "swagger");
                 this.Running.Swagger.Https.ExposedReverseProxyUrl = new Url("https", publicHost, httpsCurrentPort.Value, "proxy", this.Template, this._parent.Contract, "swagger");
                 this.Running.IsUpAndRunningServices.Https.ExposedReverseProxyUrl = new Url("https", publicHost, httpsCurrentPort.Value, "proxy", this.Template, this._parent.Contract, "Watchdog", "isupandrunning");
             }
@@ -321,15 +322,9 @@ namespace Bb.ParrotServices.Services
 
             if (this.Running != null)
             {
-
-                /*
-                 curl -X 'GET' \
-                    'https://localhost:55865/Watchdog/isupandrunning' \
-                    -H 'accept: application/json'
-                */
-
-                //var serviceResult = await this.Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl.GetJsonAsync<WatchdogResult>();
-                //result.UpAndRunningResult = serviceResult;
+                // curl -X GET "url" -H 'accept: application/json'
+                var serviceResult = await this.Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl.GetJsonAsync<WatchdogResult>();
+                result.UpAndRunningResult = serviceResult;
 
             }
 

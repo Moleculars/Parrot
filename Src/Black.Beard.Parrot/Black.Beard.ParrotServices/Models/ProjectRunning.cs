@@ -10,7 +10,8 @@ namespace Bb.Models
             _root = root;
             Started = root != null;
             Swagger = root?.Swagger;
-            //Services = root?.Services;
+            Services = root?.Services;
+            IsUpAndRunningServices = root?.Services;
         }
 
         public bool Started { get; }
