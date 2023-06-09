@@ -18,7 +18,7 @@ namespace Bb.OpenApiServices
     public class OpenApiGenerateServices : OpenApiGeneratorCSharpBase
     {
 
-        public OpenApiGenerateServices(string artifactName, string @namespace)
+        public OpenApiGenerateServices(string contract, string artifactName, string @namespace)
             : base(artifactName, @namespace, "Bb.Json.Jslt.Services",
                     "Bb.ParrotServices",
                     "Microsoft.AspNetCore.Http",
@@ -29,7 +29,7 @@ namespace Bb.OpenApiServices
                     "Newtonsoft.Json",
                     "Newtonsoft.Json.Linq")
         {
-
+            this._contract = contract;
         }
 
         public override CSMemberDeclaration VisitDocument(OpenApiDocument self)
@@ -66,10 +66,10 @@ namespace Bb.OpenApiServices
                     ;
                 })
                 ;
-
+            string pathController = $"/proxy/mock/{_contract}{key}";
             crl.Attribute("ApiController");
             crl.Attribute("Route")
-                .Argument(key.Literal())
+                .Argument(pathController.Literal())
                 ;
 
             foreach (var item in self.Operations)
@@ -445,7 +445,7 @@ namespace Bb.OpenApiServices
 
         private KeyValuePair<string, OpenApiResponse>? error500 = null;
         private KeyValuePair<string, OpenApiResponse>? error400 = null;
-
+        private readonly string _contract;
     }
 
 

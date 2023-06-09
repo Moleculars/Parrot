@@ -10,6 +10,13 @@ namespace Bb.Curl
     public class CurlInterpreter
     {
 
+         
+          //    curl -X 'POST' 'https://localhost:7033/Manager/mock/parcel/upload' \
+          //    -H 'accept: */*' \
+          //    -H 'Content-Type: multipart/form-data' \
+          //    -F 'upfile=@swagger.json;type=application/json'
+
+
         /*         
          curl [options...] <url>
          -d, --data <data>          HTTP POST data

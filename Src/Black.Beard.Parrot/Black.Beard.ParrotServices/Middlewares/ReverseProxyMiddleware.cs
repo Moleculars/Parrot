@@ -2,6 +2,7 @@
 using Bb.Middlewares;
 using Bb.ParrotServices.Controllers;
 using Bb.Services;
+using Flurl;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
@@ -34,13 +35,12 @@ namespace Bb.ParrotServices.Middlewares
 
         public async Task Invoke(HttpContext context)
         {
+
             var path = context.Request.Path;
 
             if (path.StartsWithSegments("/proxy"))
             {
 
-                Uri targetUri = null;
-                string AliasUri = null;
 
                 if (_services == null)
                 {
@@ -48,59 +48,57 @@ namespace Bb.ParrotServices.Middlewares
                     _logger = (ILogger<ReverseProxyMiddleware>)context.RequestServices.GetService(typeof(ILogger<ReverseProxyMiddleware>));
                 }
 
-                var template = _services.TryToMatch(path);
+                var contract = _services.TryToMatch(path);
 
-                if (template != null)
+                if (contract != null)
                 {
 
-                    List<KeyValuePair<string, Uri>> list;
-                    if (context.Request.IsHttps)
-                        list = template.HttpsUris;
-                    else
-                        list = template.HttpUris;
+                    AddressTranslator translator = context.Request.IsHttps ? contract.Https : contract.Http;
 
-                    for (int i = 0; i < list.Count; i++)
+                    Uri newUri = null;
+
+                    if (context.Request.Path.StartsWithSegments(translator.QuerySource, out PathString relativePath))
                     {
-                        var item = list[i];
-                        targetUri = item.Value;
-                        AliasUri = item.Key;
+                        var t = context.Request.Path.ToString();
+                        if (t.EndsWith(".css") || t.EndsWith(".js") || t.EndsWith(".png"))
+                        {
+                            var url = Url.Combine(translator.TargetUri.ToString(), "swagger", relativePath.ToString());
+                            newUri = new Uri(url);
+                        }
+                        else
+                        {
+                            var url = Url.Combine(translator.TargetUrl, relativePath.ToString());
+                            newUri = new Uri(url);
+                        }
                     }
 
-                    if (targetUri != null)
+                    if (newUri != null)
                     {
-                        if (context.Request.Path.StartsWithSegments(AliasUri, out var relativePath))
+                        var targetRequestMessage = CreateTargetMessage(context, newUri);
+                        using (var responseMessage = await _httpClient.SendAsync(targetRequestMessage, HttpCompletionOption.ResponseHeadersRead, context.RequestAborted))
                         {
-
-                            //if (relativePath.ToString().StartsWith("/swagger-ui"))
-                            //{
-                            //    relativePath = "/swagger" + relativePath;
-                            //}
-
-                            Uri newUri = new Uri(targetUri, relativePath);
-                            var targetRequestMessage = CreateTargetMessage(context, newUri);
-
-                            using (var responseMessage = await _httpClient.SendAsync(targetRequestMessage, HttpCompletionOption.ResponseHeadersRead, context.RequestAborted))
+                            context.Response.StatusCode = (int)responseMessage.StatusCode;
+                            if (context.Response.StatusCode != 200)
                             {
 
-                                context.Response.StatusCode = (int)responseMessage.StatusCode;
-
-                                if (context.Response.StatusCode != 200)
-                                {
-
-                                }
-                                // _logger.LogDebug(newUri.ToString() + " return code " + context.Response.StatusCode);
-
-                                responseMessage.CopyFromTargetResponseHeaders(context);
-
-                                await _transformers.Transform(context, responseMessage, targetUri, AliasUri);
+                            }
+                            else
+                            {
 
                             }
 
-                            return;
-
+                            // _logger.LogDebug(newUri.ToString() + " return code " + context.Response.StatusCode);
+                            responseMessage.CopyFromTargetResponseHeaders(context);
+                            await _transformers.Transform(context, responseMessage, translator);
                         }
                     }
-                
+                    else
+                    {
+
+                    }
+
+                    return;
+
                 }
 
             }
@@ -122,7 +120,7 @@ namespace Bb.ParrotServices.Middlewares
             requestMessage.Method = context.Request.GetMethod();
             return requestMessage;
         }
-                
+
 
         private static readonly HttpClient _httpClient = new HttpClient();
         private readonly RequestDelegate _nextMiddleware;

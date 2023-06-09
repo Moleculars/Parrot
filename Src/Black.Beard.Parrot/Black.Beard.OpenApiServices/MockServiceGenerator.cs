@@ -30,7 +30,7 @@ namespace Bb.OpenApiServices
             if (string.IsNullOrEmpty(Description))
             {
                 if (!string.IsNullOrEmpty(_document.Info.Description))
-                    Description = this.Name + " " + _document.Info.Description;
+                    Description = this.Template + " " + _document.Info.Description;
                 else
                     Description = Path.GetFileNameWithoutExtension(openApiDocument);
             }
@@ -51,8 +51,8 @@ namespace Bb.OpenApiServices
 
             new OpenApiGenerateDataTemplate().Parse(_document, ctx);
             new OpenApiGenerateModel("models", this.Configuration.Namespace).Parse(_document, ctx);
-            new OpenApiGenerateServices("services", this.Configuration.Namespace).Parse(_document, ctx);
-            GenerateWatchdog.Generate(ctx, this.Configuration.Namespace);
+            new OpenApiGenerateServices(this.Contract, "services", this.Configuration.Namespace).Parse(_document, ctx);
+            GenerateWatchdog.Generate(ctx, this.Contract, this.Configuration.Namespace);
 
         }
 
@@ -63,7 +63,7 @@ namespace Bb.OpenApiServices
         private MsProject GenerateProject()
         {
             
-            var project = new MsProject(Name, _dir)
+            var project = new MsProject(Template, _dir)
                 .Sdk(ProjectSdk.MicrosoftNETSdkWeb)
                 .SetPropertyGroup(c =>
                 {
@@ -102,8 +102,10 @@ namespace Bb.OpenApiServices
                     .LoadFromFile()
                     .Replace("{{title}}", _document.Info.Title ?? string.Empty)
                     .Replace("{{version}}", _document.Info.Version ?? "v1.0")
+                    .Replace("{{template}}", Template)
+                    .Replace("{{contract}}", Contract)
                     .Replace("{{description}}", _document.Info.Description ?? "A set of REST APIs mock generated")
-                    .Replace("{{testApiKey}}", withApiKey ? "true" : "false")
+                    .Replace("{{testApiKey}}", withApiKey ? @"c.AddSecurityDefinition(""key"", new OpenApiSecurityScheme { Scheme = ""ApiKey"", In = ParameterLocation.{{apiSecureIn}} });" : string.Empty)
                     .Replace("{{apiSecureIn}}", inArgument)
                 );
 

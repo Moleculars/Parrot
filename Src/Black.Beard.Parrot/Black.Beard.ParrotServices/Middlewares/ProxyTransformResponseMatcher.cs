@@ -1,4 +1,5 @@
 ﻿using Bb.ParrotServices.Middlewares;
+using Bb.Services;
 using System.Text;
 
 namespace Bb.Middlewares
@@ -14,7 +15,7 @@ namespace Bb.Middlewares
         /// </summary>
         public ProxyTransformResponseMatcher()
         {
-            _items = new Dictionary<string, Func<Uri, string, ProxyTransformResponse>>();
+            _items = new Dictionary<string, Func<AddressTranslator, ProxyTransformResponse>>();
         }
 
         /// <summary>
@@ -29,9 +30,9 @@ namespace Bb.Middlewares
 
             foreach (var mime in mimes)
             {
-                _items.Add(mime, (u, s) =>
+                _items.Add(mime, (u) =>
                 {
-                    return new T().Initialize(u, s);
+                    return new T().Initialize(u);
                 });
             }
 
@@ -46,7 +47,7 @@ namespace Bb.Middlewares
         /// <param name="responseMessage">The response message.</param>
         /// <param name="targetUri">The target URI.</param>
         /// <param name="AliasUri">The alias URI.</param>
-        public async Task Transform(HttpContext context, HttpResponseMessage responseMessage, Uri targetUri, string AliasUri)
+        public async Task Transform(HttpContext context, HttpResponseMessage responseMessage, AddressTranslator translator)
         {
 
             if (responseMessage != null)
@@ -58,18 +59,21 @@ namespace Bb.Middlewares
 
                     if (_items.TryGetValue(contentType, out var item))
                     {
-                        var t = item(targetUri, AliasUri);
+                        var t = item(translator);
                         string message = await t.Transform(context, responseMessage);
 
+                        var req = context.Request;
+                        var _current = new Flurl.Url(req.Scheme, req.Host.Host, req.Host.Port.HasValue ? req.Host.Port.Value : 80)
+                            .AppendPathSegments(translator.QuerySource);
 
                         message = message
-                            .Replace("\"url\":\"v1/swagger.json\",", $"\"url\":\"{AliasUri}/swagger/v1/swagger.json\",")
-                            .Replace("item.url = window.location.href.replace(\"index.html\", item.url).split('#')[0];",
-                                $"item.url = window.location.href.replace(\"index.html\", \"{AliasUri.TrimStart('/')}\" + item.url).split('#')[0];")
+                            .Replace($"\"url\":\"{translator.QuerySource}/swagger/", 
+                                     $"\"url\":\"{_current}/swagger/"
+                                     )                            
                             ;
 
-
                         await context.Response.WriteAsync(message, Encoding.UTF8);
+
                     }
                     else
                     {
@@ -82,7 +86,7 @@ namespace Bb.Middlewares
 
         }
 
-        private Dictionary<string, Func<Uri, string, ProxyTransformResponse>> _items;
+        private Dictionary<string, Func<AddressTranslator, ProxyTransformResponse>> _items;
 
     }
 

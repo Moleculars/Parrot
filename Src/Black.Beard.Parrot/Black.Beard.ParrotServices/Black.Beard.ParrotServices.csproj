@@ -12,6 +12,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Middlewares\HtmlPackExtension.cs" />
+	  <Compile Remove="Middlewares\HtmlVisitor.cs" />
+	  <Compile Remove="Middlewares\IHtmlVisitor.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Black.Beard.Jslt" Version="1.0.214" />
 		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.42" />
 		<PackageReference Include="Black.Beard.Process" Version="1.0.42" />

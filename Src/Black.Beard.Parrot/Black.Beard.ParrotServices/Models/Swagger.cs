@@ -5,7 +5,7 @@
 
         public string HostedInternalServiceUrl { get; set; }
 
-        public string ReverseProxyUrl { get; set; }
+        public string ExposedReverseProxyUrl { get; set; }
 
     }
 

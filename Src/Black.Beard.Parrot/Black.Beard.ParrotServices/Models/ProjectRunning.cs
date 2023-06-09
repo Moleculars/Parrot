@@ -9,8 +9,8 @@ namespace Bb.Models
         {
             _root = root;
             Started = root != null;
-            Swaggers = root?.Swaggers;
-            Services = root?.Services;
+            Swagger = root?.Swagger;
+            //Services = root?.Services;
         }
 
         public bool Started { get; }

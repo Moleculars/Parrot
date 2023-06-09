@@ -9,6 +9,9 @@ using Bb.ParrotServices.Services;
 using System.Diagnostics.Contracts;
 using Bb.Services;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using System.Net;
+using Microsoft.AspNetCore.Hosting.Server;
 
 internal class Program
 {
@@ -31,7 +34,12 @@ internal class Program
             .Services(
             s =>
             {
-                               
+
+                //s.WebHost.UseKestrel(options =>
+                //{
+                //    options.Listen(IPAddress.Loopback, 0); // dynamic port
+                //});
+                
                 s.Services.Add(ServiceDescriptor.Singleton(typeof(LocalProcessCommandService), typeof(LocalProcessCommandService)));
                 s.Services.Add(ServiceDescriptor.Singleton(typeof(ProjectBuilderProvider), typeof(ProjectBuilderProvider)));
                 s.Services.Add(ServiceDescriptor.Singleton(typeof(ServiceReferential), typeof(ServiceReferential)));
@@ -67,14 +75,19 @@ internal class Program
             )
             .Build()
             .Configure()
-            .Configure(c =>
+            .Configure(app =>
             {
 
-                var projectBuilder = (ProjectBuilderProvider)c.Services.GetService(typeof(ProjectBuilderProvider));
+
+                //IServerAddressesFeature serverAddressesFeature = app.ServerFeatures.Get<IServerAddressesFeature>();
+                //var addresses = serverAddressesFeature?.Addresses?.ToArray();
+
+
+                var projectBuilder = (ProjectBuilderProvider)app.Services.GetService(typeof(ProjectBuilderProvider));
                 projectBuilder.Initialize(Directory.GetCurrentDirectory());
 
-                var tracelistener = (Log4netTraceListener)c.Services.GetService(typeof(Log4netTraceListener));
-                System.Diagnostics.Trace.Listeners.Add(tracelistener);
+                var tracelistener = (Log4netTraceListener)app.Services.GetService(typeof(Log4netTraceListener));
+                Trace.Listeners.Add(tracelistener);
 
             })
             .Run()

@@ -2,49 +2,49 @@
 
 namespace Bb.Services
 {
-    public class ServiceReferentialContract
+    public class ServiceReferentialTemplate
     {
 
-        public ServiceReferentialContract(ServiceReferential parent, string name)
+        public ServiceReferentialTemplate(ServiceReferential parent, string name)
         {
             this.Parent = parent;
-            this.Name = name;
-            this._templates = new Dictionary<string, ServiceReferentialTemplate>();
+            this.Template = name;
+            this._contracts = new Dictionary<string, ServiceReferentialContract>();
         }
 
 
-        internal ServiceReferentialTemplate TryGet(string[] route, int index)
+        internal ServiceReferentialContract TryGet(string[] route, int index)
         {
 
-            var templateName = route[index];
+            var contractName = route[index];
 
-            if (_templates.TryGetValue(templateName, out var template))
-                return template;
+            if (_contracts.TryGetValue(contractName, out var contract))
+                return contract;
 
             return null;
 
         }
 
-        internal ServiceReferentialTemplate Get(string template)
+        internal ServiceReferentialContract Get(string contract)
         {
 
-            if (!_templates.TryGetValue(template, out var project))
-                _templates.Add(template, project = new ServiceReferentialTemplate(this, template));
+            if (!_contracts.TryGetValue(contract, out var project))
+                _contracts.Add(contract, project = new ServiceReferentialContract(this, contract));
 
             return project;
 
         }
 
-        internal void Remove(ServiceReferentialTemplate template)
+        internal void Remove(ServiceReferentialContract template)
         {
-            _templates.Remove(template.Template);
+            _contracts.Remove(template.Contract);
         }
 
         public ServiceReferential Parent { get; }
 
-        public string Name { get; }
+        public string Template { get; }
 
-        private readonly Dictionary<string, ServiceReferentialTemplate> _templates;
+        private readonly Dictionary<string, ServiceReferentialContract> _contracts;
 
     }
 

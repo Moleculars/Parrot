@@ -48,13 +48,12 @@ internal class Program
                     {
                         Title = ("Parrot mock service " + "{{title}}").Trim(),
                         Version = "{{version}}",
-                        Description = "{{version}}",
+                        Description = "{{title}} - {{version}}",
                         License = new OpenApiLicense() { Name = "Only usable with a valid PU partner contract." },
                     });
                     c.IncludeXmlComments(() => SwaggerExtension.LoadXmlFiles());
 
-                    if ({{testApiKey}})
-                        c.AddSecurityDefinition("key", new OpenApiSecurityScheme { Scheme = "ApiKey", In = ParameterLocation.{{apiSecureIn}} });
+                    {{testApiKey}}
 
                     c.TagActionsBy(a =>
                     {
@@ -83,8 +82,19 @@ internal class Program
             )
             .Build()
             .Configure()
-            .Configure(c =>
+            .Configure(app =>
             {
+
+                app.UseSwagger(c =>
+                {
+                    c.RouteTemplate = "proxy/mock/{{contract}}/swagger/{documentname}/swagger.json";
+                });
+
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/proxy/mock/{{contract}}/swagger/v1/swagger.json", "{{title}}");
+                    c.RoutePrefix = "proxy/mock/{{contract}}/swagger";
+                });
 
             })
             .Run()

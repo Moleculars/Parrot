@@ -1,19 +1,21 @@
 ﻿using Bb.Projects;
 using HtmlAgilityPack;
 using Flurl;
+using Bb.Services;
 
 namespace Bb.Middlewares
 {
     public class HtmlVisitor : IHtmlVisitor
     {
 
-        public HtmlVisitor(HttpContext context, Uri targetUri1, string aliasUri)
+        public HtmlVisitor(HttpContext context, AddressTranslator translator)
         {
 
             _context = context;
-
-            this._targetUri1 = targetUri1;
-            this._aliasUri = aliasUri;
+            var req = context.Request;
+            _current = new Url(req.Scheme, req.Host.Host, req.Host.Port.HasValue ? req.Host.Port.Value : 80)
+                .AppendPathSegments(translator.QuerySource, "swagger");
+            _translator = translator;
         }
 
         public void VisitLinkElement(HtmlNode s)
@@ -21,23 +23,32 @@ namespace Bb.Middlewares
 
             if (s.Attributes.Contains("href"))
             {
+                Url url = null;
+
                 var value = s.Attributes["href"];
                 s.Attributes.Remove("href");
 
+                var extension = value.Value;
+                if (extension.EndsWith(".css") || extension.EndsWith(".png"))
+                {
+                    url = new Url(_translator.QuerySource)
+                        .AppendPathSegment(value.Value);
+                    s.Attributes.Add("href", url.ToString());
+                }
+                else
+                {
 
-                _context.Request.Path.StartsWithSegments(this._aliasUri, out var q);
+                    _context.Request.Path.StartsWithSegments(this._translator.QuerySource, out var q);
 
-                var url = new Url(new Uri(_context.Request.Host.ToString()))
-                    .AppendPathSegment(this._aliasUri)
-                    .AppendPathSegment(q)      
-                    .AppendPathSegment(value.Value);
+                    url = new Url(new Uri(_translator.TargetUrl))
+                        .AppendPathSegment(q)
+                        .AppendPathSegment(value.Value);
 
-                //var u = new Uri(_targetUri1, q, value.Value);
+                    s.Attributes.Add("href", url.ToString());
 
-                s.Attributes.Add("href", url.ToString());
+                }
 
             }
-
 
             s.ChildNodes.Accept(this);
         }
@@ -48,21 +59,28 @@ namespace Bb.Middlewares
             if (s.Attributes.Contains("src"))
             {
 
+                Url url = null;
+
                 var value = s.Attributes["src"];
                 s.Attributes.Remove("src");
 
+                var extension = value.Value;
+                if (extension.EndsWith(".js"))
+                {
+                    url = new Url(_translator.QuerySource)
+                        .AppendPathSegment(value.Value);
+                    s.Attributes.Add("href", url.ToString());
+                }
+                else
+                {
+                    _context.Request.Path.StartsWithSegments(this._translator.QuerySource, out var q);
 
-                _context.Request.Path.StartsWithSegments(this._aliasUri, out var q);
+                    url = new Url(new Uri(_translator.TargetUrl))
+                        .AppendPathSegment(q)
+                        .AppendPathSegment(value.Value);
 
-                var url = new Url(new Uri(_context.Request.Host.ToString()))
-                    .AppendPathSegment(this._aliasUri)
-                    .AppendPathSegment(q)
-                    .AppendPathSegment(value.Value);
-
-                //var u = new Uri(_targetUri1, q, value.Value);
-
-                s.Attributes.Add("src", url.ToString());
-
+                    s.Attributes.Add("src", url.ToString());
+                }
             }
 
             s.ChildNodes.Accept(this);
@@ -436,9 +454,8 @@ namespace Bb.Middlewares
 
 
         private readonly HttpContext _context;
-        private Uri _targetUri1;
-        private string _aliasUri;
-
+        private readonly Url _current;
+        private readonly AddressTranslator _translator;
     }
 
 

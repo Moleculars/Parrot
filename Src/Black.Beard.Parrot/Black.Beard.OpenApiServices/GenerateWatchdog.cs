@@ -3,6 +3,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Namotion.Reflection;
+using SharpYaml.Tokens;
+using System.Diagnostics.Contracts;
 using System.Xml.Linq;
 
 namespace Bb.OpenApiServices
@@ -11,14 +13,15 @@ namespace Bb.OpenApiServices
     public class GenerateWatchdog : CSharpGeneratorBase
     {
 
-        private GenerateWatchdog(string @namespace, params string[] usings)
+        private GenerateWatchdog(string contract, string @namespace, params string[] usings)
            : base(@namespace, usings)
         {
+            this._contract = contract;
         }
 
-        public static void Generate(ContextGenerator ctx, string @namespace)
+        public static void Generate(ContextGenerator ctx, string contract, string @namespace)
         {
-            var g = new GenerateWatchdog(@namespace,
+            var g = new GenerateWatchdog(contract, @namespace,
                 "Microsoft.AspNetCore.Mvc"
                 );
 
@@ -39,9 +42,10 @@ namespace Bb.OpenApiServices
                 c.Base("Controller");
                 c.Field("_logger", "ILogger<WatchdogController>");
 
+                string pathController = $"/proxy/mock/{_contract}/[controller]";
                 c.Attribute("ApiController");
                 c.Attribute("Route")
-                    .Argument("\"[controller]\"")
+                    .Argument(pathController.Literal())
                     ;
 
                 c.Ctor(ctor =>
@@ -205,6 +209,8 @@ namespace Bb.OpenApiServices
             return cs;
 
         }
+
+        private readonly string _contract;
 
     }
 

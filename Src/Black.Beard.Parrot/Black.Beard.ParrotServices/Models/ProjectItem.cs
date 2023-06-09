@@ -3,6 +3,13 @@
     public class ProjectItem
     {
 
+        public ProjectItem()
+        {
+            Services = new Listener();
+            Swagger = new Listener();
+            IsUpAndRunningServices = new Listener();
+
+        }
         /// <summary>
         /// Gets or sets the contract name.
         /// </summary>
@@ -25,7 +32,7 @@
         /// <value>
         /// The swaggers.
         /// </value>
-        public Listener Swaggers { get; set; }
+        public Listener Swagger { get; set; }
 
         /// <summary>
         /// Gets or sets the services addresses.

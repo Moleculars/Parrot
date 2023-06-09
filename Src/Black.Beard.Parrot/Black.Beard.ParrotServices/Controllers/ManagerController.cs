@@ -7,6 +7,8 @@ using System.IO;
 using System.Text;
 using Bb.Services;
 using Bb.Models;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Hosting.Server;
 
 namespace Bb.ParrotServices.Controllers
 {
@@ -17,10 +19,25 @@ namespace Bb.ParrotServices.Controllers
     public class ManagerController : ControllerBase
     {
 
-        public ManagerController(ILogger<ManagerController> logger, ProjectBuilderProvider builder)
+        public ManagerController(ILogger<ManagerController> logger, ProjectBuilderProvider builder, IServer server)
         {
+
             _builder = builder;
             _logger = logger;
+
+            var addresses = server.Features.Get<IServerAddressesFeature>()?.Addresses?.ToArray();
+            if (addresses != null)
+            {
+                foreach (string? address in addresses)
+                {
+                    var a = new Uri(address);
+                    if (a.Scheme == "http")
+                        this._http = a;
+                    else
+                        this._https = a;
+                }
+            }
+
         }
 
         /// <summary>
@@ -110,15 +127,14 @@ namespace Bb.ParrotServices.Controllers
         public async Task<IActionResult> Run([FromRoute] string contract, [FromRoute] string template)
         {
 
-            var request = HttpContext.Request;
-            var port = request.Host.Port.HasValue ? request.Host.Port.Value : 5000;
+            var host = HttpContext.Request.Host.Host;
 
             var project = _builder.Contract(contract);
             var templateObject = project.Template(template);
 
             if (templateObject.Exists())
             {
-                var ports = templateObject.Run(port);
+                var ports = templateObject.Run(host, GetHttpPort(), GetHttpsPort()); // todo : comment retrouver le host name
                 return Ok(ports);
             }
 
@@ -131,6 +147,7 @@ namespace Bb.ParrotServices.Controllers
 
         }
 
+        
 
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ProjectRunning>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -174,6 +191,15 @@ namespace Bb.ParrotServices.Controllers
             return Ok();
 
         }
+
+        
+
+        private Uri? _http { get; }
+        private Uri? _https { get; }
+
+
+        private int? GetHttpPort() => _http != null ? _http.Port : null;
+        private int? GetHttpsPort() => _https != null ? _https.Port : null;
 
         internal readonly ProjectBuilderProvider _builder;
         private readonly ILogger<ManagerController> _logger;

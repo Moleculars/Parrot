@@ -76,7 +76,8 @@ namespace Bb.OpenApiServices
         /// <value>
         /// The name.
         /// </value>
-        public string Name { get; internal set; }
+        public string Template { get; internal set; }
+        public string Contract { get; internal set; }
 
         public abstract void Generate();
 

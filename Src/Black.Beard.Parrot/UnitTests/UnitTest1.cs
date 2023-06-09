@@ -25,10 +25,11 @@ namespace UnitTests
             generator.Configuration = new MockServiceGeneratorConfig() { Namespace = @namespace};
 
             generator
-            .Initialize(name, this._baseDirectory.FullName)
+            .Initialize("myContract", name, this._baseDirectory.FullName)
             .InitializeDataSources(_file)
             .Generate()
             ;
+
 
             var dir = Path.Combine(generator.Directory, name + ".csproj");
 

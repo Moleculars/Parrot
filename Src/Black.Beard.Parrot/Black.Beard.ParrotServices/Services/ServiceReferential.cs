@@ -11,50 +11,50 @@ namespace Bb.Services
 
         public ServiceReferential()
         {
-            this._contracts = new Dictionary<string, ServiceReferentialContract>();
+            this._contracts = new Dictionary<string, ServiceReferentialTemplate>();
         }
 
-        public ServiceReferentialTemplate Get(string serviceName, string templateName, params Uri[] uris)
+        public ServiceReferentialContract Register(string templateName, string contractName, params Uri[] uris)
         {
             lock (_lock)
             {
-                var instance = Get(serviceName).Get(templateName);
+                var instance = Get(templateName).Get(contractName);
                 instance.Register(uris);
                 return instance;
             }
         }
 
-        internal void Remove(ServiceReferentialTemplate? template)
+        internal void Remove(ServiceReferentialContract? contract)
         {
             lock (_lock)
             {
 
-                template.Parent.Remove(template);
+                contract.Parent.Remove(contract);
             
             }
 
         }
 
 
-        internal ServiceReferentialContract Get(string serviceName)
+        internal ServiceReferentialTemplate Get(string serviceName)
         {
 
             if (!_contracts.TryGetValue(serviceName, out var project))
-                _contracts.Add(serviceName, project = new ServiceReferentialContract(this, serviceName));
+                _contracts.Add(serviceName, project = new ServiceReferentialTemplate(this, serviceName));
 
             return project;
 
         }
 
 
-        internal ServiceReferentialTemplate TryToMatch(PathString path)
+        internal ServiceReferentialContract TryToMatch(PathString path)
         {
             var route = path.Value.Trim('/').Split('/');
             var result = TryGet(route, 1);
             return result;
         }
 
-        private ServiceReferentialTemplate TryGet(string[] route, int index)
+        private ServiceReferentialContract TryGet(string[] route, int index)
         {
 
             var serviceName = route[index];
@@ -66,7 +66,7 @@ namespace Bb.Services
 
         }
 
-        private readonly Dictionary<string, ServiceReferentialContract> _contracts;
+        private readonly Dictionary<string, ServiceReferentialTemplate> _contracts;
         private int _version = 0;
         private volatile object _lock = new object();
 

@@ -1,4 +1,5 @@
 ﻿using Bb.Projects;
+using Bb.Services;
 using System.Text;
 
 namespace Bb.Middlewares
@@ -16,10 +17,9 @@ namespace Bb.Middlewares
         /// <param name="targetUri">The target URI.</param>
         /// <param name="aliasUri">The alias URI.</param>
         /// <returns></returns>
-        public ProxyTransformResponse Initialize(Uri targetUri, string aliasUri) 
+        public ProxyTransformResponse Initialize(AddressTranslator translator) 
         {
-            this._targetUri = targetUri;
-            this._aliasUri = aliasUri;
+            this._translator = translator;
             return this;
         }
 
@@ -43,9 +43,7 @@ namespace Bb.Middlewares
         /// <returns></returns>
         protected abstract string Transform(HttpContext context, string payload);
 
-
-        protected Uri _targetUri;
-        protected string _aliasUri;
+        protected AddressTranslator _translator;
 
     }
 

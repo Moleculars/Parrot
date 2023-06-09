@@ -1,6 +1,7 @@
 ﻿using Bb.Json.Jslt.CustomServices;
 using Bb.ParrotServices.Middlewares;
 using log4net;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using Microsoft.OpenApi.Models;
@@ -106,12 +107,8 @@ namespace Bb.ParrotServices
         {
             try
             {
+                
                 _app.Run();
-
-                _app.Run(async (context) =>
-                {
-                    await context.Response.WriteAsync("<a href='/googleforms/d/e/1FAIpQLSdJwmxHIl_OCh-CI1J68G1EVSr9hKaYFLh3dHh8TLnxjxCJWw/viewform?hl=en'>Register to receive a T-shirt</a>");
-                });
 
             }
             catch (Exception)

@@ -1,46 +1,66 @@
-﻿namespace Bb.Services
+﻿using Flurl;
+
+namespace Bb.Services
 {
 
 
-    public class ServiceReferentialTemplate
+    public class ServiceReferentialContract
     {
 
-        public ServiceReferentialTemplate(ServiceReferentialContract parent, string name)
+        public ServiceReferentialContract(ServiceReferentialTemplate parent, string name)
         {
             this.Parent = parent;
-            this.Template = name;
-            this._contract = parent.Name;
-            this.HttpsUris = new List<KeyValuePair<string, Uri>>();
-            this.HttpUris = new List<KeyValuePair<string, Uri>>();
+            this.Contract = name;
+            this._template = parent.Template;
+
         }
 
-        public List<KeyValuePair<string, Uri>> HttpsUris { get; }
-        public List<KeyValuePair<string, Uri>> HttpUris { get; }
+        public AddressTranslator Https { get; private set; }
+
+        public AddressTranslator Http { get; private set; }
 
 
         internal void Register(params Uri[] uris)
         {
             foreach (var redirect in uris)
             {
-            
-                var request = $"/proxy/{_contract}/{this.Template}";
+                if (redirect != null)
+                {
+                    var request = $"/proxy/{this._template}/{Contract}";
 
-                if (redirect.Scheme == "http")
-                    HttpUris.Add(new KeyValuePair<string, Uri>(request, redirect));
-                else
-                    HttpsUris.Add(new KeyValuePair<string, Uri>(request, redirect));
-            
+                    //     .Add(new KeyValuePair<string, Uri>(request, redirect));
+                    var u = new AddressTranslator()
+                    {
+                        QuerySource = request,
+                        TargetPort = redirect.Port,
+                        TargetUri = redirect,
+                        TargetUrl = new Url(redirect).AppendPathSegment(request),
+                    };
+
+                    if (redirect.Scheme == "http")
+                        Http = u;
+
+                    else
+                        Https = u;
+                }
             }
         }
 
-        private readonly string _contract;
+        public string Contract { get; }
 
-        public ServiceReferentialContract Parent { get; }
+        public ServiceReferentialTemplate Parent { get; }
 
-        public string Template { get; }
+        private readonly string _template;
 
 
+    }
 
+    public class AddressTranslator
+    {
+        public string QuerySource { get; internal set; }
+        public int TargetPort { get; internal set; }
+        public Uri TargetUri { get; internal set; }
+        public Url TargetUrl { get; internal set; }
     }
 
 }
