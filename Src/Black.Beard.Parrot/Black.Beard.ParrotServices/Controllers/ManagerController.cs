@@ -19,6 +19,12 @@ namespace Bb.ParrotServices.Controllers
     public class ManagerController : ControllerBase
     {
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ManagerController"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="builder">The builder.</param>
+        /// <param name="server">The server.</param>
         public ManagerController(ILogger<ManagerController> logger, ProjectBuilderProvider builder, IServer server)
         {
 
@@ -43,9 +49,10 @@ namespace Bb.ParrotServices.Controllers
         /// <summary>
         /// Uploads the data source contract on server and generate the project for the specified contract.
         /// </summary>
-        /// <param name="contract">The contract.</param>
+        /// <param name="template">template name of generation. If you don"t know. use 'mock'</param>
+        /// <param name="contract">The unique contract name.</param>
         /// <param name="upfile">The upfile.</param>
-        /// <returns></returns>
+        /// <returns>Return the list of template.</returns>
         /// <exception cref="Bb.ParrotServices.Exceptions.BadRequestException">No file received</exception>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProjectDocument))]
@@ -54,7 +61,7 @@ namespace Bb.ParrotServices.Controllers
         [Produces("application/json")]
         [RequestSizeLimit(100_000_000)]
         //[DisableRequestSizeLimit]
-        public async Task<IActionResult> UploadOpenApiContract([FromRoute] string contract, [FromRoute] string template, IFormFile upfile)
+        public async Task<IActionResult> UploadOpenApiContract([FromRoute] string template, [FromRoute] string contract, IFormFile upfile)
         {
 
             // verify fileInfo
@@ -83,7 +90,11 @@ namespace Bb.ParrotServices.Controllers
 
         }
 
-
+        /// <summary>
+        /// Gets the generated services with the specified template.
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ProjectDocument>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet]
@@ -94,13 +105,18 @@ namespace Bb.ParrotServices.Controllers
             return Ok(items);
         }
 
-
+        /// <summary>
+        /// Builds the specified contract.
+        /// </summary>
+        /// <param name="template">template name of generation. If you don"t know. use 'mock'</param>
+        /// <param name="contract">The unique contract name.</param>
+        /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet("{contract}/build")]
         [Consumes("multipart/form-data")]
         [Produces("application/json")]
-        public async Task<IActionResult> Build([FromRoute] string contract, [FromRoute] string template)
+        public async Task<IActionResult> Build([FromRoute] string template, [FromRoute] string contract)
         {
 
             var project = _builder.Contract(contract);
@@ -118,13 +134,18 @@ namespace Bb.ParrotServices.Controllers
 
         }
 
-
+        /// <summary>
+        /// Runs the specified contract.
+        /// </summary>
+        /// <param name="template">template name of generation. If you don"t know. use 'mock'</param>
+        /// <param name="contract">The unique contract name.</param>
+        /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet("{contract}/run")]
         [Consumes("multipart/form-data")]
         [Produces("application/json")]
-        public async Task<IActionResult> Run([FromRoute] string contract, [FromRoute] string template)
+        public async Task<IActionResult> Run([FromRoute] string template, [FromRoute] string contract)
         {
 
             var host = HttpContext.Request.Host.Host;
@@ -147,8 +168,12 @@ namespace Bb.ParrotServices.Controllers
 
         }
 
-        
 
+        /// <summary>
+        /// return the services runnings. every service runs is tested
+        /// </summary>
+        /// <param name="template">template name of generation. If you don"t know. use 'mock'</param>
+        /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ProjectRunning>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpGet("runnings")]
@@ -161,12 +186,20 @@ namespace Bb.ParrotServices.Controllers
         }
 
 
+        /// <summary>
+        /// Uploads the data template.
+        /// </summary>
+        /// <param name="template">template name of generation. If you don"t know. use 'mock'</param>
+        /// <param name="contract">The unique contract name.</param>
+        /// <param name="file">The file.</param>
+        /// <returns></returns>
+        /// <exception cref="Bb.ParrotServices.Exceptions.BadRequestException">No file received</exception>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpPost("{contract}/upload_template")]
         [Consumes("multipart/form-data")]
         [Produces("application/json")]
-        public async Task<IActionResult> UploadDataTemplate([FromRoute] string contract, IFormFile file)
+        public async Task<IActionResult> UploadDataTemplate([FromRoute] string template, [FromRoute] string contract, IFormFile file)
         {
 
             // verify fileInfo

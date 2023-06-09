@@ -5,10 +5,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using Microsoft.OpenApi.Models;
-
-
-
-
+using NLog.Web;
 
 namespace Bb.ParrotServices
 {
@@ -58,6 +55,11 @@ namespace Bb.ParrotServices
 
         public Setup Services(Action<WebApplicationBuilder> action)
         {
+
+            // NLog: Setup NLog for Dependency injection
+            _builder.Logging.ClearProviders();
+            _builder.Host.UseNLog();
+
             action(_builder);
             return this;
         }
@@ -119,6 +121,7 @@ namespace Bb.ParrotServices
             {
                 LogManager.Flush(5000);
                 LogManager.Shutdown();
+                NLog.LogManager.Shutdown();
             }
 
             return this;
