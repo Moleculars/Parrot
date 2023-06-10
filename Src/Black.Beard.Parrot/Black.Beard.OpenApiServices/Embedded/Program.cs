@@ -33,6 +33,8 @@ internal class Program
             s =>
             {
 
+                s.Services.Add(ServiceDescriptor.Singleton(typeof(ServiceTrace), typeof(ServiceTrace)));
+
                 s.Logging.AddLog4Net();
                 //s.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
                 //s.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);

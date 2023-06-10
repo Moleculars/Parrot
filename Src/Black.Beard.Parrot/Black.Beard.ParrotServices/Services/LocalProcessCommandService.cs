@@ -8,11 +8,9 @@ namespace Bb.ParrotServices.Services
     public class LocalProcessCommandService : ProcessCommandService
     {
 
-        public LocalProcessCommandService(ILogger<ProcessCommandService> logger)
+        public LocalProcessCommandService()
         {
-            this._logger = logger;
             this.Intercept(this.Interceptor);
-
         }
 
         private void Interceptor(object sender, TaskEventArgs args)
@@ -22,23 +20,23 @@ namespace Bb.ParrotServices.Services
             {
 
                 case TaskEventEnum.Started:
-                    this._logger.LogTrace("Started");
+                    Trace.WriteLine("Started", "trace");
                     break;
 
                 case TaskEventEnum.ErrorReceived:
-                    this._logger.LogError(args.DateReceived.Data);
+                    Trace.WriteLine(args.DateReceived.Data, "Error");
                     break;
 
                 case TaskEventEnum.DataReceived:
-                    this._logger.LogInformation(args.DateReceived.Data);
+                    Trace.WriteLine(args.DateReceived.Data, "Info");
                     break;
 
                 case TaskEventEnum.Completed:
-                    this._logger.LogTrace("Completed");
+                    Trace.WriteLine($"Completed", "Info");
                     break;
 
                 case TaskEventEnum.CompletedWithException:
-                    this._logger.LogError("Completed with exception");
+                    Trace.WriteLine("ended with exception", "Error");
                     break;
 
                 default:
@@ -47,8 +45,6 @@ namespace Bb.ParrotServices.Services
             }
 
         }
-
-        internal ILogger<ProcessCommandService> _logger;
 
     }
 

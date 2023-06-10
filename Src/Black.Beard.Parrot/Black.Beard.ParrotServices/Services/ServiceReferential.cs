@@ -11,7 +11,17 @@ namespace Bb.Services
 
         public ServiceReferential()
         {
-            this._contracts = new Dictionary<string, ServiceReferentialTemplate>();
+            this._templates = new Dictionary<string, ServiceReferentialTemplate>();
+        }
+
+        public ServiceReferentialContract Resolve(string templateName, string contractName)
+        {
+
+            if (_templates.TryGetValue(templateName, out var template))
+                return template.Resolve(contractName);
+                
+            return null;
+
         }
 
         public ServiceReferentialContract Register(string templateName, string contractName, params Uri[] uris)
@@ -41,8 +51,8 @@ namespace Bb.Services
         internal ServiceReferentialTemplate Get(string serviceName)
         {
 
-            if (!_contracts.TryGetValue(serviceName, out var project))
-                _contracts.Add(serviceName, project = new ServiceReferentialTemplate(this, serviceName));
+            if (!_templates.TryGetValue(serviceName, out var project))
+                _templates.Add(serviceName, project = new ServiceReferentialTemplate(this, serviceName));
 
             return project;
 
@@ -61,14 +71,14 @@ namespace Bb.Services
 
             var serviceName = route[index];
 
-            if (_contracts.TryGetValue(serviceName, out var contract))
+            if (_templates.TryGetValue(serviceName, out var contract))
                 return contract.TryGet(route, index + 1);
 
             return null;
 
         }
 
-        private readonly Dictionary<string, ServiceReferentialTemplate> _contracts;
+        private readonly Dictionary<string, ServiceReferentialTemplate> _templates;
         private int _version = 0;
         private volatile object _lock = new object();
 

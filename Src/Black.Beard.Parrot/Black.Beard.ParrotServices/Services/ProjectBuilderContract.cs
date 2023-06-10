@@ -18,6 +18,7 @@ namespace Bb.ParrotServices.Services
             //    Directory.CreateDirectory(Root);
 
             this._templates = new Dictionary<string, ProjectBuilderTemplate>();
+
         }
 
         public bool TemplateExist(string templateName)
@@ -35,19 +36,19 @@ namespace Bb.ParrotServices.Services
 
         }
 
-        public void List()
+        public List<ProjectBuilderTemplate> List()
         {
 
+            List< ProjectBuilderTemplate> items = new List<ProjectBuilderTemplate>();
             var dirRoot = new DirectoryInfo(Root);
             var dirs = dirRoot.GetDirectories();
             foreach (var dir in dirs)
             {
-
                 var template = Template(dir.Name);
-
-                template.List();
-
+                items.Add(template);
             }
+
+            return items;
 
         }
 

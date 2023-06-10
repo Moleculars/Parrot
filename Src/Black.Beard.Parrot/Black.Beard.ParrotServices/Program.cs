@@ -1,17 +1,12 @@
 using Bb.ParrotServices;
-using log4net;
 using System.Reflection;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using Bb.Process;
 using Bb.ParrotServices.Services;
-using System.Diagnostics.Contracts;
 using Bb.Services;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using System.Net;
-using Microsoft.AspNetCore.Hosting.Server;
+using NLog.Web;
+using NLog;
 
 internal class Program
 {
@@ -23,8 +18,14 @@ internal class Program
         Directory.SetCurrentDirectory(Path.GetDirectoryName(currentAssembly.Location));
 
         // Read and load Log4Net Config File
-        var repo = LogManager.CreateRepository(Assembly.GetEntryAssembly(), typeof(log4net.Repository.Hierarchy.Hierarchy));
-        log4net.Config.XmlConfigurator.Configure(repo, new FileInfo("log4net.config"));
+        // Early init of NLog to allow startup and exception logging, before host is built
+        var logger = NLog.LogManager
+            .Setup()
+            .LoadConfigurationFromFile("nlog.config")
+            .GetCurrentClassLogger(); 
+
+        // .LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+        logger.Debug("init main");
         var exitCode = 0;
         //TechnicalLog.AsyncContext.ServiceType = TechnicalLog.EngineServiceType;
 
@@ -45,7 +46,7 @@ internal class Program
                 s.Services.Add(ServiceDescriptor.Singleton(typeof(ServiceReferential), typeof(ServiceReferential)));
                 s.Services.Add(ServiceDescriptor.Singleton(typeof(Log4netTraceListener), typeof(Log4netTraceListener)));
 
-                s.Logging.AddLog4Net();
+
                 //s.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
                 //s.Configuration.AddJsoProjectBuildernFile("appsettings.json", optional: true, reloadOnChange: false);
                 s.Configuration.AddEnvironmentVariables();

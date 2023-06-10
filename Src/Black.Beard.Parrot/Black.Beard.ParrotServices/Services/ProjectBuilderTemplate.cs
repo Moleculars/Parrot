@@ -7,6 +7,7 @@ using Bb.Models;
 using Flurl.Http;
 using Bb.Mock;
 using System.Diagnostics.Contracts;
+using System.Diagnostics;
 
 namespace Bb.ParrotServices.Services
 {
@@ -144,14 +145,15 @@ namespace Bb.ParrotServices.Services
 
         public bool Exists()
         {
-            return Directory.Exists(Root);
-
+            var dir = new DirectoryInfo(Root);
+            dir.Refresh();
+            return dir.Exists;
         }
 
         /// <summary>
         /// Build the contract
         /// </summary>
-        public void Build()
+        public async Task Build()
         {
 
             var projectFile = GetFileProject();
@@ -169,32 +171,45 @@ namespace Bb.ParrotServices.Services
         private void Intercept(object sender, TaskEventArgs args)
         {
 
-            var logger = this._rootParent._host._logger;
-
             switch (args.Status)
             {
 
                 case TaskEventEnum.Started:
-                    logger.LogTrace("Started");
+                    Trace.WriteLine("Started", "trace");
                     break;
 
                 case TaskEventEnum.ErrorReceived:
-                    logger.LogError(args.DateReceived.Data);
+                    Trace.WriteLine(args.DateReceived.Data, "Error");
                     break;
 
                 case TaskEventEnum.DataReceived:
-                    logger.LogInformation(args.DateReceived.Data);
+                    Trace.WriteLine(args.DateReceived.Data, "Info");
                     break;
 
                 case TaskEventEnum.Completed:
-                    logger.LogTrace("Completed");
                     var instance = args.Process.Tag as ServiceReferentialContract;
                     if (instance != null)
+                    {
                         _rootParent._referential.Remove(instance);
+                        Trace.WriteLine($"{instance.Parent.Template}/{instance.Contract} ended", "Info");
+                    }
+                    else
+                        Trace.WriteLine($"Completed", "Info");
+                    this.Running = null;
+                    _id = null;
                     break;
 
                 case TaskEventEnum.CompletedWithException:
-                    logger.LogError("Completed with exception");
+                    var instance1 = args.Process.Tag as ServiceReferentialContract;
+                    if (instance1 != null)
+                    {
+                        _rootParent._referential.Remove(instance1);
+                        Trace.WriteLine($"{instance1.Parent.Template}/{instance1.Contract} ended with exception", "Error");
+                    }
+                    else
+                        Trace.WriteLine("ended with exception", "Error");
+                    this.Running = null;
+                    _id = null;
                     break;
 
                 default:
@@ -204,10 +219,47 @@ namespace Bb.ParrotServices.Services
 
         }
 
+        public async Task<bool> Kill()
+        {
+
+            bool result = false;
+
+            var instance = _rootParent._referential.Resolve(this.Template, this._parent.Contract);
+            if (instance != null)
+            {
+
+                var task = this._rootParent._host.GetTaskByTag(instance).FirstOrDefault();
+                if (task != null)
+                {
+
+                    task.Intercept((c, args) =>
+                    {
+                        if (args.Status == TaskEventEnum.Completed)
+                            result = true;
+                        if (args.Status == TaskEventEnum.CompletedWithException)
+                            result = true;
+                    });
+
+                    task.Cancel();
+
+                    task.Wait(200);
+
+                }
+
+                result = true;
+
+            }
+            else
+                result = true;
+
+            return result;
+
+        }
+
         /// <summary>
         /// Run the contract
         /// </summary>
-        public ProjectItem Run(string publicHost, int? httpCurrentPort, int? httpsCurrentPort)
+        public async Task<ProjectItem> Run(string publicHost, int? httpCurrentPort, int? httpsCurrentPort)
         {
 
             var projectFile = GetFileProject();
@@ -228,24 +280,24 @@ namespace Bb.ParrotServices.Services
 
             var workingDirectory = projectFile.Directory.FullName;
 
-            Guid id = Guid.NewGuid();
+            _id = Guid.NewGuid();
 
             var instance = _rootParent._referential.Register(this.Template, this._parent.Contract, uriHttp, uriHttps);
 
             this._rootParent._host
                 .Intercept(Intercept)
-                .Run(id, c =>
+                .Run(_id.Value, c =>
                 {
                     c.Command($"dotnet.exe")
                      .SetWorkingDirectory(workingDirectory)
                      .Arguments($"run \"{projectFile.Name}\" --urls {urls}") // -c Development 
                      ;
                 }, instance)
-                .Wait(s =>
-                {
+                //.Wait(id, 500)
+                ;
 
-                });
-
+            var task = this._rootParent._host.GetTask(_id.Value);
+            task.Wait(500);                       
 
             this.Running = new ProjectItem()
             {
@@ -276,6 +328,17 @@ namespace Bb.ParrotServices.Services
             this.Running.IsUpAndRunningServices.Http.HostedInternalServiceUrl = new Url(uriHttp).AppendPathSegments("proxy", this.Template, this._parent.Contract, "Watchdog", "isupandrunning");
             this.Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl = new Url(uriHttps).AppendPathSegments("proxy", this.Template, this._parent.Contract, "Watchdog", "isupandrunning");
 
+            try
+            {
+                var serviceResult = await this.Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl.GetJsonAsync<WatchdogResult>();
+                if (serviceResult != null)
+                    this.Running.Started = true;
+            }
+            catch (Exception)
+            {
+                               
+            }
+
             return this.Running;
 
         }
@@ -286,6 +349,34 @@ namespace Bb.ParrotServices.Services
             var _projectFile = files.First();
             return _projectFile;
         }
+
+
+
+        internal string GetDirectoryProject(params string[] path)
+        {
+
+            var dir = Path.Combine(Root, "service");
+
+            foreach (var item in path)
+                dir = Path.Combine(dir, item);
+
+            return dir;
+
+        }
+
+        internal FileInfo[] GetFiles(string path, string pattern)
+        {
+
+            var dir = new DirectoryInfo(path);
+            dir.Refresh();
+
+            FileInfo[] files = dir.GetFiles(pattern);
+           
+            return files;
+
+        }
+
+
 
 
         private ServiceGenerator? GetGenerator() => (ServiceGenerator)Activator.CreateInstance(_generatorType);
@@ -322,7 +413,7 @@ namespace Bb.ParrotServices.Services
 
             if (this.Running != null)
             {
-                // curl -X GET "url" -H 'accept: application/json'
+                // curl -X GET "url" -H "accept: application/json"
                 var serviceResult = await this.Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl.GetJsonAsync<WatchdogResult>();
                 result.UpAndRunningResult = serviceResult;
 
@@ -345,6 +436,7 @@ namespace Bb.ParrotServices.Services
         private static readonly JsonSerializerSettings jsonSerializerSettings;
         private readonly Type _configurationType;
         private readonly string _defaultConfig;
+        private Guid? _id;
 
         public ProjectItem Running { get; private set; }
     }

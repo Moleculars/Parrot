@@ -9,6 +9,8 @@ using Bb.Services;
 using Bb.Models;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Hosting.Server;
+using System.Diagnostics;
+using SharpYaml.Model;
 
 namespace Bb.ParrotServices.Controllers
 {
@@ -51,13 +53,13 @@ namespace Bb.ParrotServices.Controllers
         /// </summary>
         /// <param name="template">template name of generation. If you don"t know. use 'mock'</param>
         /// <param name="contract">The unique contract name.</param>
-        /// <param name="upfile">The upfile.</param>
+        /// <param name="upfile">The upfile that contains the contract in open api 3.*.</param>
         /// <returns>Return the list of template.</returns>
         /// <exception cref="Bb.ParrotServices.Exceptions.BadRequestException">No file received</exception>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ProjectDocument))]
         [HttpPost("{contract}/upload")]
-        [Consumes("multipart/form-data")]
+        //[Consumes("multipart/form-data")]
         [Produces("application/json")]
         [RequestSizeLimit(100_000_000)]
         //[DisableRequestSizeLimit]
@@ -86,6 +88,7 @@ namespace Bb.ParrotServices.Controllers
             // Generate project
             var result = templateObject.GenerateProject(filepath);
 
+            Trace.WriteLine($"{template} service {contract} has been generated", "info");
             return Ok(result);
 
         }
@@ -113,8 +116,7 @@ namespace Bb.ParrotServices.Controllers
         /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpGet("{contract}/build")]
-        [Consumes("multipart/form-data")]
+        [HttpPut("{contract}/build")]
         [Produces("application/json")]
         public async Task<IActionResult> Build([FromRoute] string template, [FromRoute] string contract)
         {
@@ -122,28 +124,21 @@ namespace Bb.ParrotServices.Controllers
             var project = _builder.Contract(contract);
             var templateObject = project.Template(template);
 
-            if (templateObject.Exists())
-                templateObject.Build();
-
-            else
-            {
-
-            }
+            templateObject.Build();
 
             return Ok();
 
         }
 
         /// <summary>
-        /// Runs the specified contract.
+        /// Runs the specified template & contract.
         /// </summary>
         /// <param name="template">template name of generation. If you don"t know. use 'mock'</param>
         /// <param name="contract">The unique contract name.</param>
         /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpGet("{contract}/run")]
-        [Consumes("multipart/form-data")]
+        [HttpPut("{contract}/run")]
         [Produces("application/json")]
         public async Task<IActionResult> Run([FromRoute] string template, [FromRoute] string contract)
         {
@@ -153,18 +148,33 @@ namespace Bb.ParrotServices.Controllers
             var project = _builder.Contract(contract);
             var templateObject = project.Template(template);
 
-            if (templateObject.Exists())
-            {
-                var ports = templateObject.Run(host, GetHttpPort(), GetHttpsPort()); // todo : comment retrouver le host name
-                return Ok(ports);
-            }
+            await templateObject.Build();
 
-            else
-            {
+            var ports = await templateObject.Run(host, GetHttpPort(), GetHttpsPort()); // todo : comment retrouver le host name
+            return Ok(ports);
 
-            }
+        }
 
-            return Ok();
+
+        /// <summary>
+        /// kills the specified template & contract.
+        /// </summary>
+        /// <param name="template">template name of generation. If you don"t know. use 'mock'</param>
+        /// <param name="contract">The unique contract name.</param>
+        /// <returns></returns>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [HttpPut("{contract}/kill")]
+        [Produces("application/json")]
+        public async Task<IActionResult> Kill([FromRoute] string template, [FromRoute] string contract)
+        {
+
+            var project = _builder.Contract(contract);
+            var templateObject = project.Template(template);
+
+            var result = await templateObject.Kill();
+
+            return Ok(result);
 
         }
 
@@ -176,13 +186,41 @@ namespace Bb.ParrotServices.Controllers
         /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ProjectRunning>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpGet("runnings")]
-        [Consumes("multipart/form-data")]
+        [HttpGet("runnings")]       
         [Produces("application/json")]
         public async Task<IActionResult> Runnings([FromRoute] string template)
         {
             var items = await _builder.ListRunningsByTemplate(template);
             return Ok(items);
+        }
+
+
+        /// <summary>
+        /// Download the specified data template.
+        /// </summary>
+        /// <param name="template">template name of generation. If you don"t know. use 'mock'</param>
+        /// <param name="contract">The unique contract name.</param>
+        /// <returns></returns>
+        /// <exception cref="Bb.ParrotServices.Exceptions.BadRequestException">No file received</exception>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("{contract}/download_template")]
+        //[Consumes("multipart/form-data")]
+        [Produces("application/json")]
+        public async Task<IActionResult> DownloadDataTemplate([FromRoute] string template, [FromRoute] string contract, [FromQuery] string filename)
+        {
+
+            var project = _builder.Contract(contract);
+            ProjectBuilderTemplate templateObject = project.Template(template);
+
+            var dir = templateObject.GetDirectoryProject("Templates");
+            var files = templateObject.GetFiles(dir, filename);
+            if (files.Length == 1)
+            {
+                return File(System.IO.File.OpenRead(files[0].FullName), "application/octet-stream", System.IO.Path.GetFileName(filename));
+            }
+            return NotFound();
+
         }
 
 
@@ -195,41 +233,34 @@ namespace Bb.ParrotServices.Controllers
         /// <returns></returns>
         /// <exception cref="Bb.ParrotServices.Exceptions.BadRequestException">No file received</exception>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpPost("{contract}/upload_template")]
-        [Consumes("multipart/form-data")]
         [Produces("application/json")]
         public async Task<IActionResult> UploadDataTemplate([FromRoute] string template, [FromRoute] string contract, IFormFile file)
         {
 
-            // verify fileInfo
-            if (string.IsNullOrEmpty(file?.FileName))
-                throw new BadRequestException("No file received");
+            var project = _builder.Contract(contract);
+            ProjectBuilderTemplate templateObject = project.Template(template);
 
-            if (file == null || file.Length == 0)
-                return Content("file stream is not selected or empty");
+            var dir = templateObject.GetDirectoryProject("Templates");
+            var files = templateObject.GetFiles(dir, file.FileName);
 
-
-            string path = Path.Combine(Directory.GetCurrentDirectory(), "services", contract);
-            if (!Directory.Exists(path))
-                Directory.CreateDirectory(path);
-
-
-            var filepath = Path.Combine(path, "template.json");
-            using (var stream = new FileStream(filepath, FileMode.Create))
+            if (files.Length == 1)
             {
-                await file.CopyToAsync(stream);
+                using (var stream = new FileStream(file.FileName, FileMode.CreateNew))
+                {
+                    await file.CopyToAsync(stream);
+                }
+                return Ok();
             }
 
-            return Ok();
+            return NotFound();
 
         }
 
-        
 
         private Uri? _http { get; }
         private Uri? _https { get; }
-
 
         private int? GetHttpPort() => _http != null ? _http.Port : null;
         private int? GetHttpsPort() => _https != null ? _https.Port : null;

@@ -10,6 +10,9 @@
             IsUpAndRunningServices = new Listener();
 
         }
+
+
+
         /// <summary>
         /// Gets or sets the contract name.
         /// </summary>
@@ -25,6 +28,15 @@
         /// The template.
         /// </value>
         public string Template { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether the service is started.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if started; otherwise, <c>false</c>.
+        /// </value>
+        public bool Started { get; internal set; }
+
 
         /// <summary>
         /// return utils urls
@@ -49,7 +61,6 @@
         /// The services.
         /// </value>
         public Listener IsUpAndRunningServices { get; set; }
-
 
     }
 

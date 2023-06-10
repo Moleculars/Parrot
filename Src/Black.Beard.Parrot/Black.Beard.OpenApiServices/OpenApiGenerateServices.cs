@@ -51,17 +51,16 @@ namespace Bb.OpenApiServices
 
             CsClassDeclaration crl = new CsClassDeclaration(name)
                 .Base("Controller")
-                .Field("_logger", typeLogger, f =>
+                
+                .Ctor(ctor =>
                 {
-                    f.IsPrivate()
-                    ;
-                })
-                .Ctor(c =>
-                {
-                    c.Parameter("logger", typeLogger);
-                    c.Body(b =>
+                    ctor.Parameter("logger", typeLogger);
+                    ctor.Parameter("trace", "ServiceTrace");
+
+                    ctor.Body(b =>
                     {
                         b.Set("_logger".Identifier(), "logger".Identifier());
+                        b.Set("_trace".Identifier(), "trace".Identifier());
                     });
                     ;
                 })
@@ -85,6 +84,18 @@ namespace Bb.OpenApiServices
             ns.DisableWarning("CS8618", "CS1591");
 
             ns.Add(crl);
+
+            crl.Field("_logger", typeLogger, f =>
+             {
+                 f.IsPrivate()
+                 ;
+             });
+
+            crl.Field("_trace", "ServiceTrace", f =>
+            {
+                f.IsPrivate()
+                ;
+            });
 
             _ctx.AppendDocument("Controllers", name + ".cs", cs.Code().ToString());
 
@@ -162,6 +173,8 @@ namespace Bb.OpenApiServices
 
                 var templateName = _ctx.GetDataFor(self).GetData<string>("templateName");
                 string diff = _ctx.GetRelativePath(templateName);
+
+                
 
                 c.TryCatchs
                 (t =>

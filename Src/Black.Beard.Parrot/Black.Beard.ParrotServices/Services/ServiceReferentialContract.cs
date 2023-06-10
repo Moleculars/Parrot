@@ -40,6 +40,16 @@ namespace Bb.Services
             _contracts.Remove(template.Contract);
         }
 
+        public ServiceReferentialContract Resolve(string contractName)
+        {
+            
+            if (_contracts.TryGetValue(contractName, out var contract))
+                return contract;
+
+            return null;
+
+        }
+
         public ServiceReferential Parent { get; }
 
         public string Template { get; }

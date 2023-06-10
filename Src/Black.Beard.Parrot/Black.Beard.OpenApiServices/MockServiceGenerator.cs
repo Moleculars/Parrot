@@ -112,6 +112,8 @@ namespace Bb.OpenApiServices
             project.AppendDocument("SwaggerExtension.cs", @"Embedded\SwaggerExtension.cs".LoadFromFile());
             project.AppendDocument("Setup.cs", @"Embedded\Setup.cs".LoadFromFile());
             project.AppendDocument("ServiceProcessor.cs", @"Embedded\ServiceProcessor.cs".LoadFromFile());
+            project.AppendDocument("ServiceTrace.cs", @"Embedded\ServiceTrace.cs".LoadFromFile());
+
             project.AppendDocument("log4net.config", @"Embedded\log4net.config".LoadFromFile());
 
             project.ItemGroup(i =>

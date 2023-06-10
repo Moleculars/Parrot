@@ -1,6 +1,5 @@
 ﻿using Bb.Json.Jslt.CustomServices;
 using Bb.ParrotServices.Middlewares;
-using log4net;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
@@ -119,8 +118,6 @@ namespace Bb.ParrotServices
             }
             finally
             {
-                LogManager.Flush(5000);
-                LogManager.Shutdown();
                 NLog.LogManager.Shutdown();
             }
 

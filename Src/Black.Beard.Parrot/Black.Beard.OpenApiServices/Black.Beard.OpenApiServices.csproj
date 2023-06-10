@@ -10,6 +10,7 @@
   <ItemGroup>
     <Compile Remove="Embedded\Program.cs" />
     <Compile Remove="Embedded\ServiceProcessor.cs" />
+    <Compile Remove="Embedded\ServiceTrace.cs" />
     <Compile Remove="Embedded\Setup.cs" />
     <Compile Remove="Embedded\SwaggerExtension.cs" />
   </ItemGroup>
@@ -25,6 +26,9 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="Embedded\Program.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Embedded\ServiceTrace.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Embedded\SwaggerExtension.cs">

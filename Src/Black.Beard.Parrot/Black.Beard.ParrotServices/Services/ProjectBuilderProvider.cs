@@ -47,7 +47,9 @@ namespace Bb.ParrotServices.Services
                 _items.Add(contract, builder = new ProjectBuilderContract(this, contract));
 
             return builder;
+
         }
+
 
         internal Type ResolveGenerator(string template)
         {
@@ -105,6 +107,23 @@ namespace Bb.ParrotServices.Services
 
         }
 
+        public async Task<List<ProjectBuilderTemplate>> List()
+        {
+
+            List<ProjectBuilderTemplate> items = new List<ProjectBuilderTemplate>();
+
+            var dirRoot = new DirectoryInfo(_root);
+            var dirs = dirRoot.GetDirectories();
+            foreach (var dir in dirs)
+            {
+                ProjectBuilderContract contract = Contract(dir.Name);
+                items.AddRange(contract.List());
+            }
+
+            return items;
+
+        }
+
         public async Task<List<ProjectRunning>> ListRunningsByTemplate(string templateName)
         {
 
@@ -126,7 +145,6 @@ namespace Bb.ParrotServices.Services
             return result;
 
         }
-
 
         public bool ContractExists
         {
