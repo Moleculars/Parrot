@@ -5,6 +5,9 @@ using System.Diagnostics;
 namespace Bb.ParrotServices.Services
 {
 
+    /// <summary>
+    /// Wrapp the process command line for log event
+    /// </summary>
     public class LocalProcessCommandService : ProcessCommandService
     {
 

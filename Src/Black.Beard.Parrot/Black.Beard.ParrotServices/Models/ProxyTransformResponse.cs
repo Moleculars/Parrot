@@ -2,7 +2,7 @@
 using Bb.Services;
 using System.Text;
 
-namespace Bb.Middlewares
+namespace Bb.Models
 {
 
     /// <summary>
@@ -17,9 +17,9 @@ namespace Bb.Middlewares
         /// <param name="targetUri">The target URI.</param>
         /// <param name="aliasUri">The alias URI.</param>
         /// <returns></returns>
-        public ProxyTransformResponse Initialize(AddressTranslator translator) 
+        public ProxyTransformResponse Initialize(AddressTranslator translator)
         {
-            this._translator = translator;
+            _translator = translator;
             return this;
         }
 
@@ -28,9 +28,9 @@ namespace Bb.Middlewares
 
             var content = await responseMessage.Content.ReadAsByteArrayAsync();
             var stringContent = Encoding.UTF8.GetString(content);
-            
+
             var newStringContent = Transform(context, stringContent);
-            
+
             await Task.Yield();
             return newStringContent;
 

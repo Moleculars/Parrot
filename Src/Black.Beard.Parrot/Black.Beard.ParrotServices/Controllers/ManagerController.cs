@@ -100,7 +100,7 @@ namespace Bb.ParrotServices.Controllers
         /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ProjectDocument>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpGet]
+        [HttpGet("list")]
         [Produces("application/json")]
         public async Task<IActionResult> GetGeneratedServicesByTemplate([FromRoute] string template)
         {

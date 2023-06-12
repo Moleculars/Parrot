@@ -1,8 +1,7 @@
-﻿using Bb.ParrotServices.Middlewares;
-using Bb.Services;
+﻿using Bb.Services;
 using System.Text;
 
-namespace Bb.Middlewares
+namespace Bb.Models
 {
     /// <summary>
     /// class for select the transform that manage the contentype
@@ -67,9 +66,9 @@ namespace Bb.Middlewares
                             .AppendPathSegments(translator.QuerySource);
 
                         message = message
-                            .Replace($"\"url\":\"{translator.QuerySource}/swagger/", 
+                            .Replace($"\"url\":\"{translator.QuerySource}/swagger/",
                                      $"\"url\":\"{_current}/swagger/"
-                                     )                            
+                                     )
                             ;
 
                         await context.Response.WriteAsync(message, Encoding.UTF8);

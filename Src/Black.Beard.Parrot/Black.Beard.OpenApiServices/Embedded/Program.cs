@@ -36,8 +36,6 @@ internal class Program
                 s.Services.Add(ServiceDescriptor.Singleton(typeof(ServiceTrace), typeof(ServiceTrace)));
 
                 s.Logging.AddLog4Net();
-                //s.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
-                //s.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
                 s.Configuration.AddEnvironmentVariables();
 
                 // OpenAPI
@@ -57,26 +55,23 @@ internal class Program
 
                     {{testApiKey}}
 
-                    c.TagActionsBy(a =>
-                    {
-
-                        var result = new List<string> { "{{title}}" };
-                        /*
-                        string? c;
-                        var b = a.ActionDescriptor as ControllerActionDescriptor;
-                        if (b != null)
-                        {
-                            c = b.ControllerTypeInfo?.Assembly?.FullName?.Split('.')[2]?.Split(',')[0]?.Replace("Web", "");
-                        }
-                        else
-                            c = a.ActionDescriptor?.DisplayName;
-
-                        if (c != null)
-                            result.Add(c);
-                        */
-                        return result;
-
-                    });
+                    //c.TagActionsBy(a =>
+                    //{
+                    //    var result = new List<string> { "{{title}}" };
+                    //    /*
+                    //    string? c;
+                    //    var b = a.ActionDescriptor as ControllerActionDescriptor;
+                    //    if (b != null)
+                    //    {
+                    //        c = b.ControllerTypeInfo?.Assembly?.FullName?.Split('.')[2]?.Split(',')[0]?.Replace("Web", "");
+                    //    }
+                    //    else
+                    //        c = a.ActionDescriptor?.DisplayName;
+                    //    if (c != null)
+                    //        result.Add(c);
+                    //    */
+                    //    return result;
+                    //});
 
                 });
 

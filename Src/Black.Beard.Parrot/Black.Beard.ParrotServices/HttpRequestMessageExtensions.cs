@@ -1,4 +1,4 @@
-﻿namespace Bb.ParrotServices.Middlewares
+﻿namespace Bb
 {
 
     public static class HttpRequestMessageExtensions

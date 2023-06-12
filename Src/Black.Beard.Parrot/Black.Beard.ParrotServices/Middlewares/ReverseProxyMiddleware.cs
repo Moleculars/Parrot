@@ -1,5 +1,5 @@
 ﻿using Bb.Json.Jslt.CustomServices;
-using Bb.Middlewares;
+using Bb.Models;
 using Bb.ParrotServices.Controllers;
 using Bb.Services;
 using Flurl;
@@ -19,8 +19,6 @@ using System.Threading.Tasks;
 namespace Bb.ParrotServices.Middlewares
 {
 
-    // https://localhost:7033/proxy/parcel/mock
-    // https://localhost:7033/proxy/parcel/mock/swagger
 
     public class ReverseProxyMiddleware
     {

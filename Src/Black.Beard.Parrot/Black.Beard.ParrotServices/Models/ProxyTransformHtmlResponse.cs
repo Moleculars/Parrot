@@ -7,10 +7,11 @@ using System.Security.Cryptography;
 using System.Threading;
 using System;
 
-namespace Bb.Middlewares
+namespace Bb.Models
 {
     public class ProxyTransformHtmlResponse : ProxyTransformResponse
     {
+
         protected override string Transform(HttpContext context, string payload)
         {
 

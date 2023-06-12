@@ -1,0 +1,13 @@
+{
+
+  "ApiKeyConfiguration": {
+
+    "ApiHeader": "x-api-key",
+
+    "Items": [
+
+    ]
+
+  }
+
+}

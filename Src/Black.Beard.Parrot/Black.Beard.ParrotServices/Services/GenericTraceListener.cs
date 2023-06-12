@@ -3,12 +3,15 @@
 namespace Bb.Services
 {
 
-    public class Log4netTraceListener : System.Diagnostics.TraceListener
+    /// <summary>
+    /// Intercept trace writeline and redirectg in the log
+    /// </summary>
+    public class GenericTraceListener : System.Diagnostics.TraceListener
     {
 
-        private readonly ILogger<Log4netTraceListener> _log;
+        private readonly ILogger<GenericTraceListener> _log;
 
-        public Log4netTraceListener(ILogger<Log4netTraceListener> logger)
+        public GenericTraceListener(ILogger<GenericTraceListener> logger)
         {
             _log = logger;
         }

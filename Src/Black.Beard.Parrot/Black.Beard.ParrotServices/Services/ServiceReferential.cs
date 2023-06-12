@@ -6,6 +6,7 @@ using System.Collections.Generic;
 namespace Bb.Services
 {
 
+
     public class ServiceReferential
     {
 
@@ -19,7 +20,7 @@ namespace Bb.Services
 
             if (_templates.TryGetValue(templateName, out var template))
                 return template.Resolve(contractName);
-                
+
             return null;
 
         }
