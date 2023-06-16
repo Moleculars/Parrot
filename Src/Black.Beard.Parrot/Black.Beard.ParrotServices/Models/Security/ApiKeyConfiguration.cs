@@ -7,7 +7,7 @@ namespace Bb.Models.Security
 {
 
 
-    [ExposeClass(Context = "Configuration", ExposedType = typeof(ApiKeyConfiguration), LifeCycle = IocScopeEnum.Singleton)]
+    [ExposeClass(Context = Constants.Models.Configuration, ExposedType = typeof(ApiKeyConfiguration), LifeCycle = IocScopeEnum.Singleton)]
     public class ApiKeyConfiguration
     {
 

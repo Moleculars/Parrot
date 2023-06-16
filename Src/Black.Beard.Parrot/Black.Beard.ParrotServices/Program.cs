@@ -16,7 +16,6 @@ using NLog.Web;
 using NLog.Layouts;
 using NLog.Targets;
 using System;
-using Microsoft.Data.Sqlite;
 using Bb.ParrotServices.Middlewares;
 using NLog.Config;
 using NLog.LayoutRenderers;

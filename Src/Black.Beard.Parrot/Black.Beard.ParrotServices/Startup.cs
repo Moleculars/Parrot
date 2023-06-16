@@ -11,12 +11,12 @@ using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using System.Linq;
 using Bb.Models.Security;
+using Bb;
 
 namespace Bb.ParrotServices
 {
     public class Startup
     {
-        private readonly IConfiguration _configuration;
 
         public Startup(IConfiguration configuration)
         {
@@ -27,22 +27,18 @@ namespace Bb.ParrotServices
         public void ConfigureServices(IServiceCollection services)
         {
 
+            services.UseModelsExposedByAttribute(_configuration);
+            services.UseConfigurationsExposedByAttribute(_configuration);
+            services.UseServicesExposedByAttribute(_configuration);
 
-            services.UseConfigurationByAttribute(_configuration);
-
-            services.AddSingleton(typeof(LocalProcessCommandService), typeof(LocalProcessCommandService));
-            services.AddSingleton(typeof(ProjectBuilderProvider), typeof(ProjectBuilderProvider));
-            services.AddSingleton(typeof(ServiceReferential), typeof(ServiceReferential));
-           
-            services.UseExceptionHandling(_configuration);
+            // services.UseExceptionHandling(_configuration);
             services.UserLoggingBehavior();
-            services.UseApiKey(_configuration);
 
             services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
 
-            // Initialize security policiy
+            // Initialize security policy
             var policies = PoliciesExtension.GetPolicies();
             if (policies.Any())
                 services.AddAuthorization(options =>
@@ -78,7 +74,7 @@ namespace Bb.ParrotServices
                 var path = res.Request.Path;
 
                 PolicyModelRoute route = policy.Evaluate(path);
-                                
+
                 var i = arg.User.Identity as ClaimsIdentity;
                 var roles = i.Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
 
@@ -96,11 +92,9 @@ namespace Bb.ParrotServices
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
 
-
-            var services = app.ApplicationServices;
-
-            var projectBuilder = (ProjectBuilderProvider)services.GetService(typeof(ProjectBuilderProvider));
-            projectBuilder.Initialize(Directory.GetCurrentDirectory());
+            //var services = app.ApplicationServices;
+            //var projectBuilder = (ProjectBuilderProvider)services.GetService(typeof(ProjectBuilderProvider));
+            //projectBuilder.Initialize(Directory.GetCurrentDirectory());
 
             if (env.IsDevelopment())
             {
@@ -134,6 +128,11 @@ namespace Bb.ParrotServices
               })
             ;
         }
+
+        private readonly IConfiguration _configuration;
+
     }
+
+
 
 }

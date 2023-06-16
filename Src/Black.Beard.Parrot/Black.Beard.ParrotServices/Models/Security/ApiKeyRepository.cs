@@ -1,9 +1,11 @@
-﻿using Bb.Json.Jslt.CustomServices.MultiCsv;
+﻿using Bb.ComponentModel.Attributes;
+using Bb.Json.Jslt.CustomServices.MultiCsv;
 using System.Reflection;
 
 namespace Bb.Models.Security
 {
 
+    [ExposeClass(Context = Constants.Models.Service, ExposedType = typeof(IApiKeyRepository), LifeCycle = IocScopeEnum.Singleton)]
     internal class ApiKeyRepository : IApiKeyRepository
     {
 

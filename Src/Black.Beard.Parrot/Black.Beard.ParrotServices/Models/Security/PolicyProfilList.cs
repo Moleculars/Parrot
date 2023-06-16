@@ -3,7 +3,7 @@
 namespace Bb.Models.Security
 {
 
-    [ExposeClass (Context = "Configuration", ExposedType = typeof(PolicyProfilList), LifeCycle = IocScopeEnum.Singleton)]
+    [ExposeClass (Context = Constants.Models.Configuration, ExposedType = typeof(PolicyProfilList), LifeCycle = IocScopeEnum.Singleton)]
     public class PolicyProfilList : List<PolicyProfil>
     {
 
