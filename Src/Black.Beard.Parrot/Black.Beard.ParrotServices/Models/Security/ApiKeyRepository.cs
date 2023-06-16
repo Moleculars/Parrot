@@ -24,6 +24,81 @@ namespace Bb.Models.Security
             ApiKeyList.Filename = _file;
         }
 
+        /// <summary>
+        /// return the list of api key
+        /// </summary>
+        /// <returns></returns>
+        public ApiItem[] GetList(int page, int count)
+        {
+
+            var items = ApiKeyList
+                        .Items
+                        .Skip(page)
+                        .Take(count)
+                        .Select(c => c.GetItemForList())
+                        .ToArray();
+
+            return items;
+
+        }
+
+        /// <summary>
+        /// return the count of pages
+        /// </summary>
+        /// <returns></returns>
+        public int GetPageCount(int count)
+        {
+
+            if (count == 0)
+                count = 10;
+
+            var items = ApiKeyList.Items.Count;
+
+            var pages = 0;
+            if (items > 0) 
+                pages = (int)(items / count);
+
+            if (items % count > 0)
+                pages++;
+
+            return pages;
+
+        }
+
+        /// <summary>
+        /// return the <see cref="T:ApiKey"/> specified by key
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public ApiKey GetByKey(string key)
+        {
+
+            var items = ApiKeyList
+                      .Items
+                      .Where(c => c.Key == key)
+                      .FirstOrDefault();
+
+            return items;
+
+        }
+
+        /// <summary>
+        /// return the <see cref="T:ApiKey"/> specified by id
+        /// </summary>
+        /// <param name="id">id of the api key</param>
+        /// <returns></returns>
+        public ApiKey GetById(Guid id)
+        {
+
+            var items = ApiKeyList
+                  .Items
+                  .Where(c => c.Id == id)
+                  .FirstOrDefault();
+
+            return items;
+
+        }
+
 
         /// <summary>
         /// Update the referential
@@ -80,12 +155,13 @@ namespace Bb.Models.Security
 
         }
 
+
         /// <summary>
-        /// Delete an item of the referential
+        /// remove items specified by id
         /// </summary>
-        /// <param name="datas"></param>
-        /// <returns></returns>
-        public ApiResult[] Del(ApiKeyModel[] datas)
+        /// <param name="datas"><see cref="T:Guid"/></param>
+        /// <returns><see cref="T:ApiResult"/></returns>
+        public ApiResult[] DelById(Guid[] datas)
         {
 
             List<ApiResult> results = new List<ApiResult>(datas.Length);
@@ -96,13 +172,80 @@ namespace Bb.Models.Security
                 foreach (var data in datas)
                 {
 
-                    ApiResult r = new ApiResult() { Key = data.Key };
-
-                    var k = data.Key;
+                    ApiResult r = new ApiResult() { Key = data.ToString() };
 
                     var item = ApiKeyList
                         .Items
-                        .Where(c => c.Key == k)
+                        .Where(c => c.Id == data)
+                        .FirstOrDefault();
+
+                    if (item != null)
+                    {
+                        if (item.Admin)
+                        {
+                            var admin = ApiKeyList
+                                .Items
+                                .Where(c => c != item && c.Admin)
+                                .Any();
+
+                            if (admin)
+                            {
+                                ApiKeyList.Items.Remove(item);
+                                r.Success = true;
+                                r.Info = "Removed";
+                            }
+                            else
+                            {
+                                r.Success = false;
+                                r.Info = "Can't be Removed, because is the last administrator.";
+                            }
+                        }
+                        else
+                        {
+                            ApiKeyList.Items.Remove(item);
+                            r.Success = true;
+                            r.Info = "Removed";
+                        }
+
+                    }
+                    else
+                    {
+                        r.Info = "Not found";
+                        r.Success = true;
+                    }
+
+                }
+
+                ApiKeyList.Save();
+
+            }
+
+            return results.ToArray();
+
+        }
+
+
+        /// <summary>
+        /// remove items specified by key
+        /// </summary>
+        /// <param name="datas">list of api key <see cref="T:string"/> to remove.</param>
+        /// <returns><see cref="T:ApiResult"/></returns>
+        public ApiResult[] DelByKey(string[] datas)
+        {
+
+            List<ApiResult> results = new List<ApiResult>(datas.Length);
+
+            lock (ApiKeyList._lock)
+            {
+
+                foreach (var data in datas)
+                {
+
+                    ApiResult r = new ApiResult() { Key = data.ToString() };
+
+                    var item = ApiKeyList
+                        .Items
+                        .Where(c => c.Key == data)
                         .FirstOrDefault();
 
                     if (item != null)

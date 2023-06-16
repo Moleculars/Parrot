@@ -1,28 +1,52 @@
 ﻿using Bb.Models.Security;
-using Bb.ParrotServices.Middlewares;
-using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.Contracts;
+using System.Security.Claims;
 
 namespace Bb.Extensions
 {
 
-    public static class DependencyRegistrar
+
+    public static class ApiKeyExtension
     {
 
-        public static IApplicationBuilder ConfigureHttpInfoLogger(this IApplicationBuilder builder) => builder.UseMiddleware<HttpInfoLoggerMiddleware>();
-
-        public static IApplicationBuilder UseApiKeyHandlerMiddleware(this IApplicationBuilder builder) => builder.UseMiddleware<ApiKeyHandlerMiddleware>();
-
-
-        public static void AddConfigurationApiKey(this IServiceCollection services, IConfiguration configuration)
+        /// <summary>
+        /// Cosnolidate api keys and translates in claim's list.
+        /// </summary>
+        /// <param name="self"></param>
+        /// <returns></returns>
+        public static List<Claim> Consolidate(this List<ApiKey> self)
         {
-            var apiKeyConfiguration = new ApiKeyConfiguration();
-            configuration.Bind(nameof(ApiKeyConfiguration), apiKeyConfiguration);
 
-            services.AddSingleton(typeof(ApiKeyConfiguration), apiKeyConfiguration);
-            services.AddSingleton(typeof(IApiKeyRepository), typeof(ApiKeyRepository));
+            HashSet<string> _h = new HashSet<string>();
+
+            var claims = new List<Claim>();
+
+
+            foreach (var apiKey in self)
+            {
+
+                claims.Add(new Claim(ClaimTypes.Name, apiKey.Owner));
+
+                if (apiKey.Admin && _h.Add("Administrator"))
+                    claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
+
+                foreach (var contract in apiKey.Contracts)
+                {
+                    var value = "Admin:" + contract;
+                    if (_h.Add(value))
+                        claims.Add(new Claim(ClaimTypes.Role, value));
+                }
+
+                foreach (var claim in apiKey.Claims)
+                    if (_h.Add(claim.Key))
+                        claims.Add(new Claim(claim.Key, claim.Value));
+
+            }
+
+            return claims;
 
         }
-    }
 
+    }
 
 }

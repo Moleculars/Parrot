@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Hosting.Server;
 using System.Diagnostics;
 using SharpYaml.Model;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Bb.ParrotServices.Controllers
 {
@@ -18,6 +19,7 @@ namespace Bb.ParrotServices.Controllers
 
     [ApiController]
     [Route("[controller]/{template}")]
+    [Authorize(Policy = "Manager")]
     public class ManagerController : ControllerBase
     {
 

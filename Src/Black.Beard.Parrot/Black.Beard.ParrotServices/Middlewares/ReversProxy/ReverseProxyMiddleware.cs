@@ -4,6 +4,7 @@ using Bb.ParrotServices.Controllers;
 using Bb.Services;
 using Flurl;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
@@ -16,7 +17,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bb.ParrotServices.Middlewares
+namespace Bb.Middlewares.ReversProxy
 {
 
 
@@ -27,7 +28,7 @@ namespace Bb.ParrotServices.Middlewares
         public ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         {
             _nextMiddleware = nextMiddleware;
-            this._transformers = new ProxyTransformResponseMatcher()
+            _transformers = new ProxyTransformResponseMatcher()
                 .Register<ProxyTransformHtmlResponse>("text/html");
         }
 

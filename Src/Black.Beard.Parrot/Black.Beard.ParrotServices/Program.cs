@@ -13,45 +13,61 @@ using Bb.Json.Jslt.CustomServices;
 using Microsoft.Extensions.Configuration;
 using Bb.Json.Jslt.CustomServices.Csv;
 using NLog.Web;
+using NLog.Layouts;
+using NLog.Targets;
+using System;
+using Microsoft.Data.Sqlite;
+using Bb.ParrotServices.Middlewares;
+using NLog.Config;
+using NLog.LayoutRenderers;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
 
+        var exitCode = 0;
+        
         // Proofing against weird starting directories
         var currentAssembly = Assembly.GetAssembly(typeof(Program));
         Directory.SetCurrentDirectory(Path.GetDirectoryName(currentAssembly.Location));
 
-        // Read and load Log4Net Config File
-        // Early init of NLog to allow startup and exception logging, before host is built
         var logger = NLog.LogManager
             .Setup()
-            .LoadConfigurationFromFile("nlog.config")
-            .GetCurrentClassLogger();
+            .SetupExtensions(s =>
+            {
+                //s.RegisterLayoutRenderer("trace_id1", (logevent) =>
+                //{
+                //    return "1111";
+                //});
+                //s.RegisterLayoutRenderer<AspNetRequestAllHeadersLayoutRenderer>()
+                //;
+            }
+            )
+            .GetCurrentClassLogger()
+            ;
+        //NLog.Web.LayoutRenderers.AspNetLayoutRendererBase.Register("aspnet-request-all-headers", typeof(AspNetRequestAllHeadersLayoutRenderer));
 
-        // .LoadConfigurationFromAppSettings().GetCurrentClassLogger();
         logger.Debug("init main");
-        var exitCode = 0;
-        //TechnicalLog.AsyncContext.ServiceType = TechnicalLog.EngineServiceType;
-
 
         try
         {
 
-            CreateHostBuilder(args).Build().Run();
+            CreateHostBuilder(args)
+                .Build()
+                .Run();
 
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            throw;
+            exitCode = exception.HResult;
+            logger.Error(exception, "Stopped program because of exception");
         }
         finally
         {
             NLog.LogManager.Shutdown();
+            Environment.ExitCode = exitCode;
         }
-
-
 
     }
 
@@ -60,6 +76,7 @@ internal class Program
            Host.CreateDefaultBuilder(args)
                .ConfigureWebHostDefaults(webBuilder =>
                {
+
                    webBuilder.UseStartup<Startup>();
 
                    webBuilder.ConfigureAppConfiguration(a =>
@@ -70,20 +87,45 @@ internal class Program
 
                        var file = Path.Combine(Environment.CurrentDirectory, "apikeysettings.json");
                        if (File.Exists(file))
-                       {
                            a.AddJsonFile("apikeysettings.json");
-                       }
+
+                       file = Path.Combine(Environment.CurrentDirectory, "policiessettings.json");
+                       if (File.Exists(file))
+                           a.AddJsonFile("policiessettings.json");
 
 
                    });
+
                    webBuilder.ConfigureLogging(l =>
                    {
-                       l.ClearProviders();
-                   })
-                   .UseNLog();
+
+                       l.ClearProviders()
+
+                       ;                   })
+                   .UseNLog( new NLogAspNetCoreOptions() 
+                   {  
+                       IncludeScopes = true,
+                       IncludeActivityIdsWithBeginScope = true,
+                   });
 
 
 
 
                });
+
+
+    //private static void EnsureDb()
+    //{
+    //    if (File.Exists("Log.db3"))
+    //        return;
+    //    using (SqliteConnection connection = new SqliteConnection(@"c:\"))
+    //    using (SqliteCommand command = new SqliteCommand(
+    //        "CREATE TABLE Log (Timestamp TEXT, Loglevel TEXT, Callsite TEXT, Message TEXT)",
+    //        connection))
+    //    {
+    //        connection.Open();
+    //        command.ExecuteNonQuery();
+    //    }
+    //}
+
 }

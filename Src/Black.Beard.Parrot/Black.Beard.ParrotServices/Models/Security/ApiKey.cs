@@ -1,14 +1,35 @@
 ﻿using Bb.Codings;
+using Newtonsoft.Json;
+using System.ComponentModel;
+using System.Security.Claims;
 
 namespace Bb.Models.Security
 {
 
-    public class ApiKey
+    public class ApiItem
+    {
+
+        public Guid Id { get; set; }
+
+        public string Owner { get; set; }
+
+        public string Key { get; set; }
+
+        public DateTime Created { get; set; }
+
+        public bool Admin { get; set; }
+
+
+    }
+
+
+        public class ApiKey
     {
 
         public ApiKey()
         {
             Contracts = new List<string>();
+            Claims = new List<KeyValuePair<string, string>>();
         }
 
         public Guid Id { get; set; }
@@ -22,6 +43,8 @@ namespace Bb.Models.Security
         public bool Admin { get; set; }
 
         public List<string> Contracts { get; set; }
+
+        public List<KeyValuePair<string, string>> Claims { get; set; }
 
         public ApiKey SetAdmin(bool isAdmin)
         {
@@ -37,43 +60,23 @@ namespace Bb.Models.Security
         {
             this.Contracts.Clear();
             this.Contracts.AddRange(data.Contracts);
+            this.Claims.Clear();
+            this.Claims.AddRange(data.Claims);
             this.Admin = data.Admin;
             return this;
         }
 
-    }
-
-
-
-    public class ApiKeyModel
-    {
-
-        public ApiKeyModel()
-        {
-            Contracts = new List<string>();
-        }
-
-        public string Owner { get; set; }
-
-        public string Key { get; set; }
-        
-        public bool Admin { get;  set; }
-
-        public List<string> Contracts { get; set; }
-
-        public ApiKey CreateFrom()
+        public ApiItem GetItemForList()
         {
 
-            var m = new ApiKey()
+            return new ApiItem()
             {
-                Id = Guid.NewGuid(),
-                Created = DateTime.UtcNow,
-                Key = this.Key,
+                Id = this.Id,
                 Owner = this.Owner,
-                Admin = this.Admin
+                Key = this.Key,
+                Created = this.Created,
+                Admin = this.Admin,
             };
-
-            return m;
 
         }
 

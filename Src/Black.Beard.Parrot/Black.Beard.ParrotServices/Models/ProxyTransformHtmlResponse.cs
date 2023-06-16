@@ -1,5 +1,4 @@
-﻿using HtmlAgilityPack;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using SharpYaml;
 using static System.Collections.Specialized.BitVector32;
 using System.Net;
@@ -15,8 +14,8 @@ namespace Bb.Models
         protected override string Transform(HttpContext context, string payload)
         {
 
-            var dom = new HtmlDocument();
-            dom.LoadHtml(payload);
+            //var dom = new HtmlDocument();
+            //dom.LoadHtml(payload);
 
             //var visitor = new HtmlVisitor(context, base._translator);
             //dom.DocumentNode.Accept(visitor);

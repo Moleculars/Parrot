@@ -44,8 +44,7 @@ namespace Bb.Models
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="responseMessage">The response message.</param>
-        /// <param name="targetUri">The target URI.</param>
-        /// <param name="AliasUri">The alias URI.</param>
+        /// <param name="translator">The response message translator.</param>
         public async Task Transform(HttpContext context, HttpResponseMessage responseMessage, AddressTranslator translator)
         {
 
