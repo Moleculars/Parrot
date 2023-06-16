@@ -77,4 +77,14 @@ namespace Bb.Extensions
 
     }
 
+    public class Constants
+    {
+
+        public static class Models
+        {
+            public const string Configuration = "Configuration";
+        }
+
+    }
+
 }
