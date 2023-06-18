@@ -1,4 +1,6 @@
-﻿using Bb.Json.Jslt.CustomServices.MultiCsv;
+﻿using Bb.ComponentModel.Attributes;
+using Bb.Json.Jslt.CustomServices.MultiCsv;
+using Bb.Models.Security;
 using Bb.Projects;
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,8 @@ using System.Collections.Generic;
 namespace Bb.Services
 {
 
+
+    [ExposeClass(Context = Constants.Models.Model, ExposedType = typeof(ServiceReferential), LifeCycle = IocScopeEnum.Singleton)]
     public class ServiceReferential
     {
 
@@ -19,7 +23,7 @@ namespace Bb.Services
 
             if (_templates.TryGetValue(templateName, out var template))
                 return template.Resolve(contractName);
-                
+
             return null;
 
         }

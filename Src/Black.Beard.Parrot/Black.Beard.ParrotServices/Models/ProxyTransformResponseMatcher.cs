@@ -1,8 +1,7 @@
-﻿using Bb.ParrotServices.Middlewares;
-using Bb.Services;
+﻿using Bb.Services;
 using System.Text;
 
-namespace Bb.Middlewares
+namespace Bb.Models
 {
     /// <summary>
     /// class for select the transform that manage the contentype
@@ -45,8 +44,7 @@ namespace Bb.Middlewares
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="responseMessage">The response message.</param>
-        /// <param name="targetUri">The target URI.</param>
-        /// <param name="AliasUri">The alias URI.</param>
+        /// <param name="translator">The response message translator.</param>
         public async Task Transform(HttpContext context, HttpResponseMessage responseMessage, AddressTranslator translator)
         {
 
@@ -67,9 +65,9 @@ namespace Bb.Middlewares
                             .AppendPathSegments(translator.QuerySource);
 
                         message = message
-                            .Replace($"\"url\":\"{translator.QuerySource}/swagger/", 
+                            .Replace($"\"url\":\"{translator.QuerySource}/swagger/",
                                      $"\"url\":\"{_current}/swagger/"
-                                     )                            
+                                     )
                             ;
 
                         await context.Response.WriteAsync(message, Encoding.UTF8);

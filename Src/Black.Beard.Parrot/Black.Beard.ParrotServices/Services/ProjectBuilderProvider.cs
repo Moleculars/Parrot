@@ -1,14 +1,17 @@
 ﻿using Bb.OpenApiServices;
 using Bb.Services;
 using Bb.Models;
+using Bb.ComponentModel.Attributes;
+using Bb.Models.Security;
+using Microsoft.AspNetCore.Components;
 
 namespace Bb.ParrotServices.Services
 {
 
 
-    public class ProjectBuilderProvider
+    [ExposeClass(Context = Constants.Models.Service, LifeCycle = IocScopeEnum.Singleton)]
+    public class ProjectBuilderProvider : IInitialize
     {
-
 
         static ProjectBuilderProvider()
         {
@@ -20,6 +23,16 @@ namespace Bb.ParrotServices.Services
             _referential = referential;
             _host = host;
             this._items = new Dictionary<string, ProjectBuilderContract>();
+        }
+
+        /// <summary>
+        /// Initializes the current service.
+        /// </summary>
+        /// <param name="services">The services.</param>
+        /// <param name="configuration">The configuration.</param>
+        public void Initialize(IServiceProvider services, IConfiguration configuration)
+        {
+            this.Initialize(Directory.GetCurrentDirectory());
         }
 
 

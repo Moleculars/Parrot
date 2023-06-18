@@ -1,3 +1,4 @@
+
 using Bb.ParrotServices;
 using System.Reflection;
 using Microsoft.OpenApi.Models;
@@ -5,96 +6,125 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Bb.ParrotServices.Services;
 using Bb.Services;
 using System.Diagnostics;
-using NLog.Web;
 using NLog;
+using Microsoft.AspNetCore.Authorization;
+using Bb.Models;
+using Bb.Json.Jslt.CustomServices;
+using Microsoft.Extensions.Configuration;
+using Bb.Json.Jslt.CustomServices.Csv;
+using NLog.Web;
+using NLog.Layouts;
+using NLog.Targets;
+using System;
+using Bb.ParrotServices.Middlewares;
+using NLog.Config;
+using NLog.LayoutRenderers;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
 
+        var exitCode = 0;
+        
         // Proofing against weird starting directories
         var currentAssembly = Assembly.GetAssembly(typeof(Program));
         Directory.SetCurrentDirectory(Path.GetDirectoryName(currentAssembly.Location));
 
-        // Read and load Log4Net Config File
-        // Early init of NLog to allow startup and exception logging, before host is built
         var logger = NLog.LogManager
             .Setup()
-            .LoadConfigurationFromFile("nlog.config")
-            .GetCurrentClassLogger(); 
-
-        // .LoadConfigurationFromAppSettings().GetCurrentClassLogger();
-        logger.Debug("init main");
-        var exitCode = 0;
-        //TechnicalLog.AsyncContext.ServiceType = TechnicalLog.EngineServiceType;
-
-        var setup = new Setup()
-            .Initialize(args)
-            .Services()
-            .Services(
-            s =>
+            .SetupExtensions(s =>
             {
-
-                //s.WebHost.UseKestrel(options =>
+                //s.RegisterLayoutRenderer("trace_id1", (logevent) =>
                 //{
-                //    options.Listen(IPAddress.Loopback, 0); // dynamic port
+                //    return "1111";
                 //});
-                
-                s.Services.Add(ServiceDescriptor.Singleton(typeof(LocalProcessCommandService), typeof(LocalProcessCommandService)));
-                s.Services.Add(ServiceDescriptor.Singleton(typeof(ProjectBuilderProvider), typeof(ProjectBuilderProvider)));
-                s.Services.Add(ServiceDescriptor.Singleton(typeof(ServiceReferential), typeof(ServiceReferential)));
-                s.Services.Add(ServiceDescriptor.Singleton(typeof(Log4netTraceListener), typeof(Log4netTraceListener)));
-
-
-                //s.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
-                //s.Configuration.AddJsoProjectBuildernFile("appsettings.json", optional: true, reloadOnChange: false);
-                s.Configuration.AddEnvironmentVariables();
-
-                // OpenAPI
-                s.Services.AddSwaggerGen(c =>
-                {
-                    c.DescribeAllParametersInCamelCase();
-                    c.IgnoreObsoleteActions();
-                    //c.DocInclusionPredicate((f, a) => { return a.ActionDescriptor is ControllerActionDescriptor b && b.MethodInfo.GetCustomAttributes<ExternalApiRouteAttribute>().Any(); });
-
-                    c.SwaggerDoc("v1", new OpenApiInfo
-                    {
-                        Title = "Parrot APIs",
-                        Version = "v1",
-                        Description = "A set of REST APIs used by Parrot for manage service generator",
-                        License = new OpenApiLicense() { Name = "Only usable with a valid PU partner contract." },
-                    });
-
-                    c.IncludeXmlComments(() => SwaggerExtension.LoadXmlFiles());
-                    c.AddSecurityDefinition("key", new OpenApiSecurityScheme { Scheme = "ApiKey", In = ParameterLocation.Header });
-                    c.TagActionsBy(a => new List<string> { a.ActionDescriptor is ControllerActionDescriptor b ? b.ControllerTypeInfo.Assembly.FullName.Split('.')[2].Split(',')[0].Replace("Web", "") : a.ActionDescriptor.DisplayName });
-
-                });
-
+                //s.RegisterLayoutRenderer<AspNetRequestAllHeadersLayoutRenderer>()
+                //;
             }
             )
-            .Build()
-            .Configure()
-            .Configure(app =>
-            {
-
-
-                //IServerAddressesFeature serverAddressesFeature = app.ServerFeatures.Get<IServerAddressesFeature>();
-                //var addresses = serverAddressesFeature?.Addresses?.ToArray();
-
-
-                var projectBuilder = (ProjectBuilderProvider)app.Services.GetService(typeof(ProjectBuilderProvider));
-                projectBuilder.Initialize(Directory.GetCurrentDirectory());
-
-                var tracelistener = (Log4netTraceListener)app.Services.GetService(typeof(Log4netTraceListener));
-                Trace.Listeners.Add(tracelistener);
-
-            })
-            .Run()
-            
+            .GetCurrentClassLogger()
             ;
+        //NLog.Web.LayoutRenderers.AspNetLayoutRendererBase.Register("aspnet-request-all-headers", typeof(AspNetRequestAllHeadersLayoutRenderer));
 
+        logger.Debug("init main");
+
+        try
+        {
+
+            CreateHostBuilder(args)
+                .Build()
+                .Run();
+
+        }
+        catch (Exception exception)
+        {
+            exitCode = exception.HResult;
+            logger.Error(exception, "Stopped program because of exception");
+        }
+        finally
+        {
+            NLog.LogManager.Shutdown();
+            Environment.ExitCode = exitCode;
+        }
 
     }
+
+
+    public static IHostBuilder CreateHostBuilder(string[] args) =>
+           Host.CreateDefaultBuilder(args)
+               .ConfigureWebHostDefaults(webBuilder =>
+               {
+
+                   webBuilder.UseStartup<Startup>();
+
+                   webBuilder.ConfigureAppConfiguration(a =>
+                   {
+                       a.AddEnvironmentVariables();
+                       a.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+                       //a.AddJsonProjectBuilderFile("appsettings.json", optional: true, reloadOnChange: false);
+
+                       var file = Path.Combine(Environment.CurrentDirectory, "apikeysettings.json");
+                       if (File.Exists(file))
+                           a.AddJsonFile("apikeysettings.json");
+
+                       file = Path.Combine(Environment.CurrentDirectory, "policiessettings.json");
+                       if (File.Exists(file))
+                           a.AddJsonFile("policiessettings.json");
+
+
+                   });
+
+                   webBuilder.ConfigureLogging(l =>
+                   {
+
+                       l.ClearProviders()
+
+                       ;                   })
+                   .UseNLog( new NLogAspNetCoreOptions() 
+                   {  
+                       IncludeScopes = true,
+                       IncludeActivityIdsWithBeginScope = true,
+                   });
+
+
+
+
+               });
+
+
+    //private static void EnsureDb()
+    //{
+    //    if (File.Exists("Log.db3"))
+    //        return;
+    //    using (SqliteConnection connection = new SqliteConnection(@"c:\"))
+    //    using (SqliteCommand command = new SqliteCommand(
+    //        "CREATE TABLE Log (Timestamp TEXT, Loglevel TEXT, Callsite TEXT, Message TEXT)",
+    //        connection))
+    //    {
+    //        connection.Open();
+    //        command.ExecuteNonQuery();
+    //    }
+    //}
+
 }

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 #pragma warning disable CS8618, CS1591
 namespace Bb.ParrotServices.Controllers
 {
+
+
     [ApiController]
     [Route("[controller]")]
     public class WatchdogController : Controller
@@ -22,40 +24,31 @@ namespace Bb.ParrotServices.Controllers
         [Produces("application/json")]
         public async Task<IActionResult> IsUpAndRunning()
         {
-            try
+
+            WatchdogResult result
+                = new WatchdogResult(new WatchdogResultItem("current_datetime", DateTime.UtcNow.ToString("u")));
+
+            var list = await _builder.List();
+
+            foreach (var item in list)
             {
-                
-                WatchdogResult result 
-                    = new WatchdogResult(new WatchdogResultItem("current_datetime", DateTime.UtcNow.ToString("u")));
+                string value = "Stopped";
+                Models.ProjectRunning r = await item.ListRunnings();
+                if (r != null)
+                    if (r.Started)
+                        value = "Started";
 
-                var list = await _builder.List();
-
-                foreach (var item in list)
-                {
-                    string value = "Stopped";
-                    Models.ProjectRunning r = await item.ListRunnings();
-                    if (r != null)
-                        if (r.Started)
-                            value = "Started";
-
-                    result.Items.Add(new WatchdogResultItem($"{item.Template}/{item.Contract}", value));
-                    
-                }
-
-
-                return this.Ok(result);
+                result.Items.Add(new WatchdogResultItem($"{item.Template}/{item.Contract}", value));
 
             }
-            catch (Exception ex)
-            {
-                Guid errorId = Guid.NewGuid();
-                _logger.LogError(ex, ex.Message, errorId);
-                return this.BadRequest(new WatchdogResultException(errorId, "Sorry, an error has occurred. Please contact our customer service with uuid for assistance."));
-            }
+
+            return this.Ok(result);
+
         }
 
         private ProjectBuilderProvider _builder;
         public ILogger<WatchdogController> _logger;
 
     }
+
 }

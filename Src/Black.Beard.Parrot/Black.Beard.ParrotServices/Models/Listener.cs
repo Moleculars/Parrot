@@ -1,11 +1,12 @@
 ﻿namespace Bb.Models
 {
+
     public class Listener
     {
 
         public Listener()
         {
-            Http = new Swagger();    
+            Http = new Swagger();
             Https = new Swagger();
         }
 

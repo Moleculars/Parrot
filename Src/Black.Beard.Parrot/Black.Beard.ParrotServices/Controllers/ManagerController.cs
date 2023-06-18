@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Hosting.Server;
 using System.Diagnostics;
 using SharpYaml.Model;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Bb.ParrotServices.Controllers
 {
@@ -18,6 +19,7 @@ namespace Bb.ParrotServices.Controllers
 
     [ApiController]
     [Route("[controller]/{template}")]
+    [Authorize(Policy = "Manager")]
     public class ManagerController : ControllerBase
     {
 
@@ -100,7 +102,7 @@ namespace Bb.ParrotServices.Controllers
         /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ProjectDocument>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpGet]
+        [HttpGet("list")]
         [Produces("application/json")]
         public async Task<IActionResult> GetGeneratedServicesByTemplate([FromRoute] string template)
         {

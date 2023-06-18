@@ -1,10 +1,15 @@
-﻿using Bb.ParrotServices.Controllers;
+﻿using Bb.ComponentModel.Attributes;
+using Bb.ParrotServices.Controllers;
 using Bb.Process;
 using System.Diagnostics;
 
 namespace Bb.ParrotServices.Services
 {
 
+    /// <summary>
+    /// Wrap the process command line for log event
+    /// </summary>
+    [ExposeClass(Context = Constants.Models.Service, LifeCycle = IocScopeEnum.Singleton)]    
     public class LocalProcessCommandService : ProcessCommandService
     {
 
