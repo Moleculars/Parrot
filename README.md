@@ -3,8 +3,8 @@
 
 ## Quick start
 Launch the docker container
-```
-   docker 
+```batch
+   docker run blackbeardteam/parrot -p 80:{port} -p 443:{port https}
 ```
 
 

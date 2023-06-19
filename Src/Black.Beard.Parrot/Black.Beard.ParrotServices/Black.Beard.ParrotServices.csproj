@@ -12,14 +12,21 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Middlewares\Exceptions\ExceptionHandlerMiddleware1.cs" />
-	  <Compile Remove="Middlewares\HtmlPackExtension.cs" />
-	  <Compile Remove="Middlewares\HtmlVisitor.cs" />
-	  <Compile Remove="Middlewares\IHtmlVisitor.cs" />
-	  <Compile Remove="Models\WatchdogResultException.cs" />
-	  <Compile Remove="Services\ApiKeyReferential.cs" />
-	  <Compile Remove="Setup.cs" />
-	  <Compile Remove="Tracking.cs" />
+	  <Compile Remove="Attributes\**" />
+	  <Content Remove="Attributes\**" />
+	  <EmbeddedResource Remove="Attributes\**" />
+	  <None Remove="Attributes\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Remove="Middlewares\Exceptions\ExceptionHandlerMiddleware1.cs" />
+		<Compile Remove="Middlewares\HtmlPackExtension.cs" />
+		<Compile Remove="Middlewares\HtmlVisitor.cs" />
+		<Compile Remove="Middlewares\IHtmlVisitor.cs" />
+		<Compile Remove="Models\WatchdogResultException.cs" />
+		<Compile Remove="Services\ApiKeyReferential.cs" />
+		<Compile Remove="Setup.cs" />
+		<Compile Remove="Tracking.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -27,20 +34,21 @@
 		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.42" />
 		<PackageReference Include="Black.Beard.Process" Version="1.0.42" />
 		<PackageReference Include="Black.Beard.Projects.Models" Version="1.0.42" />
-		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.7" />
+
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.NewtonsoftJson" Version="5.0.1" />
 		<PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
+
 		<PackageReference Include="Microsoft.OpenApi" Version="1.6.4" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
+		
+		<PackageReference Include="NLog" Version="5.*" />
 		<PackageReference Include="NLog.DiagnosticSource" Version="5.0.0" />
 		<PackageReference Include="NLog.Extensions.Logging" Version="5.3.0" />
-		
 		<PackageReference Include="NLog.Web.AspNetCore" Version="5.*" />
-		<PackageReference Include="NLog" Version="5.*" />
-		
+
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 	</ItemGroup>
 
@@ -52,15 +60,11 @@
 
 	<ItemGroup>
 		<Content Update="apikeysettings.json">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 		<Content Update="nlog.config">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Attributes\" />
 	</ItemGroup>
 
 </Project>
