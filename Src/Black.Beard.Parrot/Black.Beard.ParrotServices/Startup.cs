@@ -30,13 +30,9 @@ namespace Bb.ParrotServices
             services.UseModelsExposedByAttribute(_configuration);
             services.UseConfigurationsExposedByAttribute(_configuration);
             services.UseServicesExposedByAttribute(_configuration);
-
-            // services.UseExceptionHandling(_configuration);
-            services.UserLoggingBehavior();
-
+                        
             services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-
 
             // Initialize security policy
             var policies = PoliciesExtension.GetPolicies();
@@ -46,8 +42,6 @@ namespace Bb.ParrotServices
                     foreach (var policyM in policies)
                         options.AddPolicy(policyM.Name, policy => policy.RequireAssertion(a => Authorize(a, policyM)));
                 });
-
-
             var currentAssembly = Assembly.GetAssembly(typeof(Program));
             policies.Save(Path.GetDirectoryName(currentAssembly.Location));
 

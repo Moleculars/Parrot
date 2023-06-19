@@ -1,7 +1,9 @@
 ﻿using Bb.ComponentModel.Attributes;
+using Bb.ComponentModel.Factories;
 using Bb.Expressions;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
+using System;
 using System.Reflection;
 
 namespace Bb.Extensions
@@ -21,16 +23,6 @@ namespace Bb.Extensions
 
         }
 
-
-        //public static void UseServicesExposedByAttribute(this IServiceCollection services, IConfiguration configuration)
-        //{
-
-        //    foreach (var type in GetExposedTypes(Constants.Models.Service))
-        //        _methodService.MakeGenericMethod(type).Invoke(null, new object[] { services, configuration });
-
-        //}
-
-
         #region services
 
         public static void UseServicesExposedByAttribute(this IServiceCollection services, IConfiguration configuration)
@@ -45,19 +37,14 @@ namespace Bb.Extensions
             where T : class
         {
 
-            if (typeof(T).IsAssignableFrom(typeof(IInitialize)))
+            if (typeof(IInitialize).IsAssignableFrom(typeof(T)))
             {
+
+                var factory = ObjectCreatorByIoc.GetActivator<T>();
 
                 Func<IServiceProvider, T> _func = (serviceProvider) =>
                 {
-
-                    var tService = serviceProvider.GetService<T>();
-
-                    if (tService != null && tService is IInitialize s)
-                        s.Initialize(serviceProvider, serviceProvider.GetService<IConfiguration>());
-
-                    return tService;
-
+                    return factory.Call(null, serviceProvider);
                 };
 
                 services.RegisterType(_func);
@@ -91,13 +78,7 @@ namespace Bb.Extensions
 
                 Func<IServiceProvider, T> _func = (serviceProvider) =>
                 {
-
-                    var tService = serviceProvider.GetService<T>();
-
-                    if (tService != null && tService is IInitialize s)
-                        s.Initialize(serviceProvider, serviceProvider.GetService<IConfiguration>());
-
-                    return tService;
+                    return serviceProvider.GetService<T>();
 
                 };
 
@@ -116,7 +97,6 @@ namespace Bb.Extensions
         }
 
         #endregion models
-
 
         #region configuration
 
