@@ -4,7 +4,6 @@ using Bb.Models;
 using Bb.ComponentModel.Attributes;
 using Bb.Models.Security;
 using Microsoft.AspNetCore.Components;
-using Bb.ComponentModel.Factories;
 
 namespace Bb.ParrotServices.Services
 {
@@ -31,7 +30,7 @@ namespace Bb.ParrotServices.Services
         /// </summary>
         /// <param name="services">The services.</param>
         /// <param name="configuration">The configuration.</param>
-        public void Initialize(IServiceProvider services)
+        public void Initialize(IServiceProvider services, IConfiguration configuration)
         {
             this.Initialize(Directory.GetCurrentDirectory());
         }

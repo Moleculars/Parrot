@@ -43,9 +43,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Black.Beard.Jslt" Version="1.0.218" />
-    <PackageReference Include="Black.Beard.Projects.Models" Version="1.0.45" />
-    <PackageReference Include="Black.Beard.Roslyn" Version="1.0.45" />
+    <PackageReference Include="Black.Beard.Jslt" Version="1.0.214" />
+    <PackageReference Include="Black.Beard.Projects.Models" Version="1.0.42" />
+    <PackageReference Include="Black.Beard.Roslyn" Version="1.0.42" />
     <PackageReference Include="Microsoft.OpenApi" Version="1.6.4" />
     <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.4" />
   </ItemGroup>
