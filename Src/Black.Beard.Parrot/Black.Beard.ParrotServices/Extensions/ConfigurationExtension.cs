@@ -1,4 +1,5 @@
 ﻿using Bb.ComponentModel.Attributes;
+using Bb.ComponentModel.Factories;
 using Bb.Expressions;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
@@ -45,19 +46,12 @@ namespace Bb.Extensions
             where T : class
         {
 
-            if (typeof(T).IsAssignableFrom(typeof(IInitialize)))
+            if (typeof(T).IsAssignableFrom(typeof(ComponentModel.Factories.IInitialize)))
             {
 
                 Func<IServiceProvider, T> _func = (serviceProvider) =>
                 {
-
-                    var tService = serviceProvider.GetService<T>();
-
-                    if (tService != null && tService is IInitialize s)
-                        s.Initialize(serviceProvider, serviceProvider.GetService<IConfiguration>());
-
-                    return tService;
-
+                    return serviceProvider.GetService<T>();
                 };
 
                 services.RegisterType(_func);
@@ -91,14 +85,7 @@ namespace Bb.Extensions
 
                 Func<IServiceProvider, T> _func = (serviceProvider) =>
                 {
-
-                    var tService = serviceProvider.GetService<T>();
-
-                    if (tService != null && tService is IInitialize s)
-                        s.Initialize(serviceProvider, serviceProvider.GetService<IConfiguration>());
-
-                    return tService;
-
+                    return serviceProvider.GetService<T>();
                 };
 
                 services.RegisterType(_func);
