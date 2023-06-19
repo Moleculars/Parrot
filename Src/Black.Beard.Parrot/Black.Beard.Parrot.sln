@@ -15,14 +15,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Black.Beard.Curl", "Black.B
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "Éléments de solution", "{9F0821F8-0106-4C19-9FD0-E010F8DBCACA}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\.circleci\config.yml = ..\..\.circleci\config.yml
 		..\..\README.md = ..\..\README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E864EAD9-A689-4647-9F9D-A02627187A74}"
-	ProjectSection(SolutionItems) = preProject
-		..\..\.circleci\config.yml = ..\..\.circleci\config.yml
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

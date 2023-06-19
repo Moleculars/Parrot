@@ -1,11 +1,21 @@
+# Variables to initialize in appveyor
+# DOCKER_USER             : docker username
+# DOCKER_PASS             : docker password
+# ARCH                    : Architecture for linux builds
+# APPVEYOR_REPO_TAG_NAME
+
+# Variables to manage initialize in this script
+$tag = "parrot"
+$image = "blackbeardteam/parrot"
+
+
+# Script begin
 $ErrorActionPreference = 'Stop';
 
 if (! (Test-Path Env:\APPVEYOR_REPO_TAG_NAME)) {
   Write-Host "No version tag detected. Skip publishing."
   exit 0
 }
-
-$image = "stefanscherer/whoami"
 
 Write-Host Starting deploy
 if (!(Test-Path ~/.docker)) { mkdir ~/.docker }
@@ -25,7 +35,7 @@ $auth64 = [Convert]::ToBase64String($auth)
 "@ | Out-File -Encoding Ascii ~/.docker/config.json
 
 $os = If ($isWindows) {"windows"} Else {"linux"}
-docker tag whoami "$($image):$os-$env:ARCH-$env:APPVEYOR_REPO_TAG_NAME"
+docker tag $tag "$($image):$os-$env:ARCH-$env:APPVEYOR_REPO_TAG_NAME"
 docker push "$($image):$os-$env:ARCH-$env:APPVEYOR_REPO_TAG_NAME"
 
 if ($isWindows) {
