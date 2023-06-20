@@ -1,8 +1,11 @@
 # https://stefanscherer.github.io/use-appveyor-to-build-multi-arch-docker-image/
 version: 1.0.{build}
-image:
-- Visual Studio 2017
-- Ubuntu
+image: 
+  - Visual Studio 2022
+  - Ubuntu
+
+configuration: Debug
+platform: Any CPU
 
 environment:
   matrix:
@@ -18,10 +21,10 @@ matrix:
       ARCH: arm64
 
 build_script:
-  - ps: ./build.ps1
+  - ps: ./.appveyor/build.ps1
 
 test_script:
-  - ps: ./test.ps1
+  - ps: ./.appveyor/test.ps1
 
 deploy_script:
-  - ps: ./deploy.ps1
+  - ps: ./.appveyor/deploy.ps1
