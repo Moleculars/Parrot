@@ -7,11 +7,11 @@ image:
 configuration: Debug
 platform: Any CPU
 
-# environment:
-#   matrix:
-#     - ARCH: arm
+environment:
+  matrix:
+    # - ARCH: arm
     # - ARCH: arm64
-    # - ARCH: amd64
+    - ARCH: amd64
 
 # matrix:
 #   exclude:
