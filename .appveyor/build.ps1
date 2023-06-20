@@ -6,7 +6,7 @@
 # Variables to manage initialize in this script
 $imageName = "parrot";    # name of the image
 
-
+dir
 
 # Script begin
 $ErrorActionPreference = 'Stop';
@@ -14,7 +14,10 @@ $ErrorActionPreference = 'Stop';
 Write-Host Starting build
 if ($isWindows) 
 {
-    Set-Location ..\Src\Black.Beard.Parrot\Black.Beard.ParrotServices
+
+    # 'C:\projects\Src\Black.Beard.Parrot\Black.Beard.ParrotServices
+    #  C:\Src\Parrot\Src\Black.Beard.Parrot\Black.Beard.ParrotServices
+    Set-Location .\Src\Black.Beard.Parrot\Black.Beard.ParrotServices
     docker build --pull -t $imageName -f Dockerfile.windows .
 
 } else 
