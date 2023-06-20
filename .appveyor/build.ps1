@@ -24,6 +24,8 @@ docker info
 $os = If ($isWindows) {'windows'} Else {'linux'}
 
 Write-Host docker build --tag $imageName --file "${os}.dockerfile" $pwd
-docker build --tag $imageName --file "${os}.dockerfile" .
+docker build --tag $imageName --file "${os}.Dockerfile" .
+
+Write-Host build ended
 
 docker images
