@@ -1,6 +1,6 @@
 
 # https://learn.microsoft.com/en-us/virtualization/windowscontainers/manage-docker/configure-docker-daemon#configure-docker-with-a-configuration-file
-Copy-Item ./daemon.json C:\ProgramData\Docker\config\daemon.json
+Copy-Item ./.appveyor/daemon.json C:\ProgramData\Docker\config\daemon.json
 
 # https://stefanscherer.github.io/use-appveyor-to-build-multi-arch-docker-image/
 # https://github.com/3shape/containerized-structure-test
