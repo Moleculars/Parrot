@@ -5,7 +5,12 @@ Copy-Item ./.appveyor/daemon.json C:\ProgramData\Docker\config\daemon.json
 # https://stefanscherer.github.io/use-appveyor-to-build-multi-arch-docker-image/
 # https://github.com/3shape/containerized-structure-test
 
-sc config docker binpath= "\"C:\Program Files\docker\dockerd.exe\" --run-service -H tcp://0.0.0.0:2375"
+# # sc config docker binpath= "\"C:\Program Files\docker\dockerd.exe\" --run-service -H tcp://0.0.0.0:2375"
+
+
+net start com.docker.service
+docker version
+
 
 # Variables to manage initialize in this script
 $imageName = "parrot";    # name of the image
