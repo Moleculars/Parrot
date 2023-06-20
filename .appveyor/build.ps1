@@ -1,16 +1,13 @@
 
-# https://learn.microsoft.com/en-us/virtualization/windowscontainers/manage-docker/configure-docker-daemon#configure-docker-with-a-configuration-file
-Copy-Item ./.appveyor/daemon.json C:\ProgramData\Docker\config\daemon.json
 
 # https://stefanscherer.github.io/use-appveyor-to-build-multi-arch-docker-image/
 # https://github.com/3shape/containerized-structure-test
 
-# # sc config docker binpath= "\"C:\Program Files\docker\dockerd.exe\" --run-service -H tcp://0.0.0.0:2375"
 
-
-net start com.docker.service
-docker version
-
+# SET DOCKER_CERT_PATH=%UserProfile%\.docker\machine\machines\HypervDefault
+# SET DOCKER_MACHINE_NAME=HypervDefault
+# SET DOCKER_HOST=tcp://192.168.1.15:2376
+# SET DOCKER_TLS_VERIFY=1
 
 # Variables to manage initialize in this script
 $imageName = "parrot";    # name of the image
