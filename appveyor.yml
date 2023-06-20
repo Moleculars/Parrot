@@ -2,23 +2,23 @@
 version: 1.0.{build}
 image: 
   - Visual Studio 2022
-  - Ubuntu
+  # - Ubuntu
 
 configuration: Debug
 platform: Any CPU
 
-environment:
-  matrix:
-    - ARCH: arm
-    - ARCH: arm64
-    - ARCH: amd64
+# environment:
+#   matrix:
+#     - ARCH: arm
+    # - ARCH: arm64
+    # - ARCH: amd64
 
-matrix:
-  exclude:
-    - image: Visual Studio 2017
-      ARCH: arm
-    - image: Visual Studio 2017
-      ARCH: arm64
+# matrix:
+#   exclude:
+#     - image: Visual Studio 2022
+#       ARCH: arm
+#     - image: Visual Studio 2022
+#       ARCH: arm64
 
 build_script:
   - ps: ./.appveyor/build.ps1
