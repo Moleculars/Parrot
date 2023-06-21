@@ -19,12 +19,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Compile Remove="Extensions\UseExtension.cs" />
 		<Compile Remove="Middlewares\Exceptions\ExceptionHandlerMiddleware1.cs" />
 		<Compile Remove="Middlewares\HtmlPackExtension.cs" />
 		<Compile Remove="Middlewares\HtmlVisitor.cs" />
 		<Compile Remove="Middlewares\IHtmlVisitor.cs" />
 		<Compile Remove="Models\WatchdogResultException.cs" />
 		<Compile Remove="Services\ApiKeyReferential.cs" />
+		<Compile Remove="Services\IPipelineBehavior.cs" />
+		<Compile Remove="Services\LoggingBehavior.cs" />
 		<Compile Remove="Setup.cs" />
 		<Compile Remove="Tracking.cs" />
 	</ItemGroup>

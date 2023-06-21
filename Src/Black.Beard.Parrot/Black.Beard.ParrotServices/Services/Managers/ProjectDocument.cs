@@ -1,6 +1,6 @@
 ﻿using Bb.Models;
 
-namespace Bb.ParrotServices.Services
+namespace Bb.Services.Managers
 {
 
     public class ProjectDocument
@@ -8,7 +8,7 @@ namespace Bb.ParrotServices.Services
 
         public ProjectDocument()
         {
-            this.Documents = new List<Document>();    
+            Documents = new List<Document>();
         }
 
         public string Contract { get; internal set; }

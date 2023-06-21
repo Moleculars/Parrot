@@ -1,0 +1,24 @@
+#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+
+
+# Learn about building .NET container images:
+# https://github.com/dotnet/dotnet-docker/blob/main/samples/README.md
+# https://github.com/dotnet/dotnet-docker/blob/main/samples/aspnetapp/Dockerfile.ubuntu
+FROM mcr.microsoft.com/dotnet/sdk:7.0-jammy AS build
+WORKDIR /src
+
+
+LABEL maintainer="gaelgael5@gmail.com" github="https://github.com/Moleculars/Parrot"
+
+# copy csproj in the image and restore packages
+COPY *.csproj .
+RUN dotnet restore --use-current-runtime
+
+# copy csproj in the image and restore packages
+COPY . .
+RUN dotnet build -c Release -o /app/build
+
+EXPOSE 80
+EXPOSE 443
+
+ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll"]

@@ -1,15 +1,15 @@
 ﻿using Bb.Process;
 using Bb.OpenApiServices;
 using Newtonsoft.Json;
-using Bb.Services;
 using Flurl;
 using Bb.Models;
 using Flurl.Http;
 using Bb.Mock;
 using System.Diagnostics.Contracts;
 using System.Diagnostics;
+using Bb.Services.ProcessHosting;
 
-namespace Bb.ParrotServices.Services
+namespace Bb.Services.Managers
 {
     public class ProjectBuilderTemplate
     {
@@ -26,8 +26,8 @@ namespace Bb.ParrotServices.Services
 
         public ProjectBuilderTemplate(ProjectBuilderProvider rootParent, ProjectBuilderContract parent, string template)
         {
-            this._rootParent = rootParent;
-            this._parent = parent;
+            _rootParent = rootParent;
+            _parent = parent;
 
             Template = template;
             Contract = _parent.Contract;
@@ -36,7 +36,7 @@ namespace Bb.ParrotServices.Services
 
             _templateConfigFilename = Path.Combine(Root, template + ".json");
 
-            _generatorType = this._rootParent.ResolveGenerator(Template);
+            _generatorType = _rootParent.ResolveGenerator(Template);
             if (_generatorType == null)
                 throw new InvalidOperationException(template);
 
@@ -94,7 +94,7 @@ namespace Bb.ParrotServices.Services
             else
                 control = _defaultConfig;
 
-            return JsonConvert.DeserializeObject(control, this._configurationType, jsonSerializerSettings);
+            return JsonConvert.DeserializeObject(control, _configurationType, jsonSerializerSettings);
 
         }
 
@@ -132,7 +132,7 @@ namespace Bb.ParrotServices.Services
             {
                 generator.ApplyConfiguration(config);
                 generator
-                    .Initialize(this.Contract, this.Template, Root)
+                    .Initialize(Contract, Template, Root)
                     .InitializeDataSources(file)
                     .Generate()
                 ;
@@ -195,7 +195,7 @@ namespace Bb.ParrotServices.Services
                     }
                     else
                         Trace.WriteLine($"Completed", "Info");
-                    this.Running = null;
+                    Running = null;
                     _id = null;
                     break;
 
@@ -208,7 +208,7 @@ namespace Bb.ParrotServices.Services
                     }
                     else
                         Trace.WriteLine("ended with exception", "Error");
-                    this.Running = null;
+                    Running = null;
                     _id = null;
                     break;
 
@@ -224,11 +224,11 @@ namespace Bb.ParrotServices.Services
 
             bool result = false;
 
-            var instance = _rootParent._referential.Resolve(this.Template, this._parent.Contract);
+            var instance = _rootParent._referential.Resolve(Template, _parent.Contract);
             if (instance != null)
             {
 
-                var task = this._rootParent._host.GetTaskByTag(instance).FirstOrDefault();
+                var task = _rootParent._host.GetTaskByTag(instance).FirstOrDefault();
                 if (task != null)
                 {
 
@@ -282,9 +282,9 @@ namespace Bb.ParrotServices.Services
 
             _id = Guid.NewGuid();
 
-            var instance = _rootParent._referential.Register(this.Template, this._parent.Contract, uriHttp, uriHttps);
+            var instance = _rootParent._referential.Register(Template, _parent.Contract, uriHttp, uriHttps);
 
-            this._rootParent._host
+            _rootParent._host
                 .Intercept(Intercept)
                 .Run(_id.Value, c =>
                 {
@@ -296,50 +296,50 @@ namespace Bb.ParrotServices.Services
                 //.Wait(id, 500)
                 ;
 
-            var task = this._rootParent._host.GetTask(_id.Value);
-            task.Wait(500);                       
+            var task = _rootParent._host.GetTask(_id.Value);
+            task.Wait(500);
 
-            this.Running = new ProjectItem()
+            Running = new ProjectItem()
             {
-                Contract = this._parent.Contract,
-                Template = this.Template,
+                Contract = _parent.Contract,
+                Template = Template,
             };
 
             if (httpCurrentPort.HasValue)
             {
-                this.Running.Services.Http.ExposedReverseProxyUrl = new Url("http", publicHost, httpCurrentPort.Value, "proxy", this.Template, this._parent.Contract);
-                this.Running.Swagger.Http.ExposedReverseProxyUrl = new Url("http", publicHost, httpCurrentPort.Value, "proxy", this.Template, this._parent.Contract, "swagger");
-                this.Running.IsUpAndRunningServices.Http.ExposedReverseProxyUrl = new Url("http", publicHost, httpCurrentPort.Value, "proxy", this.Template, this._parent.Contract, "Watchdog", "isupandrunning");
+                Running.Services.Http.ExposedReverseProxyUrl = new Url("http", publicHost, httpCurrentPort.Value, "proxy", Template, _parent.Contract);
+                Running.Swagger.Http.ExposedReverseProxyUrl = new Url("http", publicHost, httpCurrentPort.Value, "proxy", Template, _parent.Contract, "swagger");
+                Running.IsUpAndRunningServices.Http.ExposedReverseProxyUrl = new Url("http", publicHost, httpCurrentPort.Value, "proxy", Template, _parent.Contract, "Watchdog", "isupandrunning");
             }
 
             if (httpsCurrentPort.HasValue)
             {
-                this.Running.Services.Https.ExposedReverseProxyUrl = new Url("https", publicHost, httpsCurrentPort.Value, "proxy", this.Template, this._parent.Contract, "swagger");
-                this.Running.Swagger.Https.ExposedReverseProxyUrl = new Url("https", publicHost, httpsCurrentPort.Value, "proxy", this.Template, this._parent.Contract, "swagger");
-                this.Running.IsUpAndRunningServices.Https.ExposedReverseProxyUrl = new Url("https", publicHost, httpsCurrentPort.Value, "proxy", this.Template, this._parent.Contract, "Watchdog", "isupandrunning");
+                Running.Services.Https.ExposedReverseProxyUrl = new Url("https", publicHost, httpsCurrentPort.Value, "proxy", Template, _parent.Contract, "swagger");
+                Running.Swagger.Https.ExposedReverseProxyUrl = new Url("https", publicHost, httpsCurrentPort.Value, "proxy", Template, _parent.Contract, "swagger");
+                Running.IsUpAndRunningServices.Https.ExposedReverseProxyUrl = new Url("https", publicHost, httpsCurrentPort.Value, "proxy", Template, _parent.Contract, "Watchdog", "isupandrunning");
             }
 
-            this.Running.Services.Http.HostedInternalServiceUrl = new Url(uriHttp).AppendPathSegments("proxy", this.Template, this._parent.Contract);
-            this.Running.Services.Https.HostedInternalServiceUrl = new Url(uriHttps).AppendPathSegments("proxy", this.Template, this._parent.Contract, "swagger");
+            Running.Services.Http.HostedInternalServiceUrl = new Url(uriHttp).AppendPathSegments("proxy", Template, _parent.Contract);
+            Running.Services.Https.HostedInternalServiceUrl = new Url(uriHttps).AppendPathSegments("proxy", Template, _parent.Contract, "swagger");
 
-            this.Running.Swagger.Http.HostedInternalServiceUrl = new Url(uriHttp).AppendPathSegments("proxy", this.Template, this._parent.Contract, "swagger");
-            this.Running.Swagger.Https.HostedInternalServiceUrl = new Url(uriHttps).AppendPathSegments("proxy", this.Template, this._parent.Contract, "swagger");
+            Running.Swagger.Http.HostedInternalServiceUrl = new Url(uriHttp).AppendPathSegments("proxy", Template, _parent.Contract, "swagger");
+            Running.Swagger.Https.HostedInternalServiceUrl = new Url(uriHttps).AppendPathSegments("proxy", Template, _parent.Contract, "swagger");
 
-            this.Running.IsUpAndRunningServices.Http.HostedInternalServiceUrl = new Url(uriHttp).AppendPathSegments("proxy", this.Template, this._parent.Contract, "Watchdog", "isupandrunning");
-            this.Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl = new Url(uriHttps).AppendPathSegments("proxy", this.Template, this._parent.Contract, "Watchdog", "isupandrunning");
+            Running.IsUpAndRunningServices.Http.HostedInternalServiceUrl = new Url(uriHttp).AppendPathSegments("proxy", Template, _parent.Contract, "Watchdog", "isupandrunning");
+            Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl = new Url(uriHttps).AppendPathSegments("proxy", Template, _parent.Contract, "Watchdog", "isupandrunning");
 
             try
             {
-                var serviceResult = await this.Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl.GetJsonAsync<WatchdogResult>();
+                var serviceResult = await Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl.GetJsonAsync<WatchdogResult>();
                 if (serviceResult != null)
-                    this.Running.Started = true;
+                    Running.Started = true;
             }
             catch (Exception)
             {
-                               
+
             }
 
-            return this.Running;
+            return Running;
 
         }
 
@@ -371,7 +371,7 @@ namespace Bb.ParrotServices.Services
             dir.Refresh();
 
             FileInfo[] files = dir.GetFiles(pattern);
-           
+
             return files;
 
         }
@@ -386,8 +386,8 @@ namespace Bb.ParrotServices.Services
 
             ProjectDocument result = new ProjectDocument()
             {
-                Contract = this._parent.Contract,
-                Template = this.Template,
+                Contract = _parent.Contract,
+                Template = Template,
             };
 
             var dirRoot = new DirectoryInfo(Path.Combine(Root, "service", "Templates"));
@@ -405,16 +405,16 @@ namespace Bb.ParrotServices.Services
         public async Task<ProjectRunning> ListRunnings()
         {
 
-            ProjectRunning result = new ProjectRunning(this.Running)
+            ProjectRunning result = new ProjectRunning(Running)
             {
-                Contract = this._parent.Contract,
-                Template = this.Template,
+                Contract = _parent.Contract,
+                Template = Template,
             };
 
-            if (this.Running != null)
+            if (Running != null)
             {
                 // curl -X GET "url" -H "accept: application/json"
-                var serviceResult = await this.Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl.GetJsonAsync<WatchdogResult>();
+                var serviceResult = await Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl.GetJsonAsync<WatchdogResult>();
                 result.UpAndRunningResult = serviceResult;
 
             }

@@ -1,5 +1,4 @@
-﻿using Bb.ParrotServices.Services;
-using Bb.Services;
+﻿using Bb.Services;
 using System.Diagnostics;
 using System.Reflection;
 using NLog.Web;

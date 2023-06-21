@@ -3,19 +3,19 @@ using Bb.ParrotServices.Controllers;
 using Bb.Process;
 using System.Diagnostics;
 
-namespace Bb.ParrotServices.Services
+namespace Bb.Services.ProcessHosting
 {
 
     /// <summary>
     /// Wrap the process command line for log event
     /// </summary>
-    [ExposeClass(Context = Constants.Models.Service, LifeCycle = IocScopeEnum.Singleton)]    
+    [ExposeClass(Context = Constants.Models.Service, LifeCycle = IocScopeEnum.Singleton)]
     public class LocalProcessCommandService : ProcessCommandService
     {
 
         public LocalProcessCommandService()
         {
-            this.Intercept(this.Interceptor);
+            Intercept(Interceptor);
         }
 
         private void Interceptor(object sender, TaskEventArgs args)

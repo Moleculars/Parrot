@@ -1,5 +1,4 @@
-﻿
-namespace Bb.ParrotServices.Services
+﻿namespace Bb.Services.Managers
 {
 
 
@@ -9,15 +8,15 @@ namespace Bb.ParrotServices.Services
 
         public ProjectBuilderContract(ProjectBuilderProvider parent, string contract)
         {
-            this._parent = parent;
-            this.Contract = contract;
+            _parent = parent;
+            Contract = contract;
 
             Root = Path.Combine(parent.Root, contract);
 
             //if (!Directory.Exists(Root))
             //    Directory.CreateDirectory(Root);
 
-            this._templates = new Dictionary<string, ProjectBuilderTemplate>();
+            _templates = new Dictionary<string, ProjectBuilderTemplate>();
 
         }
 
@@ -29,8 +28,8 @@ namespace Bb.ParrotServices.Services
         public ProjectBuilderTemplate Template(string templateName)
         {
 
-            if (!this._templates.TryGetValue(templateName, out var template1))
-                this._templates.Add(templateName, template1 = new ProjectBuilderTemplate(_parent, this, templateName));
+            if (!_templates.TryGetValue(templateName, out var template1))
+                _templates.Add(templateName, template1 = new ProjectBuilderTemplate(_parent, this, templateName));
 
             return template1;
 
@@ -39,7 +38,7 @@ namespace Bb.ParrotServices.Services
         public List<ProjectBuilderTemplate> List()
         {
 
-            List< ProjectBuilderTemplate> items = new List<ProjectBuilderTemplate>();
+            List<ProjectBuilderTemplate> items = new List<ProjectBuilderTemplate>();
             var dirRoot = new DirectoryInfo(Root);
             var dirs = dirRoot.GetDirectories();
             foreach (var dir in dirs)

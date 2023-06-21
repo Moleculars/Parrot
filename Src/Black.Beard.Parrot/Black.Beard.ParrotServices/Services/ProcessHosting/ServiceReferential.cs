@@ -5,7 +5,7 @@ using Bb.Projects;
 using System;
 using System.Collections.Generic;
 
-namespace Bb.Services
+namespace Bb.Services.ProcessHosting
 {
 
 
@@ -15,7 +15,7 @@ namespace Bb.Services
 
         public ServiceReferential()
         {
-            this._templates = new Dictionary<string, ServiceReferentialTemplate>();
+            _templates = new Dictionary<string, ServiceReferentialTemplate>();
         }
 
         public ServiceReferentialContract Resolve(string templateName, string contractName)

@@ -3,7 +3,6 @@ using Bb.ParrotServices;
 using System.Reflection;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using Bb.ParrotServices.Services;
 using Bb.Services;
 using System.Diagnostics;
 using NLog;

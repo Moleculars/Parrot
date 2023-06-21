@@ -1,6 +1,6 @@
 ﻿using Flurl;
 
-namespace Bb.Services
+namespace Bb.Services.ProcessHosting
 {
 
 
@@ -9,9 +9,9 @@ namespace Bb.Services
 
         public ServiceReferentialContract(ServiceReferentialTemplate parent, string name)
         {
-            this.Parent = parent;
-            this.Contract = name;
-            this._template = parent.Template;
+            Parent = parent;
+            Contract = name;
+            _template = parent.Template;
 
         }
 
@@ -26,7 +26,7 @@ namespace Bb.Services
             {
                 if (redirect != null)
                 {
-                    var request = $"/proxy/{this._template}/{Contract}";
+                    var request = $"/proxy/{_template}/{Contract}";
 
                     //     .Add(new KeyValuePair<string, Uri>(request, redirect));
                     var u = new AddressTranslator()

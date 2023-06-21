@@ -1,15 +1,15 @@
 ﻿using System.Diagnostics.Contracts;
 
-namespace Bb.Services
+namespace Bb.Services.ProcessHosting
 {
     public class ServiceReferentialTemplate
     {
 
         public ServiceReferentialTemplate(ServiceReferential parent, string name)
         {
-            this.Parent = parent;
-            this.Template = name;
-            this._contracts = new Dictionary<string, ServiceReferentialContract>();
+            Parent = parent;
+            Template = name;
+            _contracts = new Dictionary<string, ServiceReferentialContract>();
         }
 
 
@@ -42,7 +42,7 @@ namespace Bb.Services
 
         public ServiceReferentialContract Resolve(string contractName)
         {
-            
+
             if (_contracts.TryGetValue(contractName, out var contract))
                 return contract;
 

@@ -1,12 +1,12 @@
 ﻿using Bb.OpenApiServices;
-using Bb.Services;
 using Bb.Models;
 using Bb.ComponentModel.Attributes;
 using Bb.Models.Security;
 using Microsoft.AspNetCore.Components;
 using Bb.ComponentModel.Factories;
+using Bb.Services.ProcessHosting;
 
-namespace Bb.ParrotServices.Services
+namespace Bb.Services.Managers
 {
 
 
@@ -23,7 +23,7 @@ namespace Bb.ParrotServices.Services
         {
             _referential = referential;
             _host = host;
-            this._items = new Dictionary<string, ProjectBuilderContract>();
+            _items = new Dictionary<string, ProjectBuilderContract>();
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Bb.ParrotServices.Services
         /// <param name="services">The services.</param>
         public void Initialize(IServiceProvider services)
         {
-            this.Initialize(Directory.GetCurrentDirectory());
+            Initialize(Directory.GetCurrentDirectory());
         }
 
 
