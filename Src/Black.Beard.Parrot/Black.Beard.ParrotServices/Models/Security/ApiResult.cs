@@ -1,4 +1,4 @@
-﻿namespace Bb.Models
+﻿namespace Bb.Models.Security
 {
 
     public class ApiResult

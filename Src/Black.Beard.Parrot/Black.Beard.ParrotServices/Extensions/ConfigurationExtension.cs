@@ -13,124 +13,39 @@ namespace Bb.Extensions
 
         static ConfigurationExtension()
         {
-
             _logger = LogManager.GetLogger(nameof(ConfigurationExtension));
-
-            _methodConfiguration = typeof(ConfigurationExtension).GetMethod(nameof(RegisterConfiguration), BindingFlags.Public | BindingFlags.Static);
-            _methodModel = typeof(ConfigurationExtension).GetMethod(nameof(RegisterModel), BindingFlags.Public | BindingFlags.Static);
-            _methodService = typeof(ConfigurationExtension).GetMethod(nameof(RegisterService), BindingFlags.Public | BindingFlags.Static);
-
+            _method = typeof(ConfigurationExtension).GetMethod(nameof(AddType), BindingFlags.NonPublic | BindingFlags.Static);
         }
 
 
-        //public static void UseServicesExposedByAttribute(this IServiceCollection services, IConfiguration configuration)
-        //{
-
-        //    foreach (var type in GetExposedTypes(Constants.Models.Service))
-        //        _methodService.MakeGenericMethod(type).Invoke(null, new object[] { services, configuration });
-
-        //}
-
-
-        #region services
-
-        public static void UseServicesExposedByAttribute(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection UseTypeExposedByAttribute(this IServiceCollection services, IConfiguration configuration, string contextKey, Action<Type> action = null)
         {
-
             foreach (var type in GetExposedTypes(Constants.Models.Service))
-                _methodService.MakeGenericMethod(type).Invoke(null, new object[] { services, configuration });
+            {
+                
+                _method.MakeGenericMethod(type).Invoke(null, new object[] { services, configuration });
+
+                if (action != null)
+                    action(type);
+
+            }
+
+            return services;
 
         }
 
-        public static void RegisterService<T>(this IServiceCollection services, IConfiguration configuration)
+        private static void AddType<T>(this IServiceCollection services, IConfiguration configuration)
             where T : class
         {
-
-            if (typeof(T).IsAssignableFrom(typeof(ComponentModel.Factories.IInitialize)))
+            if (typeof(IInitialize).IsAssignableFrom(typeof(T)))
             {
-
-                Func<IServiceProvider, T> _func = (serviceProvider) =>
-                {
-                    return serviceProvider.GetService<T>();
-                };
-
+                var serviceBuilder = ObjectCreatorByIoc.GetActivator<T>();
+                Func<IServiceProvider, T> _func = (serviceProvider) => serviceBuilder.Call(null, serviceProvider);
                 services.RegisterType(_func);
-
             }
             else
-            {
                 services.RegisterType<T>();
-            }
-
         }
-
-        #endregion services
-
-        #region models
-
-        public static void UseModelsExposedByAttribute(this IServiceCollection services, IConfiguration configuration)
-        {
-
-            foreach (var type in GetExposedTypes(Constants.Models.Model))
-                _methodModel.MakeGenericMethod(type).Invoke(null, new object[] { services, configuration });
-
-        }
-
-        public static void RegisterModel<T>(this IServiceCollection services, IConfiguration configuration)
-            where T : class
-        {
-
-            if (typeof(T).IsAssignableFrom(typeof(IInitialize)))
-            {
-
-                Func<IServiceProvider, T> _func = (serviceProvider) =>
-                {
-                    return serviceProvider.GetService<T>();
-                };
-
-                services.RegisterType(_func);
-
-
-            }
-            else
-            {
-
-                services.RegisterType<T>();
-
-            }
-
-
-        }
-
-        #endregion models
-
-
-        #region configuration
-
-        public static void UseConfigurationsExposedByAttribute(this IServiceCollection services, IConfiguration configuration)
-        {
-
-            foreach (var type in GetExposedTypes(Constants.Models.Configuration))
-                _methodModel.MakeGenericMethod(type).Invoke(null, new object[] { services, configuration });
-
-        }
-
-        public static void RegisterConfiguration<T>(this IServiceCollection services, IConfiguration configuration)
-            where T : class, new()
-        {
-
-            Func<IServiceProvider, T> _func = (serviceProvider) =>
-            {
-                var modelConfiguration = new T();
-                configuration.Bind(nameof(T), modelConfiguration);
-                return modelConfiguration;
-            };
-
-            services.RegisterType<T>(_func);
-
-        }
-
-        #endregion
 
         private static void RegisterType<T>(this IServiceCollection services, Func<IServiceProvider, T> func)
             where T : class
@@ -205,6 +120,7 @@ namespace Bb.Extensions
         }
 
         private static readonly Logger _logger;
+        private static readonly MethodInfo? _method;
         private static readonly MethodInfo? _methodConfiguration;
         private static readonly MethodInfo? _methodModel;
         private static readonly MethodInfo? _methodService;

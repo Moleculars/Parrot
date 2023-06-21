@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using System.Linq;
 using Bb.Models.Security;
 using Bb;
+using NJsonSchema;
 
 namespace Bb.ParrotServices
 {
@@ -27,18 +28,22 @@ namespace Bb.ParrotServices
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.UseModelsExposedByAttribute(_configuration);
-            services.UseConfigurationsExposedByAttribute(_configuration);
-            services.UseServicesExposedByAttribute(_configuration);
 
-            // services.UseExceptionHandling(_configuration);
-            services.UserLoggingBehavior();
+            // Auto discover all type with attribute ExposeClass and register in ioc.
+            services.UseTypeExposedByAttribute(_configuration, Constants.Models.Configuration, c=>
+            {
+                //var cc1 = JsonSchema.FromType(c).ToJson();
+                //var cc2 = c.GenerateContracts();
 
-            services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            })
+                    .UseTypeExposedByAttribute(_configuration, Constants.Models.Model)
+                    .UseTypeExposedByAttribute(_configuration, Constants.Models.Service)
 
+                    .AddControllers()
 
-            // Initialize security policy
+            ;
+
+            // Initialize security policy for apply authorizations
             var policies = PoliciesExtension.GetPolicies();
             if (policies.Any())
                 services.AddAuthorization(options =>
@@ -53,6 +58,7 @@ namespace Bb.ParrotServices
 
 
             // OpenAPI 
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             // https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-5.0&tabs=visual-studio
             //services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(c =>
@@ -64,6 +70,12 @@ namespace Bb.ParrotServices
 
         }
 
+        /// <summary>
+        /// evaluate permissions.
+        /// </summary>
+        /// <param name="arg">The argument.</param>
+        /// <param name="policy">The policy.</param>
+        /// <returns></returns>
         private async Task<bool> Authorize(AuthorizationHandlerContext arg, PolicyModel policy)
         {
 
@@ -92,34 +104,21 @@ namespace Bb.ParrotServices
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
 
-            //var services = app.ApplicationServices;
-            //var projectBuilder = (ProjectBuilderProvider)services.GetService(typeof(ProjectBuilderProvider));
-            //projectBuilder.Initialize(Directory.GetCurrentDirectory());
-
             if (env.IsDevelopment())
             {
-
                 app.UseSwagger();
-
                 app.UseSwaggerUI();
-                //app.UseSwaggerUI(c =>
-                //  {
-                //      c.SwaggerEndpoint("/swagger/v1/swagger.json", "Todo Items v1");
-                //      // https://stackoverflow.com/questions/55914610/disable-try-it-out-in-swagger
-                //      //c.SupportedSubmitMethods();
-                //  });
-
             }
 
             app
               .UseHttpsRedirection()
               .UseRouting()
-              .UseApiKey()
-              .UseAuthorization()
+              .UseApiKey()                      // Intercept apikey and create identityPrincipal associated
+              .UseAuthorization()               // Apply authorisation
 
-              .UseCustomExceptionHandler()
-              .UseReverseProxy()
-              .UsdeHttpInfoLogger()
+              .UseCustomExceptionHandler()      // Intercepts exceptions, format the message result and log with trace identifier.
+              .UseReverseProxy()                // Redirect all call start with /proxy/mock/{contractname} on the hosted service
+              .UsdeHttpInfoLogger()             // log entries requests
 
 
               .UseEndpoints(endpoints =>

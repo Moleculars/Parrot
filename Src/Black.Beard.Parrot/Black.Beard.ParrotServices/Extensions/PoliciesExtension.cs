@@ -26,7 +26,7 @@ namespace Bb.Extensions
             PolicyProfilList _list = new PolicyProfilList();
 
             foreach (var item in self)
-                _list.Add(item.GetModel());
+                _list.Profils.Add(item.GetModel());
 
             var datas = new JObject(new JProperty(nameof(PolicyProfilList), JToken.FromObject(_list)));
 

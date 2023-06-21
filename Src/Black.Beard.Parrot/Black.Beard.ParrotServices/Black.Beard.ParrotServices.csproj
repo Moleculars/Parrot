@@ -43,6 +43,7 @@
 
 		<PackageReference Include="Microsoft.OpenApi" Version="1.6.5" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
+		<PackageReference Include="NJsonSchema" Version="10.9.0" />
 		
 		<PackageReference Include="NLog" Version="5.*" />
 		<PackageReference Include="NLog.DiagnosticSource" Version="5.0.0" />
@@ -65,6 +66,10 @@
 		<Content Update="nlog.config">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Models\ExceptionHandling\" />
 	</ItemGroup>
 
 </Project>

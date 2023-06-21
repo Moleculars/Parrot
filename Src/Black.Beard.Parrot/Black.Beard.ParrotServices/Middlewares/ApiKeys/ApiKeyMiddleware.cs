@@ -76,7 +76,9 @@ namespace Bb.Middlewares.ApiKeys
         }
 
         private static bool ApiKeyHasDuplicates(ICollection apiKeysFromHeaders) => apiKeysFromHeaders.Count > 1;
+
         private static bool ApiKeyNotFound(ICollection apiKeysFromHeaders) => apiKeysFromHeaders.Count < 1;
+
         private static bool ApiKeyFound(ICollection apiKeysFromHeaders) => apiKeysFromHeaders.Count == 1;
 
         private static string CreateDuplicateApiKeyError(IEnumerable<ApiKey> apiKeysFromHeaders)

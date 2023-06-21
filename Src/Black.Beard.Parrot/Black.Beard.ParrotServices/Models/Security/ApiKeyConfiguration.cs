@@ -1,5 +1,4 @@
 ﻿using Bb.ComponentModel.Attributes;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -8,7 +7,7 @@ namespace Bb.Models.Security
 
 
     [ExposeClass(Context = Constants.Models.Configuration, ExposedType = typeof(ApiKeyConfiguration), LifeCycle = IocScopeEnum.Singleton)]
-    public class ApiKeyConfiguration
+    public class ApiKeyConfiguration : ConfigurationBase
     {
 
         public ApiKeyConfiguration()
@@ -17,7 +16,7 @@ namespace Bb.Models.Security
         }
 
         /// <summary>
-        /// Return the name of the header will give de api key
+        /// Return the name of the header will give the api key
         /// </summary>
         public string ApiHeader { get; set; } = "X-API-KEY";
 

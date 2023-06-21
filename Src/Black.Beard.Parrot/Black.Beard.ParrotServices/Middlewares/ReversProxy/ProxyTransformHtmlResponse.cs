@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using System.Threading;
 using System;
 
-namespace Bb.Models
+namespace Bb.Middlewares.ReversProxy
 {
     public class ProxyTransformHtmlResponse : ProxyTransformResponse
     {

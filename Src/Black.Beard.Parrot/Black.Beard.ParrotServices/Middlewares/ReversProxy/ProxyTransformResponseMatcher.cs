@@ -1,8 +1,9 @@
 ﻿using Bb.Services;
 using System.Text;
 
-namespace Bb.Models
+namespace Bb.Middlewares.ReversProxy
 {
+
     /// <summary>
     /// class for select the transform that manage the contentype
     /// </summary>
