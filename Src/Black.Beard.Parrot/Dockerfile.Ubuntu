@@ -10,14 +10,12 @@ WORKDIR /src
 
 LABEL maintainer="gaelgael5@gmail.com" github="https://github.com/Moleculars/Parrot"
 
-# copy Black.Beard.Curl
-WORKDIR /src/Black.Beard.Curl
-COPY Black.Beard.Curl/*.csproj .
+# copy csproj in the image and restore packages
+COPY *.csproj .
 RUN dotnet restore --use-current-runtime
 
 # copy csproj in the image and restore packages
 COPY . .
-RUN dotnet restore --use-current-runtime
 RUN dotnet build -c Release -o /app/build
 
 EXPOSE 80

@@ -20,7 +20,7 @@ namespace Bb.Extensions
 
         public static IServiceCollection UseTypeExposedByAttribute(this IServiceCollection services, IConfiguration configuration, string contextKey, Action<Type> action = null)
         {
-            foreach (var type in GetExposedTypes(Constants.Models.Service))
+            foreach (var type in GetExposedTypes(contextKey))
             {
                 
                 _method.MakeGenericMethod(type).Invoke(null, new object[] { services, configuration });
