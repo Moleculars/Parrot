@@ -6,7 +6,7 @@
 # Variables to manage initialize in this script
 $imageName = "parrot";    # name of the image
 
-Set-Location .\Src\Black.Beard.Parrot\Black.Beard.ParrotServices
+Set-Location .\Src\Black.Beard.ParrotServices
 
 
 # Script begin

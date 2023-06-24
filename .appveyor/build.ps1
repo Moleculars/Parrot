@@ -11,7 +11,7 @@ $ErrorActionPreference = 'Stop';
 
 Write-Host Starting build
 
-Set-Location .\Src\Black.Beard.Parrot\Black.Beard.ParrotServices
+Set-Location .\Src\Black.Beard.ParrotServices
 Write-Host setting working directory to $pwd
 
 docker info

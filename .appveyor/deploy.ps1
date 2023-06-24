@@ -8,7 +8,7 @@
 $tag = "parrot"
 $image = "blackbeardteam/parrot"
 
-Set-Location .\Src\Black.Beard.Parrot\Black.Beard.ParrotServices
+Set-Location .\Src\Black.Beard.ParrotServices
 
 # Script begin
 $ErrorActionPreference = 'Stop';
