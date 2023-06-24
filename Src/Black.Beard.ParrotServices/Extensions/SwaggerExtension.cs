@@ -35,8 +35,7 @@ namespace Bb.Extensions
         public static void AddSwaggerWithApiKeySecurity(this SwaggerGenOptions self, IServiceCollection services, IConfiguration configuration, string assemblyName)
         {
 
-            var apiKeyConfiguration = new ApiKeyConfiguration();
-            configuration.Bind(nameof(ApiKeyConfiguration), apiKeyConfiguration);
+            var apiKeyConfiguration = ApiKeyConfiguration.New(configuration);
 
             if (string.IsNullOrEmpty(apiKeyConfiguration?.ApiHeader))
                 throw new InvalidOperationException("ApiKeyConfiguration.ApiHeader is null or empty.");

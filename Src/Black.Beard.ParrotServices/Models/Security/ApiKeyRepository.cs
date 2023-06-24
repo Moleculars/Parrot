@@ -1,5 +1,6 @@
 ﻿using Bb.ComponentModel.Attributes;
 using Bb.Json.Jslt.CustomServices.MultiCsv;
+using Microsoft.Extensions.Options;
 using System.Reflection;
 
 namespace Bb.Models.Security
@@ -20,9 +21,9 @@ namespace Bb.Models.Security
         /// Ctor
         /// </summary>
         /// <param name="apiKeyConfiguration"></param>
-        public ApiKeyRepository(ApiKeyConfiguration apiKeyConfiguration)
+        public ApiKeyRepository(IOptions<ApiKeyConfiguration> apiKeyConfiguration)
         {
-            ApiKeyList = apiKeyConfiguration;
+            ApiKeyList = apiKeyConfiguration.Value;
             ApiKeyList.Filename = _file;
         }
 

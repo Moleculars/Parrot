@@ -1,17 +1,14 @@
-﻿using Bb.Services;
-using System.Diagnostics;
-using System.Reflection;
-using NLog.Web;
+﻿using Bb;
 using Bb.Extensions;
-using Microsoft.Extensions.Configuration;
-using Bb.Middlewares.Exceptions;
+using Bb.Middlewares.EntryFullLogger;
+using Bb.Models;
+using Bb.Models.Security;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using Microsoft.Extensions.Options;
-using System.Linq;
-using Bb.Models.Security;
-using Bb;
+using Microsoft.AspNetCore.Diagnostics;
 using NJsonSchema;
+using System.Reflection;
+using Microsoft.Extensions.Configuration;
 
 namespace Bb.ParrotServices
 {
@@ -29,20 +26,21 @@ namespace Bb.ParrotServices
 
 
             // Auto discover all type with attribute ExposeClass and register in ioc.
-            services.UseTypeExposedByAttribute(_configuration, Constants.Models.Configuration, c=>
+            services.UseTypeExposedByAttribute(_configuration, Constants.Models.Configuration, c =>
             {
+                services.BindConfiguration(c, _configuration);
                 //var cc1 = JsonSchema.FromType(c).ToJson();
                 //var cc2 = c.GenerateContracts();
 
             })
-                    .UseTypeExposedByAttribute(_configuration, Constants.Models.Model)
-                    .UseTypeExposedByAttribute(_configuration, Constants.Models.Service)
+            .UseTypeExposedByAttribute(_configuration, Constants.Models.Model)
+            .UseTypeExposedByAttribute(_configuration, Constants.Models.Service)
 
                     .AddControllers()
 
             ;
 
-            // Initialize security policy for apply authorizations
+            // Initialize security policy for apply permission based on identityPrincipal authorizations
             var policies = PoliciesExtension.GetPolicies();
             if (policies.Any())
                 services.AddAuthorization(options =>
@@ -105,17 +103,26 @@ namespace Bb.ParrotServices
 
             if (env.IsDevelopment())
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseDeveloperExceptionPage()
+                   .UseSwagger()
+                   .UseSwaggerUI()
+                   .UseMiddleware<RequestResponseLoggerMiddleware>();
             }
 
             app
               .UseHttpsRedirection()
               .UseRouting()
               .UseApiKey()                      // Intercept apikey and create identityPrincipal associated
-              .UseAuthorization()               // Apply authorisation
+              .UseAuthorization()               // Apply authorisation for identityPrincipal
 
-              .UseCustomExceptionHandler()      // Intercepts exceptions, format the message result and log with trace identifier.
+              .UseExceptionHandler(c => c.Run(async context =>          // Intercepts exceptions, format 
+              {                                                         // the message result and log with trace identifier.
+                  var exceptionHandler = context.Features.Get<IExceptionHandlerPathFeature>();
+                  var error = exceptionHandler.Error;
+                  var response = new HttpExceptionModel { TraceIdentifier = context.TraceIdentifier, Session = context.Session };
+                  await context.Response.WriteAsJsonAsync(response);
+              }))
+
               .UseReverseProxy()                // Redirect all call start with /proxy/mock/{contractname} on the hosted service
               .UsdeHttpInfoLogger()             // log entries requests
 

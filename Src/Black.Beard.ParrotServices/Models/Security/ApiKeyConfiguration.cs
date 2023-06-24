@@ -6,14 +6,26 @@ namespace Bb.Models.Security
 {
 
 
-    [ExposeClass(Context = Constants.Models.Configuration, ExposedType = typeof(ApiKeyConfiguration), LifeCycle = IocScopeEnum.Singleton)]
-    public class ApiKeyConfiguration : ConfigurationBase
+    [ExposeClass(Context = Constants.Models.Configuration, ExposedType = typeof(ApiKeyConfiguration), LifeCycle = IocScopeEnum.Singleton, Name = "")]
+    public class ApiKeyConfiguration
     {
-
+               
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApiKeyConfiguration"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
         public ApiKeyConfiguration()
         {
             Items = new List<ApiKey>();
         }
+
+        public static ApiKeyConfiguration New(IConfiguration configuration)
+        {
+            var config = new ApiKeyConfiguration();
+            configuration.Bind(nameof(ApiKeyConfiguration), config);
+            return config;
+        }
+
 
         /// <summary>
         /// Return the name of the header will give the api key

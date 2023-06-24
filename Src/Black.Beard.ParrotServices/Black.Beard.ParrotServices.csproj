@@ -13,17 +13,21 @@
 
 	<ItemGroup>
 	  <Compile Remove="Attributes\**" />
+	  <Compile Remove="Middlewares\Exceptions\**" />
 	  <Content Remove="Attributes\**" />
+	  <Content Remove="Middlewares\Exceptions\**" />
 	  <EmbeddedResource Remove="Attributes\**" />
+	  <EmbeddedResource Remove="Middlewares\Exceptions\**" />
 	  <None Remove="Attributes\**" />
+	  <None Remove="Middlewares\Exceptions\**" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Compile Remove="Extensions\UseExtension.cs" />
-		<Compile Remove="Middlewares\Exceptions\ExceptionHandlerMiddleware1.cs" />
 		<Compile Remove="Middlewares\HtmlPackExtension.cs" />
 		<Compile Remove="Middlewares\HtmlVisitor.cs" />
 		<Compile Remove="Middlewares\IHtmlVisitor.cs" />
+		<Compile Remove="Models\ConfigurationBase.cs" />
 		<Compile Remove="Models\WatchdogResultException.cs" />
 		<Compile Remove="Services\ApiKeyReferential.cs" />
 		<Compile Remove="Services\IPipelineBehavior.cs" />
@@ -69,10 +73,6 @@
 		<Content Update="nlog.config">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Models\ExceptionHandling\" />
 	</ItemGroup>
 
 </Project>

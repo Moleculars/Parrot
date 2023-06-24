@@ -41,11 +41,14 @@ namespace Bb.Models.Security
                     return result;
             }
 
-            foreach (var item in _list)
+            if (_list != null)
             {
-                var result = i.Evaluate(pathArray, 1);
-                if (result != null)
-                    return result;
+                foreach (var item in _list)
+                {
+                    var result = i.Evaluate(pathArray, 1);
+                    if (result != null)
+                        return result;
+                }
             }
 
             return null;

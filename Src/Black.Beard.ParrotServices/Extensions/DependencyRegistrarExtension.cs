@@ -1,5 +1,4 @@
 ﻿using Bb.Middlewares.ApiKeys;
-using Bb.Middlewares.Exceptions;
 using Bb.Middlewares.ReversProxy;
 using Bb.ParrotServices.Middlewares;
 

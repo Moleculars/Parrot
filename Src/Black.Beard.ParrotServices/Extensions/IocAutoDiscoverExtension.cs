@@ -1,6 +1,9 @@
 ﻿using Bb.ComponentModel.Attributes;
 using Bb.ComponentModel.Factories;
 using Bb.Expressions;
+using Bb.Json.Jslt.CustomServices;
+using Bb.Middlewares.EntryFullLogger;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using System.Reflection;
@@ -8,13 +11,35 @@ using System.Reflection;
 namespace Bb.Extensions
 {
 
-    public static class ConfigurationExtension
+    public static class IocAutoDiscoverExtension
     {
 
-        static ConfigurationExtension()
+        static IocAutoDiscoverExtension()
         {
-            _logger = LogManager.GetLogger(nameof(ConfigurationExtension));
-            _method = typeof(ConfigurationExtension).GetMethod(nameof(AddType), BindingFlags.NonPublic | BindingFlags.Static);
+            _logger = LogManager.GetLogger(nameof(IocAutoDiscoverExtension));
+            _methodRegister = typeof(IocAutoDiscoverExtension).GetMethod(nameof(AddType), BindingFlags.NonPublic | BindingFlags.Static);
+            _methodOptionConfiguration = typeof(IocAutoDiscoverExtension).GetMethod(nameof(BindConfiguration), BindingFlags.NonPublic | BindingFlags.Static);
+        }
+
+        public static IServiceCollection BindConfiguration(this IServiceCollection self, Type type, IConfiguration configuration)
+        {
+
+
+            _methodOptionConfiguration.MakeGenericMethod(type)
+                .Invoke(self, new object[] { self, configuration });
+
+            return self;
+
+        }
+
+        private static void BindConfiguration<TOptions>(this IServiceCollection self, IConfiguration configuration)
+            where TOptions : class
+        {
+            var attribute = typeof(TOptions).GetCustomAttribute<ExposeClassAttribute>();
+            var sectionName = !string.IsNullOrEmpty(attribute?.Name) ? attribute.Name : typeof(TOptions).Name;
+            var section = configuration.GetSection(sectionName);
+            self.AddOptions<TOptions>().Bind(section).ValidateDataAnnotations();
+
         }
 
 
@@ -22,8 +47,8 @@ namespace Bb.Extensions
         {
             foreach (var type in GetExposedTypes(contextKey))
             {
-                
-                _method.MakeGenericMethod(type).Invoke(null, new object[] { services, configuration });
+
+                _methodRegister.MakeGenericMethod(type).Invoke(null, new object[] { services, configuration });
 
                 if (action != null)
                     action(type);
@@ -120,7 +145,8 @@ namespace Bb.Extensions
         }
 
         private static readonly Logger _logger;
-        private static readonly MethodInfo? _method;
+        private static readonly MethodInfo? _methodRegister;
+        private static readonly MethodInfo? _methodOptionConfiguration;
         private static readonly MethodInfo? _methodConfiguration;
         private static readonly MethodInfo? _methodModel;
         private static readonly MethodInfo? _methodService;

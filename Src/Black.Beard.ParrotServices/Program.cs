@@ -18,6 +18,8 @@ using System;
 using Bb.ParrotServices.Middlewares;
 using NLog.Config;
 using NLog.LayoutRenderers;
+using Bb.Extensions;
+using Microsoft.Extensions.Logging;
 
 internal class Program
 {
@@ -51,7 +53,7 @@ internal class Program
         try
         {
 
-            CreateHostBuilder(args)
+            CreateHostBuilder(logger, args)
                 .Build()
                 .Run();
 
@@ -70,27 +72,23 @@ internal class Program
     }
 
 
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
+    public static IHostBuilder CreateHostBuilder(NLog.Logger logger, string[] args) =>
            Host.CreateDefaultBuilder(args)
+                
                .ConfigureWebHostDefaults(webBuilder =>
                {
+                   
+                   webBuilder.UseStartup<Startup>()
+                   ;
 
-                   webBuilder.UseStartup<Startup>();
-
-                   webBuilder.ConfigureAppConfiguration(a =>
+                   webBuilder.ConfigureAppConfiguration((hostingContext, config) =>
                    {
-                       a.AddEnvironmentVariables();
-                       a.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
-                       //a.AddJsonProjectBuilderFile("appsettings.json", optional: true, reloadOnChange: false);
 
-                       var file = Path.Combine(Environment.CurrentDirectory, "apikeysettings.json");
-                       if (File.Exists(file))
-                           a.AddJsonFile("apikeysettings.json");
-
-                       file = Path.Combine(Environment.CurrentDirectory, "policiessettings.json");
-                       if (File.Exists(file))
-                           a.AddJsonFile("policiessettings.json");
-
+                       new ConfigurationLoader(logger, hostingContext, config)
+                        .TryToLoadConfigurationFile("appsettings.json", false, false)
+                        .TryToLoadConfigurationFile("apikeysettings.json", false, false)
+                        .TryToLoadConfigurationFile("policiessettings.json", false, false)
+                       ;
 
                    });
 

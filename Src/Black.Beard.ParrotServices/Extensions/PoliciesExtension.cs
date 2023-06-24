@@ -13,24 +13,22 @@ namespace Bb.Extensions
     public static class PoliciesExtension
     {
 
-
+        /// <summary>
+        /// Initializes the <see cref="PoliciesExtension"/> class.
+        /// </summary>
         static PoliciesExtension()
         {
             _controllerBaseType = typeof(ControllerBase);
             _match = "[Controller]";
         }
 
+
         public static void Save(this List<PolicyModel> self, string filename)
         {
 
-            PolicyProfilList _list = new PolicyProfilList();
-
-            foreach (var item in self)
-                _list.Profils.Add(item.GetModel());
-
-            var datas = new JObject(new JProperty(nameof(PolicyProfilList), JToken.FromObject(_list)));
-
-            filename.Save(datas.ToString(Oldtonsoft.Json.Formatting.Indented));
+            PolicyProfilList
+                .New(self)
+                .Save(filename);
 
         }
 
