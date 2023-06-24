@@ -6,13 +6,11 @@
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/aspnetapp/Dockerfile.ubuntu
 FROM mcr.microsoft.com/dotnet/sdk:7.0-jammy AS build
 WORKDIR /src
-RUN ls
 
 LABEL maintainer="gaelgael5@gmail.com" github="https://github.com/Moleculars/Parrot"
 
 
 WORKDIR /src/Black.Beard.Curl
-RUN ls
 # copy csproj in the image and restore packages
 COPY Black.Beard.Curl/*.csproj .
 RUN dotnet restore --use-current-runtime

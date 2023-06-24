@@ -11,7 +11,7 @@ $ErrorActionPreference = 'Stop';
 
 Write-Host Starting build
 
-Set-Location .\Src\Black.Beard.ParrotServices
+Set-Location .\Src
 Write-Host setting working directory to $pwd
 
 docker info
@@ -22,4 +22,4 @@ docker build --tag $imageName --file "Dockerfile.${os}" .
 
 Write-Host build ended
 
-docker images
+#docker images
