@@ -33,7 +33,7 @@ WORKDIR /src/Black.Beard.OpenApiServices
 COPY Black.Beard.OpenApiServices/Black.Beard.OpenApiServices.csproj .
 RUN dotnet restore --use-current-runtime
 COPY Black.Beard.OpenApiServices/ .
-# RUN dotnet build -c Release -o /app/build
+RUN dotnet build -c Release -o /app/build
 
 
 WORKDIR /src/ParrotServices
