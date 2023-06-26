@@ -23,6 +23,10 @@ $os = If ($isWindows) {'Windows'} Else {'Ubuntu'}
 
 Write-Host docker build --tag $imageName --file "${os}.dockerfile" $pwd
 $ID = $(docker build --tag $imageName --file "Dockerfile.${os}" .)
+Write-Host image $ID generated
+
+
+Write-Host retag $ID to $taggedimage
 docker tag $ID $taggedimage
 
 
