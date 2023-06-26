@@ -5,7 +5,6 @@
 # APPVEYOR_REPO_TAG_NAME
 
 # Variables to manage initialize in this script
-$tag = "parrot"
 $image = "blackbeardteam/parrot"
 $taggedimage = $imageName + ':' + $env:APPVEYOR_BUILD_VERSION
 $taggedimagelatest = $imageName + ':latest'
@@ -35,13 +34,13 @@ Write-Host Starting deploy
 # }
 # "@ | Out-File -Encoding Ascii ~/.docker/config.json
 
-docker login -u $env:DOCKER_USER -p $env:DOCKER_PASS
+docker login -u $env:DOCKER_PASS
 
 $os = If ($isWindows) {"windows"} Else {"linux"}
 docker push $taggedimage
 
-if ($isWindows) 
-{
+#if ($isWindows) 
+#{
 #  # Windows
 #  Write-Host "Rebasing image to produce 2016/1607 variant"
 #  $ErrorActionPreference = 'SilentlyContinue';
@@ -88,7 +87,7 @@ if ($isWindows)
 #    -t "$($image):$os-$env:ARCH-$env:APPVEYOR_REPO_TAG_NAME-2004" `
 #    -b stefanscherer/nanoserver:2004
 #      
-} else {
+#} else {
 #  # Linux
 #  if ($env:ARCH -eq "amd64") {
 #    # The last in the build matrix
@@ -122,5 +121,5 @@ if ($isWindows)
 #    docker manifest annotate "$($image):latest" "$($image):linux-arm-$env:APPVEYOR_REPO_TAG_NAME" --os linux --arch arm --variant v6
 #    docker manifest annotate "$($image):latest" "$($image):linux-arm64-$env:APPVEYOR_REPO_TAG_NAME" --os linux --arch arm64 --variant v8
 #    docker manifest push "$($image):latest"
-  }
-}
+#  }
+#}

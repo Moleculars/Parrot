@@ -4,7 +4,7 @@
 # https://github.com/3shape/containerized-structure-test
 
 # Variables to manage initialize in this script
-$imageName = "parrot";    # name of the image
+$imageName = "blackbeardteam/parrot";    # name of the image
 $taggedimage = $imageName + ':' + $env:APPVEYOR_BUILD_VERSION
 $taggedimagelatest = $imageName + ':latest'
 

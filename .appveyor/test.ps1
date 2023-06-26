@@ -4,11 +4,12 @@
 # ARCH                     : Architecture for linux builds
 
 # Variables to manage initialize in this script
-$imageName = "parrot";    # name of the image
-
+$image = "blackbeardteam/parrot"
+$taggedimage = $imageName + ':' + $env:APPVEYOR_BUILD_VERSION
+$taggedimagelatest = $imageName + ':latest'
 
 # Script begin
-$containerName = $imageName + "__c";
+$containerName = "parrot__test";
 Write-Host Starting test
 
 if ($env:ARCH -ne "amd64") {
@@ -22,7 +23,7 @@ docker rm -f $containerName
 
 $ErrorActionPreference = 'Stop';
 Write-Host Starting container
-docker run --name $containerName -p 8080:8080 -d name1
+docker run --name $containerName -p 8080:8080 -d $taggedimage
 Start-Sleep 10
 
 $ErrorActionPreference = 'SilentlyContinue';
