@@ -11,7 +11,8 @@ $ErrorActionPreference = 'Stop';
 
 
 
-$taggedimage = $imageName + ':' + $APPVEYOR_BUILD_VERSION
+$taggedimage = $imageName + ':' + $env:APPVEYOR_BUILD_VERSION
+$taggedimagelatest = $imageName + ':latest'
 
 Write-Host Starting build $taggedimage;
 
@@ -22,12 +23,12 @@ docker info
 $os = If ($isWindows) {'Windows'} Else {'Ubuntu'}
 
 Write-Host docker build --tag $imageName --file "${os}.dockerfile" $pwd
-$ID = $(docker build --tag $imageName --file "Dockerfile.${os}" .)
-Write-Host image $ID generated
+docker build --tag $taggedimagelatest --file "Dockerfile.${os}" .
+Write-Host image $taggedimagelatest is generated
 
 
-Write-Host retag $ID to $taggedimage
-docker tag $ID $taggedimage
+Write-Host retag $taggedimagelatest to $taggedimage
+docker tag $taggedimagelatest $taggedimage
 
 
 Write-Host build ended
