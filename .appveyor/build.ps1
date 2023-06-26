@@ -13,10 +13,7 @@ $ErrorActionPreference = 'Stop';
 
 $taggedimage = $imageName + ':' + $APPVEYOR_BUILD_VERSION
 
-Write-Host Starting build $env:APPVEYOR_BUILD_VERSION;
-Write-Host Starting version $APPVEYOR_BUILD_VERSION;
-
-
+Write-Host Starting build $taggedimage;
 
 Set-Location .\Src
 Write-Host setting working directory to $pwd;
@@ -25,7 +22,7 @@ docker info
 $os = If ($isWindows) {'Windows'} Else {'Ubuntu'}
 
 Write-Host docker build --tag $imageName --file "${os}.dockerfile" $pwd
-ID = $(docker build --tag $imageName --file "Dockerfile.${os}" .)
+$ID = $(docker build --tag $imageName --file "Dockerfile.${os}" .)
 docker tag $ID $taggedimage
 
 
