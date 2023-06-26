@@ -34,7 +34,7 @@ Write-Host Starting deploy
 # }
 # "@ | Out-File -Encoding Ascii ~/.docker/config.json
 
-docker login -u $env:DOCKER_PASS
+docker login -u $env:DOCKER_USER -p $env:DOCKER_PASS
 
 $os = If ($isWindows) {"windows"} Else {"linux"}
 docker push $taggedimage
