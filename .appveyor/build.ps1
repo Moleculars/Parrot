@@ -11,7 +11,7 @@ $ErrorActionPreference = 'Stop';
 
 
 
-$taggedimage =  $imageName':' + ${version}{build}
+$taggedimage =  $imageName + ':' + ${version}{build}
 
 Write-Host Starting build ${version}{build}
 Write-Host Starting version ${APPVEYOR_BUILD_VERSION}
