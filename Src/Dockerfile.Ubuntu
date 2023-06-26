@@ -25,7 +25,7 @@ WORKDIR /src/Black.Beard.OpenApi
 COPY Black.Beard.OpenApi/Black.Beard.OpenApi.csproj .
 RUN dotnet restore --use-current-runtime
 COPY Black.Beard.OpenApi/* .
-# RUN dotnet build -c Release -o /app/build
+RUN dotnet build -c Release -o /app/build
 
 
 WORKDIR /src/Black.Beard.OpenApiServices
