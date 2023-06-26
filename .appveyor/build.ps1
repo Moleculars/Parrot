@@ -11,15 +11,15 @@ $ErrorActionPreference = 'Stop';
 
 
 
-$taggedimage =  $imageName + ':' + ${version}{build}
+$taggedimage = $imageName + ':' + $APPVEYOR_BUILD_VERSION
 
-Write-Host Starting build ${version}{build}
-Write-Host Starting version ${APPVEYOR_BUILD_VERSION}
+Write-Host Starting build $APPVEYOR_BUILD_VERSION;
+Write-Host Starting version $APPVEYOR_BUILD_VERSION;
 
 
 
 Set-Location .\Src
-Write-Host setting working directory to $pwd
+Write-Host setting working directory to $pwd;
 
 docker info
 $os = If ($isWindows) {'Windows'} Else {'Ubuntu'}
