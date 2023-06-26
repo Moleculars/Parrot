@@ -13,7 +13,7 @@ $ErrorActionPreference = 'Stop';
 
 $taggedimage = $imageName + ':' + $APPVEYOR_BUILD_VERSION
 
-Write-Host Starting build $APPVEYOR_BUILD_VERSION;
+Write-Host Starting build $env:APPVEYOR_BUILD_VERSION;
 Write-Host Starting version $APPVEYOR_BUILD_VERSION;
 
 
