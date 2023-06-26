@@ -5,14 +5,12 @@
 
 # Variables to manage initialize in this script
 $imageName = "parrot";    # name of the image
+$taggedimage = $imageName + ':' + $env:APPVEYOR_BUILD_VERSION
+$taggedimagelatest = $imageName + ':latest'
 
 # Script begin
 $ErrorActionPreference = 'Stop';
 
-
-
-$taggedimage = $imageName + ':' + $env:APPVEYOR_BUILD_VERSION
-$taggedimagelatest = $imageName + ':latest'
 
 Write-Host Starting build $taggedimage;
 
