@@ -41,6 +41,7 @@ docker login -u $env:DOCKER_USER -p $env:DOCKER_PASS
 
 # $os = If ($isWindows) {"windows"} Else {"linux"}
 docker push $taggedimage
+docker push $taggedimagelatest
 
 #if ($isWindows) 
 #{
