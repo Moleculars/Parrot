@@ -16,7 +16,7 @@ COPY Black.Beard.Curl/Black.Beard.Curl.csproj .
 RUN dotnet restore --use-current-runtime
 # copy csproj in the image and restore packages
 COPY . .
-#RUN dotnet build Black.Beard.Curl.csproj -c Release -o /app/build
+RUN dotnet build Black.Beard.Curl.csproj -c Release -o /app/build
 
 
 
