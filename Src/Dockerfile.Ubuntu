@@ -41,10 +41,10 @@ WORKDIR /src/ParrotServices
 COPY Black.Beard.ParrotServices/Black.Beard.ParrotServices.csproj .
 RUN dotnet restore --use-current-runtime
 COPY Black.Beard.ParrotServices/* .
-# RUN dotnet build Black.Beard.ParrotServices.csproj -c Release -o /app/build
+RUN dotnet build Black.Beard.ParrotServices.csproj -c Release -o /app/build
 
 
-# EXPOSE 80
-# EXPOSE 443
+EXPOSE 80
+EXPOSE 443
 
-# ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll"]
+ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll"]
