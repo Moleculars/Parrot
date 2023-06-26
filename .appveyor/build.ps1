@@ -9,7 +9,12 @@ $imageName = "parrot";    # name of the image
 # Script begin
 $ErrorActionPreference = 'Stop';
 
-Write-Host Starting build
+$taggedimage =  $imageName':' + ${version}{build}
+
+Write-Host Starting build ${version}{build}
+
+
+
 
 Set-Location .\Src
 Write-Host setting working directory to $pwd
@@ -19,7 +24,7 @@ $os = If ($isWindows) {'Windows'} Else {'Ubuntu'}
 
 Write-Host docker build --tag $imageName --file "${os}.dockerfile" $pwd
 ID = $(docker build --tag $imageName --file "Dockerfile.${os}" .)
-docker tag $ID $imageName:$Env:APPVEYOR_BUILD_VERSION
+docker tag $ID $taggedimage
 
 
 Write-Host build ended
