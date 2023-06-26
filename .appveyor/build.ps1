@@ -10,7 +10,6 @@ $imageName = "parrot";    # name of the image
 $ErrorActionPreference = 'Stop';
 
 Write-Host Starting local build
-
 dotnet build ".\Src\Black.Beard.Curl\Black.Beard.Curl.csproj" -c release /p:Version=$Env:APPVEYOR_BUILD_VERSION
 dotnet build ".\Src\Black.Beard.OpenApi\Black.Beard.OpenApi.csproj" -c release /p:Version=$Env:APPVEYOR_BUILD_VERSION
 dotnet build ".\Src\Black.Beard.OpenApiServices\Black.Beard.OpenApiServices.csproj" -c release /p:Version=$Env:APPVEYOR_BUILD_VERSION
