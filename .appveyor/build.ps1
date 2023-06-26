@@ -18,7 +18,9 @@ docker info
 $os = If ($isWindows) {'Windows'} Else {'Ubuntu'}
 
 Write-Host docker build --tag $imageName --file "${os}.dockerfile" $pwd
-docker build --tag $imageName --file "Dockerfile.${os}" .
+ID = $(docker build --tag $imageName --file "Dockerfile.${os}" .)
+docker tag $ID $imageName:$Env:APPVEYOR_BUILD_VERSION
+
 
 Write-Host build ended
 
