@@ -4,7 +4,7 @@
 # ARCH                     : Architecture for linux builds
 
 # Variables to manage initialize in this script
-$image = "blackbeardteam/parrot"
+$imageName = "blackbeardteam/parrot";    # name of the image
 $taggedimage = $imageName + ':' + $env:APPVEYOR_BUILD_VERSION
 $taggedimagelatest = $imageName + ':latest'
 
@@ -23,7 +23,8 @@ docker rm -f $containerName
 
 $ErrorActionPreference = 'Stop';
 Write-Host Starting container
-docker run --name $containerName -p 8080:8080 -d $taggedimage
+docker run --name $containerName -d $taggedimage
+docker run --name $containerName -d $taggedimage
 Start-Sleep 10
 
 $ErrorActionPreference = 'SilentlyContinue';

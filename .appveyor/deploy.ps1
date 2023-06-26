@@ -5,7 +5,7 @@
 # APPVEYOR_REPO_TAG_NAME
 
 # Variables to manage initialize in this script
-$image = "blackbeardteam/parrot"
+$imageName = "blackbeardteam/parrot"
 $taggedimage = $imageName + ':' + $env:APPVEYOR_BUILD_VERSION
 $taggedimagelatest = $imageName + ':latest'
 
@@ -17,7 +17,7 @@ $ErrorActionPreference = 'Stop';
 #   exit 0
 # }
 
-Write-Host Starting deploy
+Write-Host Starting deploy $taggedimage
 # if (!(Test-Path ~/.docker)) { mkdir ~/.docker }
 # # "$env:DOCKER_PASS" | docker login --username "$env:DOCKER_USER" --password-stdin
 # # docker login with the old config.json style that is needed for manifest-tool
@@ -34,9 +34,12 @@ Write-Host Starting deploy
 # }
 # "@ | Out-File -Encoding Ascii ~/.docker/config.json
 
+
+docker commit -m "Adding parrot server" -a "NAME" $taggedimagelatest
+
 docker login -u $env:DOCKER_USER -p $env:DOCKER_PASS
 
-$os = If ($isWindows) {"windows"} Else {"linux"}
+# $os = If ($isWindows) {"windows"} Else {"linux"}
 docker push $taggedimage
 
 #if ($isWindows) 
