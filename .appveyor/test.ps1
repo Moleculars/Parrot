@@ -6,11 +6,9 @@
 # Variables to manage initialize in this script
 $imageName = "parrot";    # name of the image
 
-Set-Location .\Src\Black.Beard.ParrotServices
-
 
 # Script begin
-$containerName = $imageName + 'Test';
+$containerName = $imageName + "__c";
 Write-Host Starting test
 
 if ($env:ARCH -ne "amd64") {
@@ -24,7 +22,7 @@ docker rm -f $containerName
 
 $ErrorActionPreference = 'Stop';
 Write-Host Starting container
-docker run --name $containerName -p 8080:8080 -d whoami
+docker run --name $containerName -p 8080:8080 -d name1
 Start-Sleep 10
 
 $ErrorActionPreference = 'SilentlyContinue';
