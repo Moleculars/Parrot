@@ -23,3 +23,5 @@ docker build --tag $imageName --file "Dockerfile.${os}" .
 Write-Host build ended
 
 docker images
+
+Set-Location ..
