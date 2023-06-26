@@ -6,7 +6,6 @@ using Bb.Models.Security;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Diagnostics;
-using NJsonSchema;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
 

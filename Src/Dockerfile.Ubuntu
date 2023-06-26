@@ -44,7 +44,7 @@ COPY Black.Beard.ParrotServices/* .
 # RUN dotnet build Black.Beard.ParrotServices.csproj -c Release -o /app/build
 
 
-EXPOSE 80
-EXPOSE 443
+# EXPOSE 80
+# EXPOSE 443
 
-ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll"]
+# ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll"]

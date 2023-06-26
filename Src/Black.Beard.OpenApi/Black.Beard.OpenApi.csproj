@@ -19,7 +19,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.OpenApi" Version="1.6.5" />
     <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.5" />
-    <PackageReference Include="Namotion.Reflection" Version="2.1.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
