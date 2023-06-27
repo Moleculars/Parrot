@@ -1,8 +1,6 @@
-﻿using Bb.ComponentModel.Attributes;
-using Bb.Models;
+﻿using Bb.Models;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Bb.Middlewares.EntryFullLogger
 {
@@ -138,109 +136,6 @@ namespace Bb.Middlewares.EntryFullLogger
         private readonly RequestDelegate _next;
         private readonly RequestResponseLoggerOption _options;
         private readonly IRequestResponseLogger _logger;
-
-    }
-
-    [ExposeClass(Context = Constants.Models.Configuration, ExposedType = typeof(RequestResponseLoggerOption), LifeCycle = IocScopeEnum.Singleton)]
-    public class RequestResponseLoggerOption
-    {
-
-        public RequestResponseLoggerOption()
-        {
-            
-        }
-
-        public bool IsEnabled { get; set; }
-        public string Name { get; set; }
-        public string DateTimeFormat { get; set; }
-    }
-
-    public class RequestResponseLogModel
-    {
-
-        public string LogId { get; set; }           /*Guid.NewGuid().ToString()*/
-        public string Node { get; set; }            /*project name*/
-        public string ClientIp { get; set; }
-        public string TraceId { get; set; }         /*HttpContext TraceIdentifier*/
-
-
-        public DateTime? RequestDateTimeUtc { get; set; }
-        public DateTime? RequestDateTimeUtcActionLevel { get; set; }
-        public string RequestPath { get; set; }
-        public string RequestQuery { get; set; }
-        public List<KeyValuePair<string, string>> RequestQueries { get; set; }
-        public string RequestMethod { get; set; }
-        public string RequestScheme { get; set; }
-        public string RequestHost { get; set; }
-        public Dictionary<string, string> RequestHeaders { get; set; }
-        public string RequestBody { get; set; }
-        public string RequestContentType { get; set; }
-
-
-        public DateTime? ResponseDateTimeUtc { get; set; }
-        public DateTime? ResponseDateTimeUtcActionLevel { get; set; }
-        public string ResponseStatus { get; set; }
-        public Dictionary<string, string> ResponseHeaders { get; set; }
-        public string ResponseBody { get; set; }
-        public string ResponseContentType { get; set; }
-
-
-        public bool? IsExceptionActionLevel { get; set; }
-        public string ExceptionMessage { get; set; }
-        public string ExceptionStackTrace { get; set; }
-
-
-        public RequestResponseLogModel()
-        {
-            LogId = Guid.NewGuid().ToString();
-        }
-
-    }
-
-    public interface IRequestResponseLogModelCreator
-    {
-        RequestResponseLogModel LogModel { get; }
-        string LogString();
-    }
-
-    public interface IRequestResponseLogger
-    {
-        void Log(IRequestResponseLogModelCreator logCreator);
-    }
-
-    [ExposeClass(Context = Constants.Models.Service, ExposedType = typeof(IRequestResponseLogModelCreator), LifeCycle = IocScopeEnum.Singleton)]
-    public class RequestResponseLogModelCreator : IRequestResponseLogModelCreator
-    {
-        public RequestResponseLogModel LogModel { get; private set; }
-
-        public RequestResponseLogModelCreator()
-        {
-            LogModel = new RequestResponseLogModel();
-        }
-
-        public string LogString()
-        {
-            var jsonString = JsonConvert.SerializeObject(LogModel, Formatting.Indented);
-            return jsonString;
-        }
-    }
-
-    [ExposeClass(Context = Constants.Models.Service, ExposedType = typeof(IRequestResponseLogger), LifeCycle = IocScopeEnum.Singleton)]
-    public class RequestResponseLogger : IRequestResponseLogger
-    {
-        private readonly ILogger<RequestResponseLogger> _logger;
-
-        public RequestResponseLogger(ILogger<RequestResponseLogger> logger)
-        {
-            _logger = logger;
-        }
-        public void Log(IRequestResponseLogModelCreator logCreator)
-        {
-            //_logger.LogTrace(jsonString);
-            //_logger.LogInformation(jsonString);
-            //_logger.LogWarning(jsonString);
-            _logger.LogCritical(logCreator.LogString());
-        }
 
     }
 

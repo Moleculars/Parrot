@@ -2,6 +2,7 @@
 
 namespace Bb.ParrotServices.Exceptions
 {
+
     [Serializable]
     public class MockHttpException : ParrotException
     {

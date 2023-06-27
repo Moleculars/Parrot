@@ -24,36 +24,36 @@ namespace Bb.ParrotServices
         {
 
 
-            // Auto discover all type with attribute ExposeClass and register in ioc.
+            // Auto discover all types with attribute [ExposeClass] and register in ioc.
             services.UseTypeExposedByAttribute(_configuration, Constants.Models.Configuration, c =>
             {
                 services.BindConfiguration(c, _configuration);
                 //var cc1 = JsonSchema.FromType(c).ToJson();
                 //var cc2 = c.GenerateContracts();
-
             })
             .UseTypeExposedByAttribute(_configuration, Constants.Models.Model)
             .UseTypeExposedByAttribute(_configuration, Constants.Models.Service)
 
-                    .AddControllers()
-
+            .AddControllers()
             ;
 
-            // Initialize security policy for apply permission based on identityPrincipal authorizations
+
+
+            // Auto discovers all services with Authorize attribute and 
+            // Initialize security policies for apply permissions based on identityPrincipal authorizations
             var policies = PoliciesExtension.GetPolicies();
             if (policies.Any())
                 services.AddAuthorization(options =>
                 {
-                    foreach (var policyM in policies)
-                        options.AddPolicy(policyM.Name, policy => policy.RequireAssertion(a => Authorize(a, policyM)));
+                    foreach (var policyModel in policies)
+                        options.AddPolicy(policyModel.Name, policy => policy.RequireAssertion(a => Authorize(a, policyModel)));
                 });
-
-
             var currentAssembly = Assembly.GetAssembly(typeof(Program));
             policies.Save(Path.GetDirectoryName(currentAssembly.Location));
 
 
-            // OpenAPI 
+
+            // Swagger OpenAPI 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             // https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-5.0&tabs=visual-studio
             //services.AddEndpointsApiExplorer();
@@ -63,6 +63,7 @@ namespace Bb.ParrotServices
                 c.AddSwaggerWithApiKeySecurity(services, _configuration, $"{Assembly.GetExecutingAssembly().GetName().Name}");
                 //c.TagActionsBy(a => new List<string> { a.ActionDescriptor is ControllerActionDescriptor b ? b.ControllerTypeInfo.Assembly.FullName.Split('.')[2].Split(',')[0].Replace("Web", "") : a.ActionDescriptor.DisplayName });
             });
+
 
         }
 
@@ -118,7 +119,13 @@ namespace Bb.ParrotServices
               {                                                         // the message result and log with trace identifier.
                   var exceptionHandler = context.Features.Get<IExceptionHandlerPathFeature>();
                   var error = exceptionHandler.Error;
-                  var response = new HttpExceptionModel { TraceIdentifier = context.TraceIdentifier, Session = context.Session };
+                  var response = new HttpExceptionModel
+                  {
+                      Origin = "Parrot services",
+                      TraceIdentifier = context.TraceIdentifier, 
+                      Session = context.Session 
+                  };
+                  context.Response.StatusCode = 500;
                   await context.Response.WriteAsJsonAsync(response);
               }))
 

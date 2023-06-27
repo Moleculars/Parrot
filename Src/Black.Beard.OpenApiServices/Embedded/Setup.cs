@@ -67,19 +67,27 @@ namespace Bb.ParrotServices
 
             this._app = app;
 
-            // Configure the HTTP request pipeline.
-            //if (app.Environment.IsDevelopment())
-            //{
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            //}
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            app.UseExceptionHandler(c => c.Run(async context =>          // Intercepts exceptions, format 
+            {                                                         // the message result and log with trace identifier.
+                var exceptionHandler = context.Features.Get<IExceptionHandlerPathFeature>();
+                var error = exceptionHandler.Error;
+                var response = new HttpExceptionModel
+                {
+                    Origin = "{{Contract}} services",
+                    TraceIdentifier = context.TraceIdentifier,
+                    Session = context.Session
+                };
+                await context.Response.WriteAsJsonAsync(response);
+            }));
+
+            //app.UseAuthorization();
 
             app.MapControllers();
-
 
             return this;
 

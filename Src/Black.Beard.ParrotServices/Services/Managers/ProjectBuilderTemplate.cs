@@ -8,6 +8,7 @@ using Bb.Mock;
 using System.Diagnostics.Contracts;
 using System.Diagnostics;
 using Bb.Services.ProcessHosting;
+using Bb.ParrotServices.Exceptions;
 
 namespace Bb.Services.Managers
 {
@@ -38,7 +39,7 @@ namespace Bb.Services.Managers
 
             _generatorType = _rootParent.ResolveGenerator(Template);
             if (_generatorType == null)
-                throw new InvalidOperationException(template);
+                throw new MockHttpException($"template {template} not found");
 
             var instance = GetGenerator();
             _configurationType = instance.ConfigurationType;
