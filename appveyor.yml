@@ -1,7 +1,7 @@
 # https://stefanscherer.github.io/use-appveyor-to-build-multi-arch-docker-image/
 version: 1.0.{build}
 image: 
-  # - Visual Studio 2022
+  - Visual Studio 2022
   - Ubuntu
 
 configuration: Debug
