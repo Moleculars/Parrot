@@ -4,8 +4,10 @@
 # Learn about building .NET container images:
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/README.md
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/aspnetapp/Dockerfile.ubuntu
-FROM mcr.microsoft.com/dotnet/sdk:7.0-jammy AS build
+# FROM mcr.microsoft.com/dotnet/sdk:7.0-jammy AS build
+FROM mcr.microsoft.com/dotnet/aspnet AS build
 WORKDIR /src
+
 
 LABEL maintainer="gaelgael5@gmail.com" github="https://github.com/Moleculars/Parrot"
 
@@ -44,7 +46,7 @@ COPY Black.Beard.ParrotServices/* .
 # RUN dotnet publish Black.Beard.ParrotServices.csproj -c Release -o /app/build
 
 
-EXPOSE 80
-EXPOSE 443
+# EXPOSE 80
+# EXPOSE 443
 
-ENTRYPOINT ["dotnet.exe", "Black.Beard.ParrotServices.dll"]
+# ENTRYPOINT ["dotnet.exe", "Black.Beard.ParrotServices.dll"]
