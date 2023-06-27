@@ -52,9 +52,9 @@ EXPOSE 80
 EXPOSE 443
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy
-WORKDIR /app
-COPY --from=build /app .
+# FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy
+# WORKDIR /app
+# COPY --from=build /app .
 
 # ENTRYPOINT ["./aspnetapp"]
 # ENTRYPOINT ["dotnet.exe", "Black.Beard.ParrotServices.dll"]
