@@ -41,6 +41,6 @@ COPY --from=build /app .
 # dotnet dev-certs https -ep $env:USERPROFILE\.aspnet\https\Black.Beard.ParrotServices.pfx -p crypticpassword
 # dotnet dev-certs https --trust
 
-EXPOSE 5000
+EXPOSE 80
 
-ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll", " --urls", "http://localhost:5000"]
+ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll"]

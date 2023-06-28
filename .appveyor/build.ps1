@@ -15,6 +15,12 @@ $ErrorActionPreference = 'Stop';
 Write-Host Starting build $taggedimage;
 
 Set-Location .\Src
+
+# https://learn.microsoft.com/en-us/dotnet/core/additional-tools/self-signed-certificates-guide#with-powershell
+# dotnet dev-certs https -ep $env:USERPROFILE\.aspnet\https\aspnetapp.pfx -p mycrypticpassword
+# dotnet dev-certs https --trust
+# dotnet user-secrets -p aspnetapp\aspnetapp.csproj set "Kestrel:Certificates:Development:Password" "mycrypticpassword"
+
 Write-Host setting working directory to $pwd;
 
 docker info
