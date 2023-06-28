@@ -40,4 +40,4 @@ COPY --from=build /app .
 
 EXPOSE 5000
 
-# ENTRYPOINT ["dotnet.exe", "Black.Beard.ParrotServices.dll", " --urls", "http://localhost:5000"]
+ENTRYPOINT ["dotnet.exe", "Black.Beard.ParrotServices.dll", " --urls", "http://localhost:5000"]
