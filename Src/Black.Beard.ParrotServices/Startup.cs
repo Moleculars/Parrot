@@ -101,12 +101,16 @@ namespace Bb.ParrotServices
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
 
-            if (env.IsDevelopment())
+            if (Constants.UseSwagger)
             {
                 app.UseDeveloperExceptionPage()
                    .UseSwagger()
-                   .UseSwaggerUI()
-                   .UseMiddleware<RequestResponseLoggerMiddleware>();
+                   .UseSwaggerUI();
+            }
+
+            if (Constants.traceAll)
+            {
+                app.UseMiddleware<RequestResponseLoggerMiddleware>();
             }
 
             app

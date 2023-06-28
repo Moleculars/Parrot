@@ -4,6 +4,8 @@ using System.Reflection;
 using NLog;
 using NLog.Web;
 using Bb.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Bb;
 
 internal class Program
 {
@@ -25,6 +27,19 @@ internal class Program
             ;
         logger.Debug("init main");
 
+
+        var useSagger = Environment.GetEnvironmentVariable("use_swagger");
+        if (!string.IsNullOrEmpty(useSagger))
+        {
+            Constants.UseSwagger = useSagger.ToLower() == "true";
+        }
+        var trace_all = Environment.GetEnvironmentVariable("trace_all");
+        if (!string.IsNullOrEmpty(useSagger))
+        {
+            Constants.traceAll = trace_all.ToLower() == "true";
+        }
+
+        // 
 
         try
         {
@@ -74,7 +89,7 @@ internal class Program
                    });
 
 
-                   
+
                    webBuilder.ConfigureLogging(l =>
                    {
                        l.ClearProviders()

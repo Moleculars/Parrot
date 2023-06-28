@@ -3,14 +3,13 @@
 
 ## Quick start
 Launch the docker container
-```batch
-    sudo docker run blackbeardteam/parrot -p {port http}:5000 -p {port https}:443
-
+```batch    
+    sudo docker run -p 127.0.0.1:80:80/tcp blackbeardteam/parrot
 ```
 
 in interactive mode
 ```batch
-    sudo docker run -it blackbeardteam/parrot bash
+    sudo docker run -it --entrypoint /bin/bash blackbeardteam/parrot
 ```
 
 Launch a navigator and open the swagger page
@@ -30,9 +29,12 @@ Arguments
 
 ### Upload the contract
 ```batch
-   curl -X POST "https://{url}:{port}/Manager/mock/{contract name}/upload" -H "accept: */*" -H "Content-Type: multipart/form-data" -F "upfile=@{contract file}.json;type=application/json"
+   curl -X POST "https://localhost:80/Manager/mock/parcel/upload" -H "accept: */*" -H "Content-Type: multipart/form-data" -F "upfile=@swagger.json;type=application/json"
 ```
-  
+
+for this test the file to upload is named swagger.json.
+
+
 ### Launch the new mock service
 ```batch
    curl -X PUT "https://{url}:{port}/Manager/mock/{contract name}/run" -H "accept: */*"

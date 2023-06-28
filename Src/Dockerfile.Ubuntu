@@ -38,8 +38,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy
 WORKDIR /app
 COPY --from=build /app .
 
-# dotnet dev-certs https -ep $env:USERPROFILE\.aspnet\https\Black.Beard.ParrotServices.pfx -p crypticpassword
-# dotnet dev-certs https --trust
+ENV use_swagger=true
+ENV trace_all=true
 
 EXPOSE 80
 
