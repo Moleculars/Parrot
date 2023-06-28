@@ -4,7 +4,8 @@
 ## Quick start
 Launch the docker container
 ```batch
-    sudo docker run blackbeardteam/parrot -p 80:{port} -p 443:{port https}
+    sudo docker run blackbeardteam/parrot -p {port http}:5000 -p {port https}:443
+
 ```
 
 in interactive mode
