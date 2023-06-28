@@ -10,48 +10,34 @@ LABEL maintainer="gaelgael5@gmail.com" github="https://github.com/Moleculars/Par
 
 
 WORKDIR /src/Black.Beard.Curl
-# copy csproj in the image and restore packages
-# COPY Black.Beard.Curl/Black.Beard.Curl.csproj .
-# copy csproj in the image and restore packages
 COPY Black.Beard.Curl/* .
 RUN dotnet restore --use-current-runtime
-# RUN dotnet build Black.Beard.Curl.csproj -c Release -o /app/build
-
 
 
 WORKDIR /src/Black.Beard.OpenApi
-# copy csproj in the image and restore packages
-# COPY Black.Beard.OpenApi/Black.Beard.OpenApi.csproj .
 COPY Black.Beard.OpenApi/* .
 RUN dotnet restore --use-current-runtime
-# RUN dotnet build -c Release -o /app/build
 
 
 WORKDIR /src/Black.Beard.OpenApiServices
-# copy csproj in the image and restore packages
-# COPY Black.Beard.OpenApiServices/Black.Beard.OpenApiServices.csproj .
 COPY Black.Beard.OpenApiServices/ .
 RUN dotnet restore --use-current-runtime
-# RUN dotnet build -c Release -o /app/build
 
 
 WORKDIR /src/ParrotServices
-# copy csproj in the image and restore packages
-# COPY Black.Beard.ParrotServices/Black.Beard.ParrotServices.csproj .
 COPY Black.Beard.ParrotServices/* .
 RUN dotnet restore --use-current-runtime
-# RUN dotnet publish Black.Beard.ParrotServices.csproj -c Release -o /app/build
+
 
 RUN dotnet publish --use-current-runtime --self-contained false --no-restore -o /app
+WORKDIR /app
 
 
 # final stage/image
-# FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy
-# WORKDIR /app
-# COPY --from=build /app .
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy
+WORKDIR /app
+COPY --from=build /app .
 
-EXPOSE 80
-EXPOSE 443
+EXPOSE 5000
 
-# ENTRYPOINT ["./aspnetapp"]
-# ENTRYPOINT ["dotnet.exe", "Black.Beard.ParrotServices.dll"]
+# ENTRYPOINT ["dotnet.exe", "Black.Beard.ParrotServices.dll", " --urls", "http://localhost:5000"]

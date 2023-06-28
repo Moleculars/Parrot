@@ -4,9 +4,13 @@
 ## Quick start
 Launch the docker container
 ```batch
-   sudo docker run blackbeardteam/parrot -p 80:{port} -p 443:{port https}
+    sudo docker run blackbeardteam/parrot -p 80:{port} -p 443:{port https}
 ```
 
+in interactive mode
+```batch
+    sudo docker run -it blackbeardteam/parrot bash
+```
 
 Launch a navigator and open the swagger page
 
