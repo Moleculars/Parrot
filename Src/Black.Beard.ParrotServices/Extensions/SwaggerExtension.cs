@@ -77,23 +77,33 @@ namespace Bb.Extensions
 
         internal static XPathDocument LoadXmlFiles(string patternGlobing = "*.xml")
         {
-            XElement xml = null;
-            XElement dependentXml = null;
+
+            XElement? xml = null;
+
+            var directory = new DirectoryInfo(Directory.GetCurrentDirectory());
+            directory.Refresh();
 
             // Build one large xml with all comments files
-            foreach (var fileName in Directory.EnumerateFiles(Path.GetDirectoryName(typeof(SwaggerExtension).Assembly.Location), patternGlobing))
+            foreach (var file in directory.GetFiles(patternGlobing))
             {
-                if (xml == null)
+
+                try
                 {
-                    xml = XElement.Load(fileName);
+
+                    Console.WriteLine($"try to load {file.FullName}");
+                    XElement dependentXml = XElement.Load(file.FullName);
+
+                    if (xml == null)
+                        xml = dependentXml;
+
+                    else
+                        foreach (var ele in dependentXml.Descendants())
+                            xml.Add(ele);
+
                 }
-                else
+                catch (Exception e)
                 {
-                    dependentXml = XElement.Load(fileName);
-                    foreach (var ele in dependentXml.Descendants())
-                    {
-                        xml.Add(ele);
-                    }
+                    Console.WriteLine($"Failed to parse '{file}'. maybe the file don't contains documentation. ({e.ToString()})");
                 }
             }
 

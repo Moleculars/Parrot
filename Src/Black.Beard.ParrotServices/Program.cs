@@ -18,6 +18,9 @@ internal class Program
         var currentAssembly = Assembly.GetAssembly(typeof(Program));
         Directory.SetCurrentDirectory(Path.GetDirectoryName(currentAssembly.Location));
 
+        Console.WriteLine("Current directory : " + Directory.GetCurrentDirectory());
+
+        
 
         // Initialize log
         var logger = NLog.LogManager
@@ -25,21 +28,10 @@ internal class Program
             .SetupExtensions(s => { })
             .GetCurrentClassLogger()
             ;
+
+
+
         logger.Debug("init main");
-
-
-        var useSagger = Environment.GetEnvironmentVariable("use_swagger");
-        if (!string.IsNullOrEmpty(useSagger))
-        {
-            Constants.UseSwagger = useSagger.ToLower() == "true";
-        }
-        var trace_all = Environment.GetEnvironmentVariable("trace_all");
-        if (!string.IsNullOrEmpty(useSagger))
-        {
-            Constants.traceAll = trace_all.ToLower() == "true";
-        }
-
-        // 
 
         try
         {
@@ -78,6 +70,9 @@ internal class Program
 
                    webBuilder.ConfigureAppConfiguration((hostingContext, config) =>
                    {
+
+                       Configuration.UseSwagger = "use_swagger".Evaluate("true") || hostingContext.HostingEnvironment.IsDevelopment();
+                       Configuration.TraceAll = "trace_all".Evaluate("true") || hostingContext.HostingEnvironment.IsDevelopment();
 
                        // Load configurations files
                        new ConfigurationLoader(logger, hostingContext, config)

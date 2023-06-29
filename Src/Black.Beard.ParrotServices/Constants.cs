@@ -1,10 +1,19 @@
 ﻿namespace Bb
 {
-    public class Constants
+
+
+    public class Configuration
     {
-        internal static bool traceAll;
+
+        internal static bool TraceAll;
 
         public static bool UseSwagger { get; internal set; }
+
+    }
+
+
+    public class Constants
+    {
 
         public static class Models
         {

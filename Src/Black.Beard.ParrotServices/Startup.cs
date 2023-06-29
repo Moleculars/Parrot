@@ -53,17 +53,18 @@ namespace Bb.ParrotServices
 
 
 
-            // Swagger OpenAPI 
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            // https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-5.0&tabs=visual-studio
-            //services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen(c =>
+            if (Configuration.UseSwagger) // Swagger OpenAPI 
             {
-                c.AddDocumentation();
-                c.AddSwaggerWithApiKeySecurity(services, _configuration, $"{Assembly.GetExecutingAssembly().GetName().Name}");
-                //c.TagActionsBy(a => new List<string> { a.ActionDescriptor is ControllerActionDescriptor b ? b.ControllerTypeInfo.Assembly.FullName.Split('.')[2].Split(',')[0].Replace("Web", "") : a.ActionDescriptor.DisplayName });
-            });
-
+                // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+                // https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-5.0&tabs=visual-studio
+                //services.AddEndpointsApiExplorer();
+                services.AddSwaggerGen(c =>
+                {
+                    c.AddDocumentation();
+                    c.AddSwaggerWithApiKeySecurity(services, _configuration, $"{Assembly.GetExecutingAssembly().GetName().Name}");
+                    //c.TagActionsBy(a => new List<string> { a.ActionDescriptor is ControllerActionDescriptor b ? b.ControllerTypeInfo.Assembly.FullName.Split('.')[2].Split(',')[0].Replace("Web", "") : a.ActionDescriptor.DisplayName });
+                });
+            }
 
         }
 
@@ -101,14 +102,14 @@ namespace Bb.ParrotServices
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
 
-            if (Constants.UseSwagger)
+            if (Configuration.UseSwagger)
             {
                 app.UseDeveloperExceptionPage()
                    .UseSwagger()
                    .UseSwaggerUI();
             }
 
-            if (Constants.traceAll)
+            if (Configuration.TraceAll)
             {
                 app.UseMiddleware<RequestResponseLoggerMiddleware>();
             }
@@ -126,8 +127,8 @@ namespace Bb.ParrotServices
                   var response = new HttpExceptionModel
                   {
                       Origin = "Parrot services",
-                      TraceIdentifier = context.TraceIdentifier, 
-                      Session = context.Session 
+                      TraceIdentifier = context.TraceIdentifier,
+                      Session = context.Session
                   };
                   context.Response.StatusCode = 500;
                   await context.Response.WriteAsJsonAsync(response);
