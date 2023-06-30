@@ -17,7 +17,8 @@ namespace Bb
 
             var result = template;
 
-            var properties = PropertyAccessor.GetProperties(values.GetType(), false);
+            var type = values.GetType();
+            var properties = PropertyAccessor.GetProperties(type, false);
 
             foreach (var property in properties)
             {
