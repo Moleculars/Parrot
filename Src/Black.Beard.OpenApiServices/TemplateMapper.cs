@@ -22,8 +22,6 @@ namespace Bb
             foreach (var property in properties)
             {
                 var value = property.GetValue(values);
-
-
                 result = result.Replace("{{" + property.Name + "}}", value.ToString(), false, CultureInfo.InvariantCulture);
             }
 

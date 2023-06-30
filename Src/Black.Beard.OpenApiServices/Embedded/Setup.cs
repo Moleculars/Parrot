@@ -1,6 +1,8 @@
 ﻿using log4net;
 using Microsoft.AspNetCore.Diagnostics;
 
+
+#pragma warning disable CS0162
 #pragma warning disable CS1591
 
 namespace Bb.ParrotServices
@@ -69,12 +71,12 @@ namespace Bb.ParrotServices
                .UseExceptionHandler(c => c.Run(async context =>          // Intercepts exceptions, format 
                 {                                                         // the message result and log with trace identifier.
                     var exceptionHandler = context.Features.Get<IExceptionHandlerPathFeature>();
-                    var error = exceptionHandler.Error;
+                    var error = exceptionHandler?.Error;
                     var response = new HttpExceptionModel
                     {
-                        Origin = {{origin}},
+                        Origin = "{{origin}}",
                         TraceIdentifier = context.TraceIdentifier,
-                        Session = context.Session
+                        Session = context.Session.Id
                     };
                     context.Response.StatusCode = 500;
                     await context.Response.WriteAsJsonAsync(response);

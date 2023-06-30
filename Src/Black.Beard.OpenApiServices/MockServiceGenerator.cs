@@ -102,8 +102,6 @@ namespace Bb.OpenApiServices
             bool withApiKey = false;
             string inArgument = "Header";
 
-            var file = @"Embedded\Program.cs".LoadFromFile();
-
             var o = new
             {
                 title = infos.Title ?? string.Empty,
@@ -111,12 +109,15 @@ namespace Bb.OpenApiServices
                 template = Template,
                 contract = Contract,
                 description = infos.Description ?? "A set of REST APIs mock generated",
-                testApiKey = withApiKey 
-                    ? @"c.AddSecurityDefinition(""key"", new OpenApiSecurityScheme { Scheme = ""ApiKey"", In = ParameterLocation.{{apiSecureIn}} });" 
-                    : string.Empty,
+                testApiKey = withApiKey
+                   ? @"c.AddSecurityDefinition(""key"", new OpenApiSecurityScheme { Scheme = ""ApiKey"", In = ParameterLocation.{{apiSecureIn}} });"
+                   : string.Empty,
                 apiSecureIn = inArgument,
-                origin = ("Parrot mock service " + "{{title}}").Trim(),
+                origin = ("Parrot mock service " + (infos.Title ?? string.Empty)).Trim(),
             };
+
+
+            var file = @"Embedded\Program.cs".LoadFromFile();
 
             file = file.Map(o);
 

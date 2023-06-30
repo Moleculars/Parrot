@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Bb.Mock;
 
 #pragma warning disable CS0162
+#pragma warning disable CS1591
 
 internal class Program
 {

@@ -128,7 +128,7 @@ namespace Bb.ParrotServices
                   {
                       Origin = "Parrot services",
                       TraceIdentifier = context.TraceIdentifier,
-                      Session = context.Session
+                      Session = context.Session.Id
                   };
                   context.Response.StatusCode = 500;
                   await context.Response.WriteAsJsonAsync(response);
