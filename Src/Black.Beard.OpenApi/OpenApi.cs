@@ -25,6 +25,12 @@ namespace Bb
         public static OpenApiDocument LoadOpenApiContract(this string pathFile)
         {
 
+            var file = new FileInfo(pathFile);
+            file.Refresh();
+
+            if (!file.Exists)
+                throw new FileNotFoundException(file.FullName);
+
             using (FileStream fs = File.Open(pathFile, FileMode.Open))
             {
                 var openApiDocument = new OpenApiStreamReader().Read(fs, out var diagnostic);

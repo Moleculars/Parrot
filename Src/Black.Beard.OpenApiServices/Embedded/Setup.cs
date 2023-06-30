@@ -1,9 +1,5 @@
 ﻿using log4net;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
-using System;
+using Microsoft.AspNetCore.Diagnostics;
 
 #pragma warning disable CS1591
 
@@ -69,23 +65,20 @@ namespace Bb.ParrotServices
 
             app.UseSwagger();
             app.UseSwaggerUI();
-
-            app.UseHttpsRedirection();
-
-            app.UseExceptionHandler(c => c.Run(async context =>          // Intercepts exceptions, format 
-            {                                                         // the message result and log with trace identifier.
-                var exceptionHandler = context.Features.Get<IExceptionHandlerPathFeature>();
-                var error = exceptionHandler.Error;
-                var response = new HttpExceptionModel
-                {
-                    Origin = "{{Contract}} services",
-                    TraceIdentifier = context.TraceIdentifier,
-                    Session = context.Session
-                };
-                await context.Response.WriteAsJsonAsync(response);
-            }));
-
-            //app.UseAuthorization();
+            app.UseHttpsRedirection()
+               .UseExceptionHandler(c => c.Run(async context =>          // Intercepts exceptions, format 
+                {                                                         // the message result and log with trace identifier.
+                    var exceptionHandler = context.Features.Get<IExceptionHandlerPathFeature>();
+                    var error = exceptionHandler.Error;
+                    var response = new HttpExceptionModel
+                    {
+                        Origin = {{origin}},
+                        TraceIdentifier = context.TraceIdentifier,
+                        Session = context.Session
+                    };
+                    context.Response.StatusCode = 500;
+                    await context.Response.WriteAsJsonAsync(response);
+               }));
 
             app.MapControllers();
 

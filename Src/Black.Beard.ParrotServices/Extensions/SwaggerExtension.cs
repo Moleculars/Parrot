@@ -11,7 +11,6 @@ namespace Bb.Extensions
     internal static class SwaggerExtension
     {
 
-
         public static void AddDocumentation(this SwaggerGenOptions self)
         {
 

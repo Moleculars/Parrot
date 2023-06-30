@@ -132,10 +132,11 @@ namespace Bb.ParrotServices.Controllers
         /// <param name="template">Generation template name. If you don"t know. use 'mock'</param>
         /// <param name="contract">The unique contract name.</param>
         /// <exception cref="T:NotFoundObjectResult">the template is not found</exception>
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        /// <returns></returns>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(NotFoundObjectResult))]
         [HttpPut("{contract}/build")]
-        [Produces("application/json")]
+        [Produces("text/plain")]
         public async Task<IActionResult> Build([FromRoute] string template, [FromRoute] string contract)
         {
 
@@ -152,9 +153,12 @@ namespace Bb.ParrotServices.Controllers
                 return NotFound(e.Message);
             }
 
-            templateObject.Build();
+            var result = await templateObject.Build();
 
-            return Ok();
+            if (result == null)
+                return BadRequest("Unexpected path {template}/{contract}");
+
+            return Ok(result.ToString());
 
         }
 
@@ -189,7 +193,11 @@ namespace Bb.ParrotServices.Controllers
 
             await templateObject.Build();
 
-            var ports = await templateObject.Run(host, GetHttpPort(), GetHttpsPort()); // todo : comment retrouver le host name
+            var ports = await templateObject.Run(host, GetHttpPort(), GetHttpsPort()); // todo : comment retrouver le hostname
+
+            if (ports  == null)
+                return BadRequest("Unexpected path {template}/{contract}");
+
             return Ok(ports);
 
         }

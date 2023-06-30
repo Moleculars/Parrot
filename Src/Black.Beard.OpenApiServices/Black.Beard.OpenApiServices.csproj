@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Embedded\HttpExceptionModel.cs" />
     <Compile Remove="Embedded\Program.cs" />
     <Compile Remove="Embedded\ServiceProcessor.cs" />
     <Compile Remove="Embedded\ServiceTrace.cs" />
@@ -20,6 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Embedded\HttpExceptionModel.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Embedded\log4net.config" CopyToOutputDirectory="PreserveNewest">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -43,9 +47,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Black.Beard.Jslt" Version="1.0.218" />
-    <PackageReference Include="Black.Beard.Projects.Models" Version="1.0.45" />
-    <PackageReference Include="Black.Beard.Roslyn" Version="1.0.45" />
+    <PackageReference Include="Black.Beard.Jslt" Version="1.0.222" />
+    <PackageReference Include="Black.Beard.Projects.Models" Version="1.0.47" />
+    <PackageReference Include="Black.Beard.Roslyn" Version="1.0.47" />
     <PackageReference Include="Microsoft.OpenApi" Version="1.6.5" />
     <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.5" />
   </ItemGroup>

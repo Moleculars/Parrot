@@ -19,6 +19,9 @@ namespace Bb.OpenApiServices
 
             _document = OpenApiHelper.LoadOpenApiContract(openApiDocument);
 
+            if (_document == null)
+                throw new Exception($"document {openApiDocument} can't be loaded");
+
             if (string.IsNullOrEmpty(this.Configuration.Namespace))
             {
                 if (!string.IsNullOrEmpty(_document.Info.Title))
@@ -62,7 +65,12 @@ namespace Bb.OpenApiServices
 
         private MsProject GenerateProject()
         {
-            
+
+            var infos = _document?.Info;
+
+            if (infos == null)
+                throw new ArgumentNullException(nameof(infos));
+
             var project = new MsProject(Template, _dir)
                 .Sdk(ProjectSdk.MicrosoftNETSdkWeb)
                 .SetPropertyGroup(c =>
@@ -84,12 +92,9 @@ namespace Bb.OpenApiServices
                      .PackageReference("log4net", "2.0.15")
                      .PackageReference("Microsoft.Extensions.Configuration.Binder", "7.0.4")
                      .PackageReference("Microsoft.Extensions.Configuration.Json", "7.0.0")
-                     //.PackageReference("Microsoft.Extensions.Configuration.NewtonsoftJson", "5.0.1")
                      .PackageReference("Microsoft.Extensions.Logging.Log4Net.AspNetCore", "6.1.0")
-                     //.PackageReference("Microsoft.Extensions.PlatformAbstractions", "1.1.0")
                      .PackageReference("Microsoft.OpenApi", "1.6.4")
                      .PackageReference("Microsoft.VisualStudio.Azure.Containers.Tools.Targets", "1.18.1")
-                     //.PackageReference("Newtonsoft.Json", "13.0.1")
                      .PackageReference("Swashbuckle.AspNetCore", "6.5.0")
                     ;
                 });
@@ -97,22 +102,31 @@ namespace Bb.OpenApiServices
             bool withApiKey = false;
             string inArgument = "Header";
 
-            project.AppendDocument("Program.cs",
-                @"Embedded\Program.cs"
-                    .LoadFromFile()
-                    .Replace("{{title}}", _document.Info.Title ?? string.Empty)
-                    .Replace("{{version}}", _document.Info.Version ?? "v1.0")
-                    .Replace("{{template}}", Template)
-                    .Replace("{{contract}}", Contract)
-                    .Replace("{{description}}", _document.Info.Description ?? "A set of REST APIs mock generated")
-                    .Replace("{{testApiKey}}", withApiKey ? @"c.AddSecurityDefinition(""key"", new OpenApiSecurityScheme { Scheme = ""ApiKey"", In = ParameterLocation.{{apiSecureIn}} });" : string.Empty)
-                    .Replace("{{apiSecureIn}}", inArgument)
-                );
+            var file = @"Embedded\Program.cs".LoadFromFile();
+
+            var o = new
+            {
+                title = infos.Title ?? string.Empty,
+                version = infos.Version ?? "v1.0",
+                template = Template,
+                contract = Contract,
+                description = infos.Description ?? "A set of REST APIs mock generated",
+                testApiKey = withApiKey 
+                    ? @"c.AddSecurityDefinition(""key"", new OpenApiSecurityScheme { Scheme = ""ApiKey"", In = ParameterLocation.{{apiSecureIn}} });" 
+                    : string.Empty,
+                apiSecureIn = inArgument,
+                origin = ("Parrot mock service " + "{{title}}").Trim(),
+            };
+
+            file = file.Map(o);
+
+            project.AppendDocument("Program.cs", file);
 
             project.AppendDocument("SwaggerExtension.cs", @"Embedded\SwaggerExtension.cs".LoadFromFile());
-            project.AppendDocument("Setup.cs", @"Embedded\Setup.cs".LoadFromFile());
+            project.AppendDocument("Setup.cs", @"Embedded\Setup.cs".LoadFromFile().Map(o));
             project.AppendDocument("ServiceProcessor.cs", @"Embedded\ServiceProcessor.cs".LoadFromFile());
-            project.AppendDocument("ServiceTrace.cs", @"Embedded\ServiceTrace.cs".LoadFromFile());
+            project.AppendDocument("ServiceTrace.cs", @"Embedded\ServiceTrace.cs".LoadFromFile().Map(o));
+            project.AppendDocument("HttpExceptionModel.cs", @"Embedded\HttpExceptionModel.cs".LoadFromFile());
 
             project.AppendDocument("log4net.config", @"Embedded\log4net.config".LoadFromFile());
 

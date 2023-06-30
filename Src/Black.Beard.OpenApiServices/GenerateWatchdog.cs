@@ -43,8 +43,8 @@ namespace Bb.OpenApiServices
                 c.Ctor(ctor =>
                 {
 
-                    ctor.Parameter("ILogger<WatchdogController>", "logger");
-                    ctor.Parameter("ServiceTrace", "trace");
+                    ctor.Parameter("logger", "ILogger<WatchdogController>");
+                    ctor.Parameter("trace", "ServiceTrace");
 
                     ctor.Body(b =>
                     {

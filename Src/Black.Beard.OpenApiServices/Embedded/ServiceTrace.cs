@@ -7,7 +7,7 @@ using Oldtonsoft.Json.Linq;
 #pragma warning disable CS0162
 #pragma warning disable CS1591
 
-namespace Bb.ParrotServices
+namespace Bb.Mock
 {
 
     public class ServiceTrace

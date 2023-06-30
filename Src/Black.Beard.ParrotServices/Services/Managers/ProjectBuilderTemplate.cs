@@ -9,6 +9,7 @@ using System.Diagnostics.Contracts;
 using System.Diagnostics;
 using Bb.Services.ProcessHosting;
 using Bb.ParrotServices.Exceptions;
+using System.Text;
 
 namespace Bb.Services.Managers
 {
@@ -154,22 +155,91 @@ namespace Bb.Services.Managers
         /// <summary>
         /// Build the contract
         /// </summary>
-        public async Task Build()
+        public async Task<StringBuilder> Build()
         {
+
+            StringBuilder sb = new StringBuilder();
+
+            void _intercept(object sender, TaskEventArgs args)
+            {
+
+                switch (args.Status)
+                {
+
+                    case TaskEventEnum.Started:
+                        sb.AppendLine("Started");
+                        Trace.WriteLine("Started", "trace");
+                        break;
+
+                    case TaskEventEnum.ErrorReceived:
+                        sb.AppendLine("Error : " + args.DateReceived.Data);
+                        Trace.WriteLine(args.DateReceived.Data, "Error");
+                        break;
+
+                    case TaskEventEnum.DataReceived:
+                        sb.AppendLine("Info : " + args.DateReceived.Data);
+                        Trace.WriteLine(args.DateReceived.Data, "Info");
+                        break;
+
+                    case TaskEventEnum.Completed:
+                        var instance = args.Process.Tag as ServiceReferentialContract;
+                        if (instance != null)
+                        {
+                            _rootParent._referential.Remove(instance);
+                            sb.AppendLine($"Info : {instance.Parent.Template}/{instance.Contract} ended");
+                            Trace.WriteLine($"{instance.Parent.Template}/{instance.Contract} ended", "Info");
+
+                        }
+                        else
+                        {
+                            sb.AppendLine($"Info : Completed");
+                            Trace.WriteLine($"Completed", "Info");
+                        }
+                        break;
+
+                    case TaskEventEnum.CompletedWithException:
+                        var instance1 = args.Process.Tag as ServiceReferentialContract;
+                        if (instance1 != null)
+                        {
+                            _rootParent._referential.Remove(instance1);
+                            sb.AppendLine($"Error : {instance1.Parent.Template}/{instance1.Contract} ended with exception");
+                            Trace.WriteLine($"{instance1.Parent.Template}/{instance1.Contract} ended with exception", "Error");
+                        }
+                        else
+                        {
+                            sb.AppendLine("Error : ended with exception");
+                            Trace.WriteLine("ended with exception", "Error");
+                        }
+                        break;
+
+                    default:
+                        break;
+
+                }
+
+            }
 
             var projectFile = GetFileProject();
 
-            using (var cmd = new ProcessCommand()
-                     .Command($"dotnet.exe", $"build \"{projectFile.FullName}\" -c release /p:Version=1.0.0.0")
-                     .Intercept(Intercept)
-                     .Run())
+            if (projectFile != null)
             {
-                cmd.Wait();
+                using (var cmd = new ProcessCommand()
+                         .Command($"dotnet.exe", $"build \"{projectFile.FullName}\" -c release /p:Version=1.0.0.0")
+                         .Intercept(_intercept)
+                         .Run())
+                {
+                    cmd.Wait();
+                }
+
+                return sb;
+
             }
+
+            return null;
 
         }
 
-        private void Intercept(object sender, TaskEventArgs args)
+        private void InterceptRun(object sender, TaskEventArgs args)
         {
 
             switch (args.Status)
@@ -220,43 +290,6 @@ namespace Bb.Services.Managers
 
         }
 
-        public async Task<bool> Kill()
-        {
-
-            bool result = false;
-
-            var instance = _rootParent._referential.Resolve(Template, _parent.Contract);
-            if (instance != null)
-            {
-
-                var task = _rootParent._host.GetTaskByTag(instance).FirstOrDefault();
-                if (task != null)
-                {
-
-                    task.Intercept((c, args) =>
-                    {
-                        if (args.Status == TaskEventEnum.Completed)
-                            result = true;
-                        if (args.Status == TaskEventEnum.CompletedWithException)
-                            result = true;
-                    });
-
-                    task.Cancel();
-
-                    task.Wait(200);
-
-                }
-
-                result = true;
-
-            }
-            else
-                result = true;
-
-            return result;
-
-        }
-
         /// <summary>
         /// Run the contract
         /// </summary>
@@ -264,6 +297,9 @@ namespace Bb.Services.Managers
         {
 
             var projectFile = GetFileProject();
+
+            if (projectFile == null)
+                return null;
 
             string internalHost = "localhost";
 
@@ -286,7 +322,7 @@ namespace Bb.Services.Managers
             var instance = _rootParent._referential.Register(Template, _parent.Contract, uriHttp, uriHttps);
 
             _rootParent._host
-                .Intercept(Intercept)
+                .Intercept(InterceptRun)
                 .Run(_id.Value, c =>
                 {
                     c.Command($"dotnet.exe")
@@ -344,11 +380,58 @@ namespace Bb.Services.Managers
 
         }
 
-        private FileInfo GetFileProject()
+
+
+        public async Task<bool> Kill()
         {
-            var files = new DirectoryInfo(Root).GetFiles("*.csproj", SearchOption.AllDirectories);
-            var _projectFile = files.First();
-            return _projectFile;
+
+            bool result = false;
+
+            var instance = _rootParent._referential.Resolve(Template, _parent.Contract);
+            if (instance != null)
+            {
+
+                var task = _rootParent._host.GetTaskByTag(instance).FirstOrDefault();
+                if (task != null)
+                {
+
+                    task.Intercept((c, args) =>
+                    {
+                        if (args.Status == TaskEventEnum.Completed)
+                            result = true;
+                        if (args.Status == TaskEventEnum.CompletedWithException)
+                            result = true;
+                    });
+
+                    task.Cancel();
+
+                    task.Wait(200);
+
+                }
+
+                result = true;
+
+            }
+            else
+                result = true;
+
+            return result;
+
+        }
+
+        private FileInfo? GetFileProject()
+        {
+
+            var directory = new DirectoryInfo(Root);
+            if (directory.Exists)
+            {
+                var files = directory.GetFiles("*.csproj", SearchOption.AllDirectories);
+                var _projectFile = files.FirstOrDefault();
+                return _projectFile;
+            }
+
+            return null;
+
         }
 
 
