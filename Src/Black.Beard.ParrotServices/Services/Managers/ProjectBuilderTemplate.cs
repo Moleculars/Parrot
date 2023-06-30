@@ -28,12 +28,12 @@ namespace Bb.Services.Managers
 
         public ProjectBuilderTemplate(ProjectBuilderProvider rootParent, ProjectBuilderContract parent, string template)
         {
+
             _rootParent = rootParent;
             _parent = parent;
-
+            
             Template = template;
             Contract = _parent.Contract;
-
             Root = Path.Combine(parent.Root, template);
 
             _templateConfigFilename = Path.Combine(Root, template + ".json");
@@ -313,9 +313,27 @@ namespace Bb.Services.Managers
             if (httpsCurrentPort.HasValue)
                 uriHttps = HttpHelper.GetUri(true, internalHost, HttpHelper.GetAvailablePort(httpsCurrentPort.Value));
 
-            string urls = "\"" + uriHttp.ToString().Trim('/') + ";" + uriHttps.ToString().Trim('/') + "\"";
+            StringBuilder urls = new StringBuilder();
 
-            var workingDirectory = projectFile.Directory.FullName;
+            urls.Append("\"");
+            if (uriHttp != null)
+                urls.Append(uriHttp.ToString().Trim('/'));
+
+            if (uriHttps != null)
+            {
+                if (urls.Length > 1)
+                    urls.Append(";");
+                urls.Append(uriHttps.ToString().Trim('/'));
+            }
+            urls.Append("\"");
+
+            var workingDirectory = projectFile.Directory?.FullName;
+
+            if (workingDirectory == null)
+            {
+                
+                return null;
+            }
 
             _id = Guid.NewGuid();
 
@@ -327,7 +345,7 @@ namespace Bb.Services.Managers
                 {
                     c.Command($"dotnet.exe")
                      .SetWorkingDirectory(workingDirectory)
-                     .Arguments($"run \"{projectFile.Name}\" --urls {urls}") // -c Development 
+                     .Arguments($"run \"{projectFile.Name}\" --urls {urls.ToString()}") // -c Development 
                      ;
                 }, instance)
                 //.Wait(id, 500)

@@ -22,13 +22,13 @@ namespace Bb.Services.ProcessHosting
 
         internal void Register(params Uri[] uris)
         {
+
             foreach (var redirect in uris)
-            {
                 if (redirect != null)
                 {
+
                     var request = $"/proxy/{_template}/{Contract}";
 
-                    //     .Add(new KeyValuePair<string, Uri>(request, redirect));
                     var u = new AddressTranslator()
                     {
                         QuerySource = request,
@@ -43,7 +43,7 @@ namespace Bb.Services.ProcessHosting
                     else
                         Https = u;
                 }
-            }
+
         }
 
         public string Contract { get; }

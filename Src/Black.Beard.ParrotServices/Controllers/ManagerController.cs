@@ -196,7 +196,7 @@ namespace Bb.ParrotServices.Controllers
             var ports = await templateObject.Run(host, GetHttpPort(), GetHttpsPort()); // todo : comment retrouver le hostname
 
             if (ports  == null)
-                return BadRequest("Unexpected path {template}/{contract}");
+                return BadRequest("failed to run the path {template}/{contract}");
 
             return Ok(ports);
 
