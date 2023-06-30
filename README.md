@@ -1,13 +1,16 @@
 # Parrot dynamic service for hosting mock services
 
 
-## Quick start
-Launch the docker container
+## Quick start to launch the service
+
+the service runs under linux docker.
+
+For launch the docker container
 ```batch    
     sudo docker run -p 127.0.0.1:80:80/tcp blackbeardteam/parrot
 ```
 
-in interactive mode
+Or in interactive mode
 ```batch
     sudo docker run -it --entrypoint /bin/bash blackbeardteam/parrot
 ```
@@ -15,7 +18,7 @@ in interactive mode
 Launch a navigator and open the swagger page
 
 ``` batch
-   explorer.exe "https://{url}:{port}/swagger/index.html"
+   explorer.exe "https://{url}:80/swagger/index.html"
 ```
 
 
@@ -23,48 +26,49 @@ Launch a navigator and open the swagger page
 
 Arguments
 - **url** address of the docker container
-- **port** port number mapped port on the container instance.
 - **contract name** : custom name you want to give to yours service
 - **contract file** openApi v3.\* contract
 
-### Upload the contract
+### Upload the contract on the service
 ```batch
-   curl -X POST "https://localhost:80/Manager/mock/parcel/upload" -H "accept: */*" -H "Content-Type: multipart/form-data" -F "upfile=@swagger.json;type=application/json"
+   curl -X POST "https://localhost:80/Manager/mock/{contract name}/upload" -H "accept: */*" -H "Content-Type: multipart/form-data" -F "upfile=@swagger.json;type=application/json"
 ```
 
 for this test the file to upload is named swagger.json.
 
 
-### Launch the new mock service
+### Launch the new mocked service
 ```batch
-   curl -X PUT "https://{url}:{port}/Manager/mock/{contract name}/run" -H "accept: */*"
+   curl -X PUT "https://{url}:80/Manager/mock/{contract name}/run" -H "accept: */*"
 ```
 
-### Stop a service
+### Stop the service
 ```batch
-   curl -X PUT "https://{url}:{port}/Manager/mock/{contract name}/kill" -H "accept: */*"
+   curl -X PUT "https://{url}:80/Manager/mock/{contract name}/kill" -H "accept: */*"
 ```
 
-### fetch the list of mock template uploaded.
+### Fetch the list of mock template uploaded.
 ```batch
-   curl -X GET "https://{url}:{port}/Manager/mock" -H "accept: application/json"
+   curl -X GET "https://{url}:80/Manager/mock" -H "accept: application/json"
 ```
 
-### fetch the list of mock template launched.
+### Fetch the list of mock template launched.
 ```batch
-   curl -X GET "https://{url}:{port}/Manager/mock/runnings" -H "accept: application/json"
+   curl -X GET "https://{url}:80/Manager/mock/runnings" -H "accept: application/json"
 ```
 
 
 # How to test on windows
 
-https://learn.microsoft.com/en-us/windows/wsl/install
+Source : https://learn.microsoft.com/en-us/windows/wsl/install
 
+for install a linux virtual machine
 ```batch
-wsl --install
+wsl --install -d Ubuntu
 ```
 
-https://docs.docker.com/engine/install/ubuntu/
+Now we need to install Docker
+source : https://docs.docker.com/engine/install/ubuntu/
 
 
 ## Install using the apt repository
@@ -119,3 +123,36 @@ Verify that the Docker Engine installation is successful by running the hello-wo
 ```bash
 sudo docker run hello-world
 ```
+
+## If you have troubleshoot.
+
+You have a message like this.
+```html
+Cannot connect to the Docker daemon at unix:/var/run/docker.sock
+```
+
+first try to launch the service.
+```bash
+sudo dockerd
+```
+
+Check the service run.
+
+```bash
+# check if your system is using `systemd` or `sysvinit`
+ps -p 1 -o comm=
+```
+
+If the command doesn't return systemd, and in my case, Ubuntu-20.04 on WSL, the command returned init, then use the command pattern
+
+```bash
+# start services using sysvinit
+sudo service docker start
+```
+
+If the command return systemd/
+```bash
+# start services using systemd
+sudo systemctl start docker
+```
+
