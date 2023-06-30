@@ -66,11 +66,27 @@ namespace Bb.OpenApiServices
         private MsProject GenerateProject()
         {
 
+            bool withApiKey = false;
             var infos = _document?.Info;
-
             if (infos == null)
                 throw new ArgumentNullException(nameof(infos));
 
+            // Initialize data for map in templates
+            this.SetObjectForMap(new
+                                {
+                                    title = infos.Title ?? string.Empty,
+                                    version = infos.Version ?? "v1.0",
+                                    template = Template,
+                                    contract = Contract,
+                                    description = infos.Description ?? "A set of REST APIs mock generated",
+                                    testApiKey = withApiKey
+                                      ? @"c.AddSecurityDefinition(""key"", new OpenApiSecurityScheme { Scheme = ""ApiKey"", In = ParameterLocation.{{apiSecureIn}} });"
+                                      : string.Empty,
+                                    apiSecureIn = "Header",
+                                    origin = ("Parrot mock service " + (infos.Title ?? string.Empty)).Trim(),
+                                });
+
+            // Generate file csproj
             var project = new MsProject(Template, _dir)
                 .Sdk(ProjectSdk.MicrosoftNETSdkWeb)
                 .SetPropertyGroup(c =>
@@ -78,7 +94,7 @@ namespace Bb.OpenApiServices
                     c.TargetFramework(TargetFramework.Net6)
                      .Nullable(true)
                      .ImplicitUsings(true)
-                     .UserSecretsId("d6db51a2-9287-431c-93bd-2c255dedbc2a")
+                     //.UserSecretsId("d6db51a2-9287-431c-93bd-2c255dedbc2a")
                      .DockerDefaultTargetOS(DockerDefaultTargetOS.Linux)
                      .GenerateDocumentationFile(true)
                     ;
@@ -99,49 +115,26 @@ namespace Bb.OpenApiServices
                     ;
                 });
 
-            bool withApiKey = false;
-            string inArgument = "Header";
+            // appends documents in the folder.
+            project.AppendDocument("Program.cs", Load("Embedded", "Program.cs"))
+                   .AppendDocument("SwaggerExtension.cs", Load("Embedded", "SwaggerExtension.cs"))
+                   .AppendDocument("Setup.cs", Load("Embedded", "Setup.cs"))
+                   .AppendDocument("ServiceProcessor.cs", Load("Embedded", "ServiceProcessor.cs"))
+                   .AppendDocument("ServiceTrace.cs", Load("Embedded", "ServiceTrace.cs"))
+                   .AppendDocument("HttpExceptionModel.cs", Load("Embedded", "HttpExceptionModel.cs"))
+                   .AppendDocument("log4net.config", Load("Embedded", "log4net.config"))
 
-            var o = new
-            {
-                title = infos.Title ?? string.Empty,
-                version = infos.Version ?? "v1.0",
-                template = Template,
-                contract = Contract,
-                description = infos.Description ?? "A set of REST APIs mock generated",
-                testApiKey = withApiKey
-                   ? @"c.AddSecurityDefinition(""key"", new OpenApiSecurityScheme { Scheme = ""ApiKey"", In = ParameterLocation.{{apiSecureIn}} });"
-                   : string.Empty,
-                apiSecureIn = inArgument,
-                origin = ("Parrot mock service " + (infos.Title ?? string.Empty)).Trim(),
-            };
-
-
-            var file = @"Embedded\Program.cs".LoadFromFile();
-
-            file = file.Map(o);
-
-            project.AppendDocument("Program.cs", file);
-
-            project.AppendDocument("SwaggerExtension.cs", @"Embedded\SwaggerExtension.cs".LoadFromFile());
-            project.AppendDocument("Setup.cs", @"Embedded\Setup.cs".LoadFromFile().Map(o));
-            project.AppendDocument("ServiceProcessor.cs", @"Embedded\ServiceProcessor.cs".LoadFromFile());
-            project.AppendDocument("ServiceTrace.cs", @"Embedded\ServiceTrace.cs".LoadFromFile().Map(o));
-            project.AppendDocument("HttpExceptionModel.cs", @"Embedded\HttpExceptionModel.cs".LoadFromFile());
-
-            project.AppendDocument("log4net.config", @"Embedded\log4net.config".LoadFromFile());
-
-            project.ItemGroup(i =>
-            {
-
-                i.Content(c =>
-                {
-                    c.Update("log4net.config")
-                     .CopyToOutputDirectory(StrategyCopyEnum.Always)
-                     ;
-                });
-
-            });
+                   .ItemGroup(i =>
+                   {
+                        i.Content(c =>
+                        {
+                            c.Update("log4net.config")
+                             .CopyToOutputDirectory(StrategyCopyEnum.Always)
+                             ;
+                        });
+                   })
+                   
+                   ;
 
             return project;
 

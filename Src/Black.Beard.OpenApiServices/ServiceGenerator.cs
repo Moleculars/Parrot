@@ -81,6 +81,19 @@ namespace Bb.OpenApiServices
 
         public abstract void Generate();
 
+        protected string Load(params string[] paths)
+        {
+            var path = Path.Combine(paths);
+            return path.LoadFromFile().Map(_objectForMap);
+        }
+
+        public void SetObjectForMap (object mapObject)
+        {
+            _objectForMap = mapObject;
+        }
+
+        private object _objectForMap;
+
 
         internal DirectoryInfo _dir;
         protected static readonly JsonSerializerSettings jsonSerializerSettings;
