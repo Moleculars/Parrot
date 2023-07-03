@@ -5,9 +5,11 @@
     public class Configuration
     {
 
-        internal static bool TraceAll;
+        public static bool TraceAll { get; set; }
 
         public static bool UseSwagger { get; internal set; }
+
+        public static string? CurrentDirectoryToWrite { get; internal set; }
 
     }
 
@@ -25,5 +27,6 @@
         }
 
     }
+
 
 }

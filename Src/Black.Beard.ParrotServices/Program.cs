@@ -6,6 +6,7 @@ using NLog.Web;
 using Bb.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Bb;
+using System.Runtime.InteropServices;
 
 internal class Program
 {
@@ -14,13 +15,7 @@ internal class Program
 
         var exitCode = 0;
 
-        // Proofing against weird starting directories
-        var currentAssembly = Assembly.GetAssembly(typeof(Program));
-        Directory.SetCurrentDirectory(Path.GetDirectoryName(currentAssembly.Location));
-
-        Console.WriteLine("Current directory : " + Directory.GetCurrentDirectory());
-
-        
+        InitializeOs();
 
         // Initialize log
         var logger = NLog.LogManager
@@ -57,6 +52,36 @@ internal class Program
 
     }
 
+    private static void InitializeOs()
+    {
+
+        var currentAssembly = Assembly.GetAssembly(typeof(Program));
+        Directory.SetCurrentDirectory(Path.GetDirectoryName(currentAssembly.Location));
+
+        Console.WriteLine("Current directory : " + Directory.GetCurrentDirectory());
+
+        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        if (isWindows)
+        {
+
+            Configuration.CurrentDirectoryToWrite = Path.GetDirectoryName(currentAssembly.Location);
+
+        }
+        else
+        {
+            var isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+            if (isLinux)
+            {
+                Configuration.CurrentDirectoryToWrite = Path.Combine("home", "parrot");
+            }
+            else
+                throw new Exception($"Os {RuntimeInformation.OSDescription} not managed");
+
+        }
+
+        Console.WriteLine("writing directory : " + Configuration.CurrentDirectoryToWrite);
+
+    }
 
     public static IHostBuilder CreateHostBuilder(NLog.Logger logger, string[] args) =>
            Host.CreateDefaultBuilder(args)

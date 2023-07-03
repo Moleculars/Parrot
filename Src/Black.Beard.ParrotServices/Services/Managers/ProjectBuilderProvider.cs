@@ -32,14 +32,12 @@ namespace Bb.Services.Managers
         /// <param name="services">The services.</param>
         public void Initialize(IServiceProvider services)
         {
-            Initialize(Directory.GetCurrentDirectory());
+            Initialize(Configuration.CurrentDirectoryToWrite);
         }
 
 
         public void Initialize(string pathRoot)
         {
-
-            _baseDirectory = pathRoot;
 
             if (!Directory.Exists(pathRoot))
                 Directory.CreateDirectory(pathRoot);
@@ -174,7 +172,6 @@ namespace Bb.Services.Managers
         internal readonly ServiceReferential _referential;
         internal readonly LocalProcessCommandService _host;
         private readonly Dictionary<string, ProjectBuilderContract> _items;
-        private string _baseDirectory;
         private string _root;
         private static Dictionary<string, Type> _generators;
     }
