@@ -133,7 +133,7 @@ namespace Bb.OpenApiServices
                     break;
 
                 case ParameterLocation.Header:
-                    self.Attribute("FromHerader");
+                    self.Attribute("FromHeader");
                     break;
 
                 case ParameterLocation.Path:

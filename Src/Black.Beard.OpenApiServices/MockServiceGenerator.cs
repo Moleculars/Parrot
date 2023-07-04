@@ -105,6 +105,7 @@ namespace Bb.OpenApiServices
                      .PackageReference("Black.Beard.Helpers.ContentLoaders", "2.0.1")
                      .PackageReference("Black.Beard.Helpers.ContentLoaders.Files", "2.0.1")
                      .PackageReference("Black.Beard.Helpers.ContentLoaders.Newtonsoft", "2.0.1")
+                     .PackageReference("DataAnnotationsExtensions", "5.0.1.27")
                      .PackageReference("log4net", "2.0.15")
                      .PackageReference("Microsoft.Extensions.Configuration.Binder", "7.0.4")
                      .PackageReference("Microsoft.Extensions.Configuration.Json", "7.0.0")

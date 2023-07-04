@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.OpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
 using System.Security;
 using System.Text;
@@ -60,7 +61,7 @@ namespace Bb.OpenApi
 
             }
             else if (self.Items != null)
-                return self.Items.ResolveType();
+                return self.Items.ResolveType(out var value);
 
             else if (self.OneOf != null && self.OneOf.Count > 0)
             {
@@ -73,18 +74,45 @@ namespace Bb.OpenApi
         }
 
 
-        public static string ResolveType(this OpenApiSchema self)
+        public static string ResolveType(this OpenApiSchema self, out OpenApiSchema toReportInProperty)
         {
+
+            toReportInProperty = null;
 
             var r = self.Reference;
             if (r != null && !string.IsNullOrEmpty(r.Id))
+            {
+
+                var i = r.HostDocument.ResolveReference(r);
+                if (i is OpenApiSchema s)
+                {
+                    if (s.IsEmptyType())
+                    {
+
+                        toReportInProperty = s;
+                        var rr = s.ConvertTypeName();
+                        if (rr != null)
+                            return rr.Name;
+                        Stop();
+                    }
+                }
+
                 return r.Id;
+
+            }
 
             if (self.Type == "array")
             {
                 if (self.Items != null)
-                    return BuildTypename("List", self.Items.ResolveType()).ToString();
+                {
+                    var p = self.Items.ResolveType(out toReportInProperty);
+                    //if (toReportInProperty != null)
+                    //{
+                    //    Stop();
+                    //}
 
+                    return BuildTypename("List", p).ToString();
+                }
                 if (self.OneOf != null && self.OneOf.Count > 0)
                 {
                     Stop();
@@ -97,24 +125,89 @@ namespace Bb.OpenApi
             if (type != null)
                 return type.Name;
 
+            if (self.AllOf != null)
+            {
+                foreach (OpenApiSchema? item in self.AllOf)
+                    if (item != null)
+                    {
+                        var r2 = item.ResolveType(out toReportInProperty);
+                        if (r2 != null)
+                        {
+                            //if (toReportInProperty != null)
+                            //    Stop();
+                            // Manage required
+                            return r2;
+                        }
+                    }
+            }
+
             Stop();
             return null;
 
         }
 
-        public static Type ConvertTypeName(this OpenApiSchema schema)
+        public static bool IsEmptyType(this OpenApiSchema value)
         {
-            return schema.Type.ConvertTypeName(schema.Format);
+
+            var p = value.ConvertTypeName();
+            if (p == null)
+                return false;
+
+            if (value.Type == "array")
+                return false;
+
+            if (value.Enum.Count > 0)
+                return false;
+
+            if (value.Type == "string" || value.Type == "number")
+                return true;
+
+            if (value.Properties.Any())
+                return false;
+
+            if (value.Reference != null)
+            {
+                Stop();
+            }
+
+            return true;
+
         }
 
-        public static Type ConvertTypeName(this string typeName, string format)
+        public static Type ConvertTypeName(this OpenApiSchema schema)
+        {
+            return schema.Type.ConvertTypeName(schema.Format, schema.MaxLength);
+        }
+
+        public static Type ConvertTypeName(this string typeName, string format, int? maxLength)
         {
 
-            switch (typeName.ToLower())
+            switch (typeName?.ToLower())
             {
 
                 case "boolean":
                     return typeof(bool);
+
+                case "number":
+                    if (!string.IsNullOrEmpty(format))
+                    {
+                        switch (format)
+                        {
+
+                            case "float":
+                                return typeof(double);
+
+                            default:
+                                Stop();
+                                break;
+                        }
+                    }
+
+                    if (maxLength.HasValue && maxLength.Value > 9)
+                        return typeof(long);
+
+                    return typeof(int);
+
 
                 case "integer":
                     return typeof(int);

@@ -155,7 +155,7 @@ namespace Bb.Services.Managers
         /// <summary>
         /// Build the contract
         /// </summary>
-        public async Task<StringBuilder> Build()
+        public async Task<(StringBuilder?, int?)> Build()
         {
 
             StringBuilder sb = new StringBuilder();
@@ -220,7 +220,7 @@ namespace Bb.Services.Managers
             }
 
             var projectFile = GetFileProject();
-
+            int? exitResult = 0;
             if (projectFile != null)
             {
                 using (var cmd = new ProcessCommand()
@@ -229,13 +229,14 @@ namespace Bb.Services.Managers
                          .Run())
                 {
                     cmd.Wait();
+                    exitResult = cmd.ExitCode;
                 }
 
-                return sb;
+                return (sb, exitResult);
 
             }
 
-            return null;
+            return (null, null);
 
         }
 
@@ -352,7 +353,12 @@ namespace Bb.Services.Managers
                 ;
 
             var task = _rootParent._host.GetTask(_id.Value);
-            task.Wait(500);
+            task.Wait(1500);
+
+            if (task.ExitCode > 0)
+            {
+                throw new Exception("Service can't start");
+            }
 
             Running = new ProjectItem()
             {

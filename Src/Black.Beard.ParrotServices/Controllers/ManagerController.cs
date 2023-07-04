@@ -155,8 +155,8 @@ namespace Bb.ParrotServices.Controllers
 
             var result = await templateObject.Build();
 
-            if (result == null)
-                return BadRequest("Unexpected path {template}/{contract}");
+            if (result.Item2.HasValue && result.Item2.Value > 0)
+                return BadRequest(result.ToString());
 
             return Ok(result.ToString());
 
@@ -191,14 +191,21 @@ namespace Bb.ParrotServices.Controllers
                 return NotFound(e.Message);
             }
 
-            await templateObject.Build();
+            var buildResult = await templateObject.Build();
 
-            var ports = await templateObject.Run(host, GetHttpPort(), GetHttpsPort()); // todo : comment retrouver le hostname
+            if (buildResult.Item2.HasValue && buildResult.Item2.Value == 0)
+            {
 
-            if (ports  == null)
-                return BadRequest("failed to run the path {template}/{contract}");
+                var ports = await templateObject.Run(host, GetHttpPort(), GetHttpsPort()); // todo : comment retrouver le hostname
 
-            return Ok(ports);
+                if (ports == null)
+                    return BadRequest("failed to run the path {template}/{contract}");
+
+                return Ok(ports);
+
+            }
+
+            return BadRequest(buildResult.Item1.ToString());
 
         }
 
@@ -243,7 +250,7 @@ namespace Bb.ParrotServices.Controllers
         /// <param name="template">template name of generation. If you don"t know. use 'mock'</param>
         /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ProjectRunning>))]
-        [HttpGet("runnings")]       
+        [HttpGet("runnings")]
         [Produces("application/json")]
         public async Task<IActionResult> Runnings([FromRoute] string template)
         {

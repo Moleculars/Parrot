@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace Bb.OpenApiServices
 {
@@ -51,7 +52,7 @@ namespace Bb.OpenApiServices
 
             CsClassDeclaration crl = new CsClassDeclaration(name)
                 .Base("Controller")
-                
+
                 .Ctor(ctor =>
                 {
                     ctor.Parameter("logger", typeLogger);
@@ -121,9 +122,14 @@ namespace Bb.OpenApiServices
                 if (self.RequestBody != null)
                     foreach (var item2 in self.RequestBody.Content)
                     {
-                        var name = item2.Value.Schema.ResolveType();
+                        var name = item2.Value.Schema.ResolveType(out var value);
                         if (name != null)
                         {
+                            if (value != null)
+                            {
+                                Stop();
+                            }
+
                             var p = new CsParameterDeclaration("queryBody", name);
                             p.Attribute("FromBody");
                             var description = item2.Value.Schema.ResolveDescription();
@@ -153,16 +159,26 @@ namespace Bb.OpenApiServices
                     var t2 = item2.Value.Content.FirstOrDefault().Value;
                     if (t2 != null)
                     {
-                        OpenApiSchema t = t2.Schema;
-                        var v = t.ResolveType();
-                        if (v != null)
+
+                        method.Attribute("ProducesResponseType", a =>
                         {
-                            method.Attribute("ProducesResponseType", a =>
+                            var code = GeneratorHelper.CodeHttp(item2.Key);
+                            a.Argument(code ?? item2.Key);
+
+                            OpenApiSchema t = t2.Schema;
+                            OpenApiSchema? schema2 = null;
+                            var v = t?.ResolveType(out schema2);
+                            if (v != null)
                             {
-                                a.Argument(GeneratorHelper.CodeHttp(item2.Key));
+                                if (schema2 != null)
+                                {
+                                    Stop();
+                                }
+
                                 a.Argument("Type", CodeHelper.TypeOf(v));
-                            });
-                        }
+                            }
+                        });
+
                     }
                 }
 
@@ -171,61 +187,72 @@ namespace Bb.OpenApiServices
             method.Body(c =>
             {
 
+                string diff = null;
+
                 var templateName = _ctx.GetDataFor(self).GetData<string>("templateName");
-                string diff = _ctx.GetRelativePath(templateName);
 
-                
-
-                c.TryCatchs
-                (t =>
+                if (string.IsNullOrEmpty(templateName))
                 {
 
-                    // var service = new ServiceProcessor<ParcelTrackingList>();
-                    var type = CodeHelper.AsType("ServiceProcessor", typeReturn);
-                    t.DeclareLocalVar("var".AsType(), "service", type.NewObject());
-                    foreach (var item3 in method.Items<CsParameterDeclaration>())
-                        t.Add("service".Identifier().Call("Add", item3.Name.Literal(), item3.Name.Identifier()));
-                    // return service.GetDatas("template.json", "datas.json");
-                    t.DeclareLocalVar("var".AsType(), "result", "service".Identifier().Call("GetDatas", diff.Literal()));
-                    t.Return(SyntaxFactory.ThisExpression().Call("Ok", "result".Identifier()));
+                    c.Return(SyntaxFactory.ThisExpression().Call("Ok"));
 
-                }, "Exception".AsType().Catch("ex", lst =>
+                }
+
+                else
                 {
 
-                    lst.Add(CodeHelper.DeclareLocalVar("errorId", "Guid".AsType(), "Guid".Identifier().Call("NewGuid")));
-                    lst.Add("_logger".Identifier().Call("LogError", "ex".Identifier(), "ex".Identifier().MemberAccess("Message"), "errorId".Identifier()));
+                    diff = _ctx.GetRelativePath(templateName);
 
-                    if (this.error500 != null)
+                    c.TryCatchs
+                    (t =>
                     {
-
-                        var typeReturn500 = ResolveReturnType(self, method, "5");
-
-                        var templateName500 = _ctx.GetDataFor(self).GetData<string>("templateName00");
-                        string diff500 = _ctx.GetRelativePath(templateName);
-
-                        var type = CodeHelper.AsType("ServiceProcessor", typeReturn500);
-                        lst.DeclareLocalVar("var".AsType(), "service", type.NewObject());
+                        // var service = new ServiceProcessor<ParcelTrackingList>();
+                        var type = CodeHelper.AsType("ServiceProcessor", typeReturn);
+                        t.DeclareLocalVar("var".AsType(), "service", type.NewObject());
                         foreach (var item3 in method.Items<CsParameterDeclaration>())
-                            lst.Add("service".Identifier().Call("Add", "errorId".Literal(), "errorId".Identifier()));
-                        lst.Add("service".Identifier().Call("Add", "message".Literal(), "Sorry, an error has occurred. Please contact our customer service with id for assistance.".Literal()));
+                            t.Add("service".Identifier().Call("Add", item3.Name.Literal(), item3.Name.Identifier()));
+                        // return service.GetDatas("template.json", "datas.json");
+                        t.DeclareLocalVar("var".AsType(), "result", "service".Identifier().Call("GetDatas", diff.Literal()));
+                        t.Return(SyntaxFactory.ThisExpression().Call("Ok", "result".Identifier()));
 
-                        lst.DeclareLocalVar("var".AsType(), "result", "service".Identifier().Call("GetDatas", diff500.Literal()));
-                        lst.Return(SyntaxFactory.ThisExpression().Call("BadRequest", "result".Identifier()));
-
-                    }
-                    else
+                    }, "Exception".AsType().Catch("ex", lst =>
                     {
-                        var arg = "errorId".Identifier();
-                        lst.Add(CodeHelper.Return(SyntaxFactory.ThisExpression().Call("BadRequest", arg)));
-                    }
+
+                        lst.Add(CodeHelper.DeclareLocalVar("errorId", "Guid".AsType(), "Guid".Identifier().Call("NewGuid")));
+                        lst.Add("_logger".Identifier().Call("LogError", "ex".Identifier(), "ex".Identifier().MemberAccess("Message"), "errorId".Identifier()));
+
+                        if (this.error500 != null)
+                        {
+
+                            var typeReturn500 = ResolveReturnType(self, method, "5");
+
+                            var templateName500 = _ctx.GetDataFor(self).GetData<string>("templateName00");
+                            string diff500 = _ctx.GetRelativePath(templateName);
+
+                            var type = CodeHelper.AsType("ServiceProcessor", typeReturn500);
+                            lst.DeclareLocalVar("var".AsType(), "service", type.NewObject());
+                            foreach (var item3 in method.Items<CsParameterDeclaration>())
+                                lst.Add("service".Identifier().Call("Add", "errorId".Literal(), "errorId".Identifier()));
+                            lst.Add("service".Identifier().Call("Add", "message".Literal(), "Sorry, an error has occurred. Please contact our customer service with id for assistance.".Literal()));
+
+                            lst.DeclareLocalVar("var".AsType(), "result", "service".Identifier().Call("GetDatas", diff500.Literal()));
+                            lst.Return(SyntaxFactory.ThisExpression().Call("BadRequest", "result".Identifier()));
+
+                        }
+                        else
+                        {
+                            var arg = "errorId".Identifier();
+                            lst.Add(CodeHelper.Return(SyntaxFactory.ThisExpression().Call("BadRequest", arg)));
+                        }
 
 
-                    //lst.Thrown();
+                        //lst.Thrown();
 
-                })
-                )
-                ;
+                    })
+                    )
+                    ;
 
+                }
 
             });
 
@@ -248,9 +275,15 @@ namespace Bb.OpenApiServices
                     if (t2 != null)
                     {
                         OpenApiSchema t = t2.Schema;
-                        var v = t.ResolveType();
+                        var v = t.ResolveType(out var schema2);
                         if (v != null)
+                        {
+                            if (schema2 != null)
+                            {
+                                Stop();
+                            }
                             _resultTypes.Add(new KeyValuePair<string, OpenApiSchema>(item2.Key, t));
+                        }
                     }
                 }
 
@@ -260,10 +293,15 @@ namespace Bb.OpenApiServices
             if (item3 != null)
             {
 
-                result = item3.ResolveType();
+                result = item3.ResolveType(out var schema2);
 
                 if (code == "2")
                 {
+
+                    if (schema2 !=null)
+                    {
+                        Stop();
+                    }
 
                     var typeReturn = CodeHelper.BuildTypename("ActionResult", result).ToString();
                     method.ReturnType(typeReturn);
@@ -274,8 +312,11 @@ namespace Bb.OpenApiServices
                             .Argument("application/json".Literal());
                 }
             }
-
-
+            else
+            {
+                var typeReturn = "IActionResult";
+                method.ReturnType(typeReturn);
+            }
 
             return result;
 

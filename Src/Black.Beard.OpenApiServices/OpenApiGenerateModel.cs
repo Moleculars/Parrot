@@ -1,6 +1,9 @@
 ﻿using Bb.Codings;
 using Bb.OpenApi;
+using DataAnnotationsExtensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
@@ -18,7 +21,8 @@ namespace Bb.OpenApiServices
                   "Newtonsoft.Json",
                   "System",
                   "System.Collections.Generic",
-                  "System.ComponentModel.DataAnnotations")
+                  "System.ComponentModel.DataAnnotations",
+                  "DataAnnotationsExtensions")
         {
 
         }
@@ -39,28 +43,41 @@ namespace Bb.OpenApiServices
             foreach (var item in self.Schemas)
             {
 
+                bool hasMember = false;
                 var cs = CreateArtifact(item.Key);
                 var ns = CreateNamespace(cs);
                 ns.DisableWarning("CS8618", "CS1591");
 
                 CSMemberDeclaration member = null;
 
-                if (item.Value.Enum.Count > 0)
-                    member = item.Value.Accept("enum", item.Key, this);
+                if (!item.Value.IsEmptyType())                
+                {
+
+                    if (item.Value.Enum.Count > 0)
+                        member = item.Value.Accept("enum", item.Key, this);
+                    else
+                        member = item.Value.Accept("class", item.Key, this);
+
+                    if (member != null)
+                    {
+                        ns.Add(member);
+                        hasMember = true;
+                    }
+                }
                 else
-                    member = item.Value.Accept("class", item.Key, this);
+                {
 
-                if (member != null)
-                    ns.Add(member);
+                }
 
-                _ctx.AppendDocument("Models", item.Key + ".cs", cs.Code().ToString());
+                if (hasMember)
+                    _ctx.AppendDocument("Models", item.Key + ".cs", cs.Code().ToString());
 
             }
 
             return null;
 
         }
-
+                
         public override CSMemberDeclaration VisitJsonSchema(string kind, string key, OpenApiSchema self)
         {
 
@@ -69,11 +86,6 @@ namespace Bb.OpenApiServices
 
                 case "enum":
                     var cls1 = new CsEnumDeclaration(key);
-
-                    if (self.Type != "integer")
-                    {
-                        Stop();
-                    }
 
                     foreach (IOpenApiAny item in self.Enum)
                     {
@@ -142,6 +154,12 @@ namespace Bb.OpenApiServices
                     initialValue = e1.Value;
                     break;
 
+                case PrimitiveType.String:
+                    var e2 = self as OpenApiString;
+                    fieldName = e2.Value.ToString();
+                    //initialValue = e2.Value;
+                    break;
+
                 case PrimitiveType.Long:
                     Stop();
                     break;
@@ -151,9 +169,7 @@ namespace Bb.OpenApiServices
                 case PrimitiveType.Double:
                     Stop();
                     break;
-                case PrimitiveType.String:
-                    Stop();
-                    break;
+
                 case PrimitiveType.Byte:
                     Stop();
                     break;
@@ -177,8 +193,10 @@ namespace Bb.OpenApiServices
                     break;
             }
 
-            var result = new CsFieldDeclaration(fieldName, type) { IsEnumMember = true }
-            .SetInitialValue(initialValue)
+            var result = new CsFieldDeclaration(fieldName, type) { IsEnumMember = true };
+
+            if (initialValue != null)
+                result.SetInitialValue(initialValue)
             ;
 
             return result;
@@ -191,18 +209,25 @@ namespace Bb.OpenApiServices
             CsPropertyDeclaration property = null;
             string type = null;
 
-            type = self.ResolveType();
+            type = self.ResolveType(out var value);
 
             if (type != null)
             {
 
-                property = new CsPropertyDeclaration(propertyName.ConvertToCharpName(), type)
+                var prp = propertyName;
+                if (_scharpReservedKeyword.Contains(prp))
+                    prp = "@" + prp;
+
+                property = new CsPropertyDeclaration(prp, type)
                     .AutoGet()
                     .AutoSet()
                     ;
 
                 if (!string.IsNullOrEmpty(self.Description))
                     property.Documentation.Summary(() => self.Description);
+
+                else if (!string.IsNullOrEmpty(value?.Description))
+                    property.Documentation.Summary(() => value.Description);
 
                 property.Attribute(typeof(JsonPropertyAttribute), a =>
                 {
@@ -220,126 +245,137 @@ namespace Bb.OpenApiServices
                     });
                 }
 
-                //if (self.Nullable)
-                //{
-                //    Stop();
-                //}
+                ApplyAttributes(self, property);
 
-                //if (self.IsObject)
-                //{
-                //    Stop();
-                //}
-
-                //if (self.IsReadOnly)
-                //{
-                //    Stop();
-                //}
-
-                //if (self.IsTuple)
-                //{
-                //    Stop();
-                //}
-
-                //if (self.IsWriteOnly)
-                //{
-                //    Stop();
-                //}
-
-
-                if (self.MinLength.HasValue && self.MinLength > 0)
-                    property.Attribute(typeof(MinLengthAttribute), a =>
-                    {
-                        a.Argument(self.MinLength.Value.Literal())
-                        ;
-                    });
-
-                if (self.MaxLength.HasValue && self.MaxLength > 0)
-                    property.Attribute(typeof(MaxLengthAttribute), a =>
-                    {
-                        a.Argument(self.MaxLength.Value.Literal())
-                        ;
-                    });
-
-                if (!string.IsNullOrEmpty(self.Pattern))
-                    property.Attribute(typeof(RegularExpressionAttribute), a =>
-                    {
-                        a.Argument(self.Pattern.Literal())
-                        ;
-                    });
-
-
-                if (self.Minimum.HasValue && self.Minimum > 0)
-                {
-                    Stop();
-                }
-
-                if (self.Maximum.HasValue && self.Maximum > 0)
-                {
-                    Stop();
-                }
-
-                if (self.MinItems > 0)
-                {
-                    Stop();
-                }
-
-                if (self.MaxItems > 0)
-                {
-                    Stop();
-                }
-
-                if (self.MinProperties > 0)
-                {
-                    Stop();
-                }
-
-                if (self.MaxProperties > 0)
-                {
-                    Stop();
-                }
-
-
-                if (self.Not != null)
-                {
-                    Stop();
-                }
-
-                if (self.OneOf != null && self.OneOf.Count > 0)
-                {
-
-                }
-
-                if (self.Discriminator != null)
-                {
-                    Stop();
-                }
-
-                if (self.ExclusiveMinimum != null)
-                {
-                    Stop();
-                }
-
-                if (self.ExclusiveMaximum != null)
-                {
-                    Stop();
-                }
-
-                if (!string.IsNullOrEmpty(self.Format))
-                {
-                    // Stop();
-                }
-
-                ////self.IsAbstract
-                ////self.IsAnyType
-                //if (self.IsBinary)
-                //{
-                //    Stop();
-                //}
+                //if (value != null)
+                //    ApplyAttributes(value, property);
 
             }
 
             return property;
 
+        }
+
+        private void ApplyAttributes(OpenApiSchema self, CsPropertyDeclaration property)
+        {
+
+            //if (self.Nullable)
+            //if (self.IsObject)
+            //if (self.IsReadOnly)
+            //if (self.IsTuple)
+            //if (self.IsWriteOnly)
+
+            if (self.MinLength.HasValue && self.MinLength > 0)
+                property.Attribute(typeof(MinLengthAttribute), a =>
+                {
+                    a.Argument(self.MinLength.Value.Literal())
+                    ;
+                });
+
+            if (self.MaxLength.HasValue && self.MaxLength > 0)
+                property.Attribute(typeof(MaxLengthAttribute), a =>
+                {
+                    a.Argument(self.MaxLength.Value.Literal())
+                    ;
+                });
+
+            if (!string.IsNullOrEmpty(self.Pattern))
+                property.Attribute(typeof(RegularExpressionAttribute), a =>
+                {
+                    a.Argument(self.Pattern.Literal())
+                    ;
+                });
+
+
+            if (self.Minimum.HasValue && self.Minimum > 0)
+            {
+
+                //property.Attribute(typeof(RangeAttribute), a =>
+                //{
+                //    a.Argument(self.Minimum.Value.Literal());
+                //    a.Argument(self.Maximum.Value.Literal());
+                //    ;
+                //});
+
+                property.Attribute(typeof(MaxAttribute), a =>
+                {
+                    a.Argument(GetLiteral(self.Minimum.Value))
+                    ;
+                });
+                Stop();
+            }
+
+            if (self.Maximum.HasValue && self.Maximum > 0)
+            {
+                property.Attribute(typeof(MaxAttribute), a =>
+                {
+                    a.Argument(GetLiteral(self.Maximum.Value))
+                    ;
+                });
+            }
+
+            if (self.MinItems > 0)
+            {
+                property.Attribute(typeof(MinLengthAttribute), a =>
+                {
+                    a.Argument(self.MinItems.Value.Literal())
+                    ;
+                });
+            }
+
+            if (self.MaxItems > 0)
+            {
+                property.Attribute(typeof(MaxLengthAttribute), a =>
+                {
+                    a.Argument(self.MaxItems.Value.Literal())
+                    ;
+                });
+            }
+
+            if (self.MinProperties > 0)
+            {
+                Stop();
+            }
+
+            if (self.MaxProperties > 0)
+            {
+                Stop();
+            }
+
+            if (self.Not != null)
+            {
+                Stop();
+            }
+
+            if (self.OneOf != null && self.OneOf.Count > 0)
+            {
+                Stop();
+            }
+
+            if (self.Discriminator != null)
+            {
+                Stop();
+            }
+
+            if (self.ExclusiveMinimum != null)
+            {
+                Stop();
+            }
+
+            if (self.ExclusiveMaximum != null)
+            {
+                Stop();
+            }
+
+            //if (self.IsBinary)
+            //{
+            //    Stop();
+            //}
+        }
+
+        private LiteralExpressionSyntax GetLiteral(decimal value)
+        {
+            return Convert.ChangeType(value, typeof(double)).Literal();
         }
 
         public override CSMemberDeclaration VisitPathItem(string key, OpenApiPathItem self)
@@ -477,6 +513,20 @@ namespace Bb.OpenApiServices
         {
             throw new NotImplementedException();
         }
+
+
+
+        private HashSet<string> _scharpReservedKeyword = new HashSet<string>()
+        {
+            "abstract","as","base","bool","break","byte","case","catch","char","checked","class","const","continue","decimal",
+            "default","delegate","do","double","else","enum","event","explicit","extern","false","finally","fixed","float","for",
+            "foreach","goto","if","implicit","in","int","interface","internal","is","lock","long","namespace","new","null","object","operator",
+            "out","override","params","private","protected","public","readonly","ref","return","sbyte","sealed","short","sizeof","stackalloc",
+            "static","string","struct","switch","this","throw","true","try","typeof","uint","ulong","unchecked","unsafe","ushort","using","virtual",
+            "void","volatile","while","add","and","alias","ascending","args","async","await","by","descending","dynamic","equals","file","from",
+            "get","global","group","init","into","join","let","managed","nameof","nint","not","notnull","nuint","on","or","orderby","partial",
+            "record","remove","required","scoped","select","set","unmanaged","value","var","when","where","with","yield"
+        };
 
     }
 

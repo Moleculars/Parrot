@@ -141,8 +141,11 @@ namespace Bb.OpenApiServices
 
                 // var required = this._code.CurrentBlock.Datas.GetData<bool>("required");
 
-                var type = self.ResolveType();
-
+                var type = self.ResolveType(out var schema2);
+                if (schema2 != null)
+                {
+                    Stop();
+                }
                 JsltBase result = null;
                 
                 switch (self?.Format?.ToLower() ?? string.Empty)
@@ -321,9 +324,15 @@ namespace Bb.OpenApiServices
                     if (t2 != null)
                     {
                         OpenApiSchema t = t2.Schema;
-                        var v = t.ResolveType();
+                        var v = t.ResolveType(out var schema2);
                         if (v != null)
+                        {
+                            if (schema2 != null)
+                            {
+                                Stop();
+                            }
                             _resultTypes.Add(new KeyValuePair<string, OpenApiSchema>(item2.Key, t));
+                        }
                     }
                 }
 
