@@ -32,11 +32,11 @@ namespace Bb.OpenApiServices
         }
 
 
-        protected CSharpArtifact CreateArtifact(string suffix) 
+        protected CSharpArtifact CreateArtifact(string suffix)
             => new CSharpArtifact(suffix + _artifactName)
                 .Usings(_usings);
 
-        protected CSNamespace CreateNamespace(CSharpArtifact cs) => cs.Namespace(_namespace); 
+        protected CSNamespace CreateNamespace(CSharpArtifact cs) => cs.Namespace(_namespace);
 
 
         public abstract CSMemberDeclaration VisitDocument(OpenApiDocument self);
@@ -65,7 +65,14 @@ namespace Bb.OpenApiServices
         [System.Diagnostics.DebuggerNonUserCode]
         protected void Stop()
         {
-            System.Diagnostics.Debugger.Break();
+
+            var st = new StackTrace();
+            var f = st.GetFrame(1);
+            Debug.WriteLine($"{f.ToString().Trim()} try to stop");
+
+            if (Debugger.IsAttached)
+                Debugger.Break();
+        
         }
 
         protected readonly string _namespace;
@@ -76,6 +83,21 @@ namespace Bb.OpenApiServices
         protected ContextGenerator _ctx;
         protected Data _datas = new Data();
 
+        protected HashSet<string> _scharpReservedKeyword = new HashSet<string>()
+        {
+            "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked", "class", "const", "continue", "decimal", "default",
+            "delegate", "do", "double", "else", "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for", "foreach", "goto",
+            "if", "implicit", "in", "int", "interface", "internal", "is", "lock", "long", "namespace", "new", "null", "object", "operator", "out", "override",
+            "params", "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short", "sizeof", "stackalloc", "static", "string",
+            "struct", "switch", "this", "throw", "true", "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "virtual", "void", "volatile",
+            "while", "add", "and", "alias", "ascending", "args", "async", "await", "by", "descending", "dynamic", "equals", "file", "from", "get", "global",
+            "group", "init", "into", "join", "let", "managed", "nameof", "nint", "not", "notnull", "nuint", "on", "or", "orderby", "partial", "record", "remove",
+            "required", "scoped", "select", "set", "unmanaged", "value", "var", "when", "where", "with", "yield"
+        };
+
     }
+
+
+
 
 }

@@ -163,7 +163,7 @@ namespace Bb.OpenApiServices
                         method.Attribute("ProducesResponseType", a =>
                         {
                             var code = GeneratorHelper.CodeHttp(item2.Key);
-                            a.Argument(code ?? item2.Key);
+                            a.Argument(code);
 
                             OpenApiSchema t = t2.Schema;
                             OpenApiSchema? schema2 = null;
@@ -203,54 +203,14 @@ namespace Bb.OpenApiServices
 
                     diff = _ctx.GetRelativePath(templateName);
 
-                    c.TryCatchs
-                    (t =>
-                    {
-                        // var service = new ServiceProcessor<ParcelTrackingList>();
-                        var type = CodeHelper.AsType("ServiceProcessor", typeReturn);
-                        t.DeclareLocalVar("var".AsType(), "service", type.NewObject());
-                        foreach (var item3 in method.Items<CsParameterDeclaration>())
-                            t.Add("service".Identifier().Call("Add", item3.Name.Literal(), item3.Name.Identifier()));
-                        // return service.GetDatas("template.json", "datas.json");
-                        t.DeclareLocalVar("var".AsType(), "result", "service".Identifier().Call("GetDatas", diff.Literal()));
-                        t.Return(SyntaxFactory.ThisExpression().Call("Ok", "result".Identifier()));
-
-                    }, "Exception".AsType().Catch("ex", lst =>
-                    {
-
-                        lst.Add(CodeHelper.DeclareLocalVar("errorId", "Guid".AsType(), "Guid".Identifier().Call("NewGuid")));
-                        lst.Add("_logger".Identifier().Call("LogError", "ex".Identifier(), "ex".Identifier().MemberAccess("Message"), "errorId".Identifier()));
-
-                        if (this.error500 != null)
-                        {
-
-                            var typeReturn500 = ResolveReturnType(self, method, "5");
-
-                            var templateName500 = _ctx.GetDataFor(self).GetData<string>("templateName00");
-                            string diff500 = _ctx.GetRelativePath(templateName);
-
-                            var type = CodeHelper.AsType("ServiceProcessor", typeReturn500);
-                            lst.DeclareLocalVar("var".AsType(), "service", type.NewObject());
-                            foreach (var item3 in method.Items<CsParameterDeclaration>())
-                                lst.Add("service".Identifier().Call("Add", "errorId".Literal(), "errorId".Identifier()));
-                            lst.Add("service".Identifier().Call("Add", "message".Literal(), "Sorry, an error has occurred. Please contact our customer service with id for assistance.".Literal()));
-
-                            lst.DeclareLocalVar("var".AsType(), "result", "service".Identifier().Call("GetDatas", diff500.Literal()));
-                            lst.Return(SyntaxFactory.ThisExpression().Call("BadRequest", "result".Identifier()));
-
-                        }
-                        else
-                        {
-                            var arg = "errorId".Identifier();
-                            lst.Add(CodeHelper.Return(SyntaxFactory.ThisExpression().Call("BadRequest", arg)));
-                        }
-
-
-                        //lst.Thrown();
-
-                    })
-                    )
-                    ;
+                    // var service = new ServiceProcessor<ParcelTrackingList>();
+                    var type = CodeHelper.AsType("ServiceProcessor", typeReturn);
+                    c.DeclareLocalVar("var".AsType(), "service", type.NewObject());
+                    foreach (var item3 in method.Items<CsParameterDeclaration>())
+                        c.Add("service".Identifier().Call("Add", item3.Name.Literal(), item3.Name.Identifier()));
+                    // return service.GetDatas("template.json", "datas.json");
+                    c.DeclareLocalVar("var".AsType(), "result", "service".Identifier().Call("GetDatas", diff.Literal()));
+                    c.Return(SyntaxFactory.ThisExpression().Call("Ok", "result".Identifier()));
 
                 }
 
@@ -298,7 +258,7 @@ namespace Bb.OpenApiServices
                 if (code == "2")
                 {
 
-                    if (schema2 !=null)
+                    if (schema2 != null)
                     {
                         Stop();
                     }
@@ -327,6 +287,9 @@ namespace Bb.OpenApiServices
 
             var n = self.Name;
             var t = self.Schema.ConvertTypeName();
+
+            if (_scharpReservedKeyword.Contains(n))
+                n = "@" + n;
 
             var p = new CsParameterDeclaration(n, t);
             p.ApplyAttributes(self);

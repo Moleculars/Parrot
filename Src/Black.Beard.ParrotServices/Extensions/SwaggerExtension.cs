@@ -54,6 +54,8 @@ namespace Bb.Extensions
             });
 
 
+            
+
             // https://stackoverflow.com/questions/57227912/swaggerui-not-adding-apikey-to-header-with-swashbuckle-5-x
             self.AddSecurityRequirement(new OpenApiSecurityRequirement
             {

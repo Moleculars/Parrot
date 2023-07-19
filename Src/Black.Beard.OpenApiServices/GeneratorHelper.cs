@@ -88,7 +88,7 @@ namespace Bb.OpenApiServices
 
             }
 
-            return null;
+            return codeKey;
 
         }
 

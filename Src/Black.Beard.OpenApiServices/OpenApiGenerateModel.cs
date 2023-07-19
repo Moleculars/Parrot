@@ -14,7 +14,7 @@ namespace Bb.OpenApiServices
 
     public class OpenApiGenerateModel : OpenApiGeneratorCSharpBase
     {
-
+        private CSNamespace _ns;
 
         internal OpenApiGenerateModel(string artifactName, string @namespace)
             : base(artifactName, @namespace,
@@ -31,26 +31,28 @@ namespace Bb.OpenApiServices
         {
 
             self.Components.Accept(this);
+
             foreach (var item in self.Paths)
                 item.Value.Accept(item.Key, this);
+
             return null;
+
         }
 
         public override CSMemberDeclaration VisitComponents(OpenApiComponents self)
         {
-
 
             foreach (var item in self.Schemas)
             {
 
                 bool hasMember = false;
                 var cs = CreateArtifact(item.Key);
-                var ns = CreateNamespace(cs);
-                ns.DisableWarning("CS8618", "CS1591");
+                _ns = CreateNamespace(cs);
+                _ns.DisableWarning("CS8618", "CS1591");
 
                 CSMemberDeclaration member = null;
 
-                if (!item.Value.IsEmptyType())                
+                if (!item.Value.IsEmptyType())
                 {
 
                     if (item.Value.Enum.Count > 0)
@@ -60,7 +62,7 @@ namespace Bb.OpenApiServices
 
                     if (member != null)
                     {
-                        ns.Add(member);
+                        _ns.Add(member);
                         hasMember = true;
                     }
                 }
@@ -77,7 +79,7 @@ namespace Bb.OpenApiServices
             return null;
 
         }
-                
+
         public override CSMemberDeclaration VisitJsonSchema(string kind, string key, OpenApiSchema self)
         {
 
@@ -103,26 +105,57 @@ namespace Bb.OpenApiServices
                     return cls1;
 
                 case "class":
-                    var cls2 = new CsClassDeclaration(key);
-                    this._datas.SetData("class_key", key);
-                    foreach (var item in self.Properties)
+
+                    if (self.Type == "array")
                     {
 
-                        var isRequired = self.Required?.Contains(item.Key) != null;
-                        var property = item.Value.Accept("property", item.Key, this);
+                        var type2 = self.ResolveType(out var t) + "Item";
+                        var type = CodeHelper.BuildTypename("List", type2).ToString();
 
-                        if (property != null)
+                        if (self.Items != null)
                         {
 
-                            if (isRequired)
-                                property.Attribute(typeof(RequiredAttribute));
-
-                            cls2.Add(property);
+                            var p = VisitJsonSchema(kind, type2, self.Items);
+                            _ns.Add(p);
                         }
 
+                        var cls2 = new CsClassDeclaration(key)
+                            .Base(type);
+
+                        return cls2;
 
                     }
-                    return cls2;
+                    else if (self.Type == "object")
+                    {
+                        var cls2 = new CsClassDeclaration(key);
+
+                         this._datas.SetData("class_key", key);
+                        foreach (var item in self.Properties)
+                        {
+
+                            var isRequired = self.Required?.Contains(item.Key) != null;
+                            var property = item.Value.Accept("property", item.Key, this);
+
+                            if (property != null)
+                            {
+
+                                if (isRequired)
+                                    property.Attribute(typeof(RequiredAttribute));
+
+                                cls2.Add(property);
+                            }
+
+
+                        }
+                        return cls2;
+                    }
+
+                    else
+                    {
+                        Stop();
+                    }
+
+                    break;
 
                 case "property":
                     return VisitJsonSchemaProperty(key, self);
@@ -407,7 +440,10 @@ namespace Bb.OpenApiServices
                     var t = item.Value.Schema;
                     var t1 = t.ConvertTypeName();
 
-                    if (t1 == typeof(Array))
+                    if (t1 == typeof(object))
+                        t.Accept("class", key, this);
+
+                    else if (t1 == typeof(Array))
                     {
                         if (t.Items != null)
                         {
@@ -428,7 +464,6 @@ namespace Bb.OpenApiServices
                     else
                     {
                         Stop();
-                        t.Accept("class", key, this);
                     }
 
                 }
@@ -513,20 +548,6 @@ namespace Bb.OpenApiServices
         {
             throw new NotImplementedException();
         }
-
-
-
-        private HashSet<string> _scharpReservedKeyword = new HashSet<string>()
-        {
-            "abstract","as","base","bool","break","byte","case","catch","char","checked","class","const","continue","decimal",
-            "default","delegate","do","double","else","enum","event","explicit","extern","false","finally","fixed","float","for",
-            "foreach","goto","if","implicit","in","int","interface","internal","is","lock","long","namespace","new","null","object","operator",
-            "out","override","params","private","protected","public","readonly","ref","return","sbyte","sealed","short","sizeof","stackalloc",
-            "static","string","struct","switch","this","throw","true","try","typeof","uint","ulong","unchecked","unsafe","ushort","using","virtual",
-            "void","volatile","while","add","and","alias","ascending","args","async","await","by","descending","dynamic","equals","file","from",
-            "get","global","group","init","into","join","let","managed","nameof","nint","not","notnull","nuint","on","or","orderby","partial",
-            "record","remove","required","scoped","select","set","unmanaged","value","var","when","where","with","yield"
-        };
 
     }
 

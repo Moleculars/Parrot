@@ -205,7 +205,7 @@ namespace Bb.ParrotServices.Controllers
 
             }
 
-            return BadRequest(buildResult.Item1.ToString());
+            return BadRequest(buildResult.Item1?.ToString());
 
         }
 

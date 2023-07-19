@@ -38,18 +38,19 @@ namespace Bb.OpenApi
             return type == typeof(Array) || type == typeof(object);
         }
 
-        public static string ResolveDescription(this OpenApiSchema self)
+        public static string? ResolveDescription(this OpenApiSchema self)
         {
+
+            if (self == null)
+                return null;
 
             var type = self.ConvertTypeName();
 
             if (type != null)
             {
                 if (type == typeof(Object))
-                {
-                    Stop();
                     return self.Description;
-                }
+                
                 else if (type == typeof(Array))
                 {
                     if (self.Items != null)
