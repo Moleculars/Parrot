@@ -77,9 +77,10 @@ namespace Bb.OpenApiServices
         /// The name.
         /// </value>
         public string Template { get; internal set; }
+
         public string Contract { get; internal set; }
 
-        public abstract void Generate();
+        public abstract ContextGenerator Generate();
 
         protected string Load(params string[] paths)
         {

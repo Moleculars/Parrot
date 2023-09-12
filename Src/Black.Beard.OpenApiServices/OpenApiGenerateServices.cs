@@ -288,8 +288,8 @@ namespace Bb.OpenApiServices
             var n = self.Name;
             var t = self.Schema.ConvertTypeName();
 
-            if (_scharpReservedKeyword.Contains(n))
-                n = "@" + n;
+            //if (_scharpReservedKeyword.Contains(n))
+            //    n = "@" + n;
 
             var p = new CsParameterDeclaration(n, t);
             p.ApplyAttributes(self);
@@ -413,6 +413,17 @@ namespace Bb.OpenApiServices
             throw new NotImplementedException();
         }
 
+        public override CSMemberDeclaration VisitMediaType(string key, OpenApiMediaType self)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override CSMemberDeclaration VisitMediaType(OpenApiMediaType self)
+        {
+            throw new NotImplementedException();
+        }
+
+
         public static string ConvertClassName(string text)
         {
 
@@ -459,10 +470,10 @@ namespace Bb.OpenApiServices
             return stringBuilder.ToString().Trim().Trim('/');
         }
 
-
         private KeyValuePair<string, OpenApiResponse>? error500 = null;
         private KeyValuePair<string, OpenApiResponse>? error400 = null;
         private readonly string _contract;
+
     }
 
 

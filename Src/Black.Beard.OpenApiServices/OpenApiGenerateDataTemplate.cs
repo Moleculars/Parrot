@@ -30,8 +30,10 @@ namespace Bb.OpenApiServices
         {
 
             _self = self;
+            
             foreach (var item in self.Paths)
                 item.Value.Accept(item.Key, this);
+
             return null;
 
         }
@@ -71,7 +73,20 @@ namespace Bb.OpenApiServices
         public override JsltBase VisitSchema(OpenApiSchema self)
         {
 
-            if (self.Type == "object")
+            var typeName = self.Type;
+
+            if (typeName == null)
+            {
+
+                if (self.Properties.Any())
+                    typeName = "object";
+
+                else if (self.Items != null)
+                    typeName = "array";
+
+            }
+           
+            if (typeName == "object")
             {
 
                 var required2 = this._code.CurrentBlock.Datas.GetData<bool>("required");
@@ -100,7 +115,7 @@ namespace Bb.OpenApiServices
 
             }
 
-            else if (self.Type == "array")
+            else if (typeName == "array")
             {
                 if (self.Items != null)
                 {
@@ -112,7 +127,7 @@ namespace Bb.OpenApiServices
                 Stop();
             }
 
-            else if (self.Type == "string")
+            else if (typeName == "string")
             {
 
                 var result = new JsltObject();
@@ -189,7 +204,7 @@ namespace Bb.OpenApiServices
                 return result;
             }
 
-            else if (self.Type == "boolean")
+            else if (typeName == "boolean")
             {
 
                 var result = new JsltObject();
@@ -203,7 +218,7 @@ namespace Bb.OpenApiServices
                 return result;
             }
 
-            else if (self.Type == "integer")
+            else if (typeName == "integer")
             {
 
                 var result = new JsltObject();
@@ -227,7 +242,20 @@ namespace Bb.OpenApiServices
         public override JsltBase VisitJsonSchema(string kind, string key, OpenApiSchema self)
         {
 
-            if (self.Type == "array")
+            var typeName = self.Type;
+
+            if (typeName == null)
+            {
+
+                if (self.Properties.Any())
+                    typeName = "object";
+
+                else if (self.Items != null)
+                    typeName = "array";
+
+            }
+
+            if (typeName == "array")
             {
                 if (self.Items != null)
                 {
@@ -238,7 +266,7 @@ namespace Bb.OpenApiServices
                 }
             }
 
-            else if (self.Type == "object")
+            else if (typeName == "object")
             {
                 var value = self.Accept(this);
                 return value;
@@ -424,7 +452,6 @@ namespace Bb.OpenApiServices
 
         }
 
-
         public override JsltBase VisitParameter(string key, OpenApiParameter self)
         {
             Stop();
@@ -503,6 +530,17 @@ namespace Bb.OpenApiServices
             throw new NotImplementedException();
         }
 
+        public override JsltBase VisitMediaType(string key, OpenApiMediaType self)
+        {
+            Stop();
+            throw new NotImplementedException();
+        }
+
+        public override JsltBase VisitMediaType(OpenApiMediaType self)
+        {
+            Stop();
+            throw new NotImplementedException();
+        }
         private class Response
         {
             public string Code { get; internal set; }

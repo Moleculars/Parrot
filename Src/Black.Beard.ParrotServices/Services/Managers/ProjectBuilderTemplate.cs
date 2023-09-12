@@ -126,22 +126,24 @@ namespace Bb.Services.Managers
         public ProjectDocument GenerateProject(string file)
         {
 
+            ContextGenerator ctx = null;
             var config = Config();
-
             var generator = GetGenerator();
 
             if (generator != null)
             {
+
                 generator.ApplyConfiguration(config);
-                generator
+
+                ctx = generator
                     .Initialize(Contract, Template, Root)
                     .InitializeDataSources(file)
-                    .Generate()
-                ;
+                    .Generate();
 
             }
 
-            return List();
+            var result = List(ctx);
+            return result;
 
         }
 
@@ -497,21 +499,27 @@ namespace Bb.Services.Managers
 
         private ServiceGenerator? GetGenerator() => (ServiceGenerator)Activator.CreateInstance(_generatorType);
 
-        public ProjectDocument List()
+        public ProjectDocument List(ContextGenerator ctx = null)
         {
 
+            string rootPath = ctx?.TargetPath ?? Path.Combine(Root, "service");
             ProjectDocument result = new ProjectDocument()
             {
                 Contract = _parent.Contract,
                 Template = Template,
+                Context = ctx ?? new ContextGenerator(rootPath)
+
             };
 
-            var dirRoot = new DirectoryInfo(Path.Combine(Root, "service", "Templates"));
-            var files = dirRoot.GetFiles("*.json");
-            foreach (var item in files)
+            var dirRoot = new DirectoryInfo(Path.Combine(rootPath, "Templates"));
+            if (dirRoot.Exists)
             {
-                var relative = new Uri(Root).MakeRelativeUri(new Uri(item.FullName));
-                result.Documents.Add(new Document() { Kind = "jslt", File = relative.ToString() });
+                var files = dirRoot.GetFiles("*.json");
+                foreach (var item in files)
+                {
+                    var relative = new Uri(Root).MakeRelativeUri(new Uri(item.FullName));
+                    result.Documents.Add(new Document() { Kind = "jslt", File = relative.ToString() });
+                }
             }
 
             return result;

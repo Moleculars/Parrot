@@ -12,6 +12,8 @@ using System.Diagnostics;
 using SharpYaml.Model;
 using Microsoft.AspNetCore.Authorization;
 using Bb.Services.Managers;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Bb.Analysis;
 
 namespace Bb.ParrotServices.Controllers
 {
@@ -109,8 +111,37 @@ namespace Bb.ParrotServices.Controllers
             // Generate project
             var result = templateObject.GenerateProject(filepath);
 
-            Trace.WriteLine($"{template} service {contract} has been generated", "info");
-            return Ok(result);
+            if (result.Context.Diagnostics.Success)
+            {
+                Trace.WriteLine($"{template} service {contract} has been generated", "info");
+                return Ok(result);
+            }
+
+            return BadRequest(GetBadModel(result.Context.Diagnostics));
+
+        }
+
+        private ModelStateDictionary GetBadModel(Diagnostics diagnostics)
+        {
+
+            var model = new ModelStateDictionary();
+
+            foreach (var diagnostic in diagnostics)
+            {
+
+                string message;
+
+                //if (diagnostic.Location.Start.IsEmpty)
+                //{
+                //}
+                //else
+                //    //message += diagnostic.Location.Start.;
+
+                model.AddModelError(diagnostic.Severity + (model.Count + 1).ToString(), diagnostic.ToString());
+            
+            }
+
+            return model;
 
         }
 

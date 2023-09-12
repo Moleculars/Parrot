@@ -3,46 +3,50 @@ using Microsoft.OpenApi.Models;
 
 namespace Bb.OpenApi
 {
-
-    public interface IOpenApiDocumentVisitor<T>
+    public interface IOpenApiDocumentVisitor
     {
-        T VisitDocument(OpenApiDocument self);
+        void VisitDocument(OpenApiDocument self);
 
-        T VisitTag(OpenApiTag self);
+        void VisitTag(OpenApiTag self);
 
-        T VisitServer(OpenApiServer self);
+        void VisitServer(OpenApiServer self);
 
-        T VisitSecurityScheme(OpenApiSecurityScheme self);
+        void VisitSecurityScheme(OpenApiSecurityScheme self);
 
-        T VisitSecurityRequirement(OpenApiSecurityRequirement self);
+        void VisitSecurityRequirement(OpenApiSecurityRequirement self);
 
-        T VisitResponse(OpenApiResponse self);
+        void VisitResponse(OpenApiResponse self);
 
-        T VisitInfo(OpenApiInfo self);
+        void VisitInfo(OpenApiInfo self);
 
-        T VisitComponents(OpenApiComponents self);
+        void VisitComponents(OpenApiComponents self);
 
-        T VisitCallback(string key, OpenApiCallback self);
+        void VisitCallback(string key, OpenApiCallback self);
 
-        T VisitParameter(string key, OpenApiParameter self);
+        void VisitParameter(string key, OpenApiParameter self);
 
-        T VisitLink(string key, OpenApiLink self);
+        void VisitLink(string key, OpenApiLink self);
 
-        T VisitResponse(string key, OpenApiResponse self);
+        void VisitResponse(string key, OpenApiResponse self);
 
-        T VisitSchema(OpenApiSchema self);
+        void VisitSchema(OpenApiSchema self);
 
-        T VisitJsonSchema(string kind, string key, OpenApiSchema self);
+        void VisitJsonSchema(string kind, string key, OpenApiSchema self);
 
-        T VisitSecurityScheme(string key, OpenApiSecurityScheme self);
+        void VisitSecurityScheme(string key, OpenApiSecurityScheme self);
 
-        T VisitPathItem(string key, OpenApiPathItem self);
+        void VisitPathItem(string key, OpenApiPathItem self);
 
-        T VisitOperation(string key, OpenApiOperation self);
+        void VisitOperation(string key, OpenApiOperation self);
 
-        T VisitParameter(OpenApiParameter self);
+        void VisitParameter(OpenApiParameter self);
 
-        T VisitEnumPrimitive(IOpenApiPrimitive self);
+        void VisitEnumPrimitive(IOpenApiPrimitive self);
+
+        void VisitMediaType(OpenApiMediaType self);
+
+        void VisitMediaType(string key, OpenApiMediaType self);
+    
     }
 
 

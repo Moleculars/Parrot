@@ -1,15 +1,66 @@
-﻿using Bb.Codings;
+﻿using Bb.Analysis;
+using Bb.Codings;
+using Bb.Json.Jslt.CustomServices;
 using Bb.OpenApi;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using System.Diagnostics;
 using System.Net;
+using System.Reflection.Metadata;
 using System.Xml.Linq;
 
 namespace Bb.OpenApiServices
 {
 
-    public abstract class OpenApiGeneratorCSharpBase : IOpenApiDocumentVisitor<CSMemberDeclaration>
+    public class ServiceGeneratorProcess<T>
+    {
+
+
+        public ServiceGeneratorProcess(ContextGenerator ctx)
+        {
+            this._ctx = ctx;
+            _services = new List<IServiceGenerator<T>>();
+        }
+
+
+        public ServiceGeneratorProcess<T> Append(params IServiceGenerator<T>[] services)
+        {
+
+            this._services.AddRange(services);
+            return this;
+        }
+
+        internal ServiceGeneratorProcess<T> Generate(T document)
+        {
+
+            foreach (var service in _services)
+            {
+
+                service.Parse(document, _ctx);
+
+                if (!this._ctx.Diagnostics.Success)
+                    return this;
+            
+            }
+
+            return this;
+
+        }
+
+        private readonly ContextGenerator _ctx;
+        private List<IServiceGenerator<T>> _services;
+
+    }
+
+    public interface IServiceGenerator<T>
+    {
+
+        public void Parse(T self, ContextGenerator ctx);
+
+
+    }
+
+    public abstract class OpenApiGeneratorCSharpBase : DiagnosticGeneratorBase, IOpenApiDocumentGenericVisitor<CSMemberDeclaration>, IServiceGenerator<OpenApiDocument>
     {
 
         public OpenApiGeneratorCSharpBase(string artifactName, string @namespace, params string[] usings)
@@ -23,11 +74,8 @@ namespace Bb.OpenApiServices
 
         public void Parse(OpenApiDocument self, ContextGenerator ctx)
         {
-
+            Initialize(ctx);
             Trace.WriteLine("Generating " + _artifactName);
-
-            _self = self;
-            _ctx = ctx;
             self.Accept(this);
         }
 
@@ -59,6 +107,10 @@ namespace Bb.OpenApiServices
         public abstract CSMemberDeclaration VisitParameter(OpenApiParameter self);
         public abstract CSMemberDeclaration VisitEnumPrimitive(IOpenApiPrimitive self);
 
+        public abstract CSMemberDeclaration VisitMediaType(string key, OpenApiMediaType self);
+
+        public abstract CSMemberDeclaration VisitMediaType(OpenApiMediaType self);
+
 
 
         [System.Diagnostics.DebuggerStepThrough]
@@ -72,7 +124,7 @@ namespace Bb.OpenApiServices
 
             if (Debugger.IsAttached)
                 Debugger.Break();
-        
+
         }
 
         protected readonly string _namespace;
@@ -82,18 +134,6 @@ namespace Bb.OpenApiServices
         protected OpenApiDocument _self;
         protected ContextGenerator _ctx;
         protected Data _datas = new Data();
-
-        protected HashSet<string> _scharpReservedKeyword = new HashSet<string>()
-        {
-            "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked", "class", "const", "continue", "decimal", "default",
-            "delegate", "do", "double", "else", "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for", "foreach", "goto",
-            "if", "implicit", "in", "int", "interface", "internal", "is", "lock", "long", "namespace", "new", "null", "object", "operator", "out", "override",
-            "params", "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short", "sizeof", "stackalloc", "static", "string",
-            "struct", "switch", "this", "throw", "true", "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "virtual", "void", "volatile",
-            "while", "add", "and", "alias", "ascending", "args", "async", "await", "by", "descending", "dynamic", "equals", "file", "from", "get", "global",
-            "group", "init", "into", "join", "let", "managed", "nameof", "nint", "not", "notnull", "nuint", "on", "or", "orderby", "partial", "record", "remove",
-            "required", "scoped", "select", "set", "unmanaged", "value", "var", "when", "where", "with", "yield"
-        };
 
     }
 

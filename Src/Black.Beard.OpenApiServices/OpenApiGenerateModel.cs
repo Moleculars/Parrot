@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Bb.OpenApiServices
@@ -83,6 +84,19 @@ namespace Bb.OpenApiServices
         public override CSMemberDeclaration VisitJsonSchema(string kind, string key, OpenApiSchema self)
         {
 
+            var typeName = self.Type;
+
+            if (typeName == null)
+            {
+
+                if (self.Properties.Any())
+                    typeName = "object";
+
+                else if (self.Items != null)
+                    typeName = "array";
+
+            }
+
             switch (kind)
             {
 
@@ -106,30 +120,37 @@ namespace Bb.OpenApiServices
 
                 case "class":
 
-                    if (self.Type == "array")
+                    if (typeName == "array")
                     {
 
-                        var type2 = self.ResolveType(out var t) + "Item";
-                        var type = CodeHelper.BuildTypename("List", type2).ToString();
+                        string type2;
+                        string type;
 
                         if (self.Items != null)
                         {
 
-                            var p = VisitJsonSchema(kind, type2, self.Items);
-                            _ns.Add(p);
+                            type2 = self.Items.ResolveType(out var t);
+                            type = CodeHelper.BuildTypename("List", type2).ToString();
+                            //var p = VisitJsonSchema(kind, type2, self.Items);
+                            //_ns.Add(p);
+                        }
+                        else
+                        {
+                            type2 = self.ResolveType(out var t);
+                            type = CodeHelper.BuildTypename("List", type2).ToString();
                         }
 
-                        var cls2 = new CsClassDeclaration(key)
+                        var cls2 = new CsClassDeclaration(EnsureClassNotExists(key))
                             .Base(type);
 
                         return cls2;
 
                     }
-                    else if (self.Type == "object")
+                    else if (typeName == "object")
                     {
-                        var cls2 = new CsClassDeclaration(key);
+                        var cls2 = new CsClassDeclaration(EnsureClassNotExists(key));
 
-                         this._datas.SetData("class_key", key);
+                        this._datas.SetData("class_key", key);
                         foreach (var item in self.Properties)
                         {
 
@@ -170,7 +191,6 @@ namespace Bb.OpenApiServices
             return null;
 
         }
-
 
         public override CSMemberDeclaration VisitEnumPrimitive(IOpenApiPrimitive self)
         {
@@ -244,12 +264,19 @@ namespace Bb.OpenApiServices
 
             type = self.ResolveType(out var value);
 
+            if (type == null)
+            {
+                var p = VisitJsonSchema("class", propertyName, self);
+                _ns.Add(p);
+                type = propertyName;
+            }
+
             if (type != null)
             {
 
                 var prp = propertyName;
-                if (_scharpReservedKeyword.Contains(prp))
-                    prp = "@" + prp;
+                //if (_scharpReservedKeyword.Contains(prp))
+                //    prp = "@" + prp;
 
                 property = new CsPropertyDeclaration(prp, type)
                     .AutoGet()
@@ -548,6 +575,31 @@ namespace Bb.OpenApiServices
         {
             throw new NotImplementedException();
         }
+
+        public override CSMemberDeclaration VisitMediaType(string key, OpenApiMediaType self)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override CSMemberDeclaration VisitMediaType(OpenApiMediaType self)
+        {
+            throw new NotImplementedException();
+        }
+
+        private string EnsureClassNotExists(string key)
+        {
+
+            var name = key;
+
+            while (!_classes.Add(name))
+                name = key + "_" + GeneratorHelper.GenerateRandomCode(3);
+
+            return name;
+
+        }
+
+
+        private HashSet<string> _classes = new HashSet<string>();
 
     }
 

@@ -50,7 +50,7 @@ namespace Bb.OpenApi
             {
                 if (type == typeof(Object))
                     return self.Description;
-                
+
                 else if (type == typeof(Array))
                 {
                     if (self.Items != null)
@@ -102,16 +102,15 @@ namespace Bb.OpenApi
 
             }
 
-            if (self.Type == "array")
+            var typeName = self.Type;
+            if (typeName == null && self.Items != null)
+                typeName = "array";
+
+            if (typeName == "array")
             {
                 if (self.Items != null)
                 {
                     var p = self.Items.ResolveType(out toReportInProperty);
-                    //if (toReportInProperty != null)
-                    //{
-                    //    Stop();
-                    //}
-
                     return BuildTypename("List", p).ToString();
                 }
                 if (self.OneOf != null && self.OneOf.Count > 0)
@@ -126,7 +125,7 @@ namespace Bb.OpenApi
             if (type != null)
                 return type.Name;
 
-            if (self.AllOf != null)
+            if (self.AllOf != null && self.AllOf.Any())
             {
                 foreach (OpenApiSchema? item in self.AllOf)
                     if (item != null)

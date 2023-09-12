@@ -3,156 +3,170 @@ using Microsoft.OpenApi.Models;
 
 namespace Bb.OpenApi
 {
-
     public static class OpenApiDocumentVisitorExtension
     {
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiDocument self, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this OpenApiMediaType self, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitDocument(self);
+            visitor.VisitMediaType(self);
         }
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiTag self, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this OpenApiMediaType self, string key, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitTag(self);
-        }
-
-        [System.Diagnostics.DebuggerStepThrough]
-        [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiServer self, IOpenApiDocumentVisitor<T> visitor)
-        {
-            return visitor.VisitServer(self);
-        }
-
-        [System.Diagnostics.DebuggerStepThrough]
-        [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiSecurityScheme self, IOpenApiDocumentVisitor<T> visitor)
-        {
-            return visitor.VisitSecurityScheme(self);
-        }
-
-        [System.Diagnostics.DebuggerStepThrough]
-        [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiSecurityRequirement self, IOpenApiDocumentVisitor<T> visitor)
-        {
-            return visitor.VisitSecurityRequirement(self);
-        }
-
-        [System.Diagnostics.DebuggerStepThrough]
-        [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiSchema self, IOpenApiDocumentVisitor<T> visitor)
-        {
-            return visitor.VisitSchema(self);
-        }
-
-        [System.Diagnostics.DebuggerStepThrough]
-        [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiSchema self, string kind, string key, IOpenApiDocumentVisitor<T> visitor)
-        {
-            return visitor.VisitJsonSchema(kind, key, self);
+            visitor.VisitMediaType(key, self);
         }
 
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiResponse self, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this OpenApiDocument self, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitResponse(self);
+            visitor.VisitDocument(self);
         }
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiInfo self, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this OpenApiTag self, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitInfo(self);
+            visitor.VisitTag(self);
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.Diagnostics.DebuggerNonUserCode]
+        public static void Accept(this OpenApiServer self, IOpenApiDocumentVisitor visitor)
+        {
+            visitor.VisitServer(self);
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.Diagnostics.DebuggerNonUserCode]
+        public static void Accept(this OpenApiSecurityScheme self, IOpenApiDocumentVisitor visitor)
+        {
+            visitor.VisitSecurityScheme(self);
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.Diagnostics.DebuggerNonUserCode]
+        public static void Accept(this OpenApiSecurityRequirement self, IOpenApiDocumentVisitor visitor)
+        {
+            visitor.VisitSecurityRequirement(self);
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.Diagnostics.DebuggerNonUserCode]
+        public static void Accept(this OpenApiSchema self, IOpenApiDocumentVisitor visitor)
+        {
+            visitor.VisitSchema(self);
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.Diagnostics.DebuggerNonUserCode]
+        public static void Accept(this OpenApiSchema self, string kind, string key, IOpenApiDocumentVisitor visitor)
+        {
+            visitor.VisitJsonSchema(kind, key, self);
+        }
+
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.Diagnostics.DebuggerNonUserCode]
+        public static void Accept(this OpenApiResponse self, IOpenApiDocumentVisitor visitor)
+        {
+            visitor.VisitResponse(self);
+        }
+
+        [System.Diagnostics.DebuggerStepThrough]
+        [System.Diagnostics.DebuggerNonUserCode]
+        public static void Accept(this OpenApiInfo self, IOpenApiDocumentVisitor visitor)
+        {
+            visitor.VisitInfo(self);
         }
 
         //[System.Diagnostics.DebuggerStepThrough]
         //[System.Diagnostics.DebuggerNonUserCode]
-        //public static T Accept<T>(this OpenApiExternalDocumentation self, IOpenApiDocumentVisitor<T> visitor)
+        //public static void Accept(this OpenApiExternalDocumentation self, IOpenApiDocumentVisitor visitor)
         //{
-        //    return visitor.VisitExternalDocumentation(self);
+        //    visitor.VisitExternalDocumentation(self);
         //}       
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiComponents self, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this OpenApiComponents self, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitComponents(self);
+            visitor.VisitComponents(self);
         }
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiParameter self, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this OpenApiParameter self, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitParameter(self);
+            visitor.VisitParameter(self);
         }
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiCallback self, string key, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this OpenApiCallback self, string key, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitCallback(key, self);
+            visitor.VisitCallback(key, self);
         }
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiParameter self, string key, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this OpenApiParameter self, string key, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitParameter(key, self);
+            visitor.VisitParameter(key, self);
         }
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiLink self, string key, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this OpenApiLink self, string key, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitLink(key, self);
+            visitor.VisitLink(key, self);
         }
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiResponse self, string key, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this OpenApiResponse self, string key, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitResponse(key, self);
+            visitor.VisitResponse(key, self);
         }
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiSecurityScheme self, string key, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this OpenApiSecurityScheme self, string key, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitSecurityScheme(key, self);
+            visitor.VisitSecurityScheme(key, self);
         }
 
         //[System.Diagnostics.DebuggerStepThrough]
         //[System.Diagnostics.DebuggerNonUserCode]
-        //public static T Accept<T>(this JsonSchemaProperty self, IOpenApiDocumentVisitor<T> visitor)
+        //public static void Accept(this JsonSchemaProperty self, IOpenApiDocumentVisitor visitor)
         //{
-        //    return visitor.VisitJsonSchemaProperty(self);
+        //    visitor.VisitJsonSchemaProperty(self);
         //}
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiPathItem self, string key, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this OpenApiPathItem self, string key, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitPathItem(key, self);
+            visitor.VisitPathItem(key, self);
         }
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this OpenApiOperation self, string key, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this OpenApiOperation self, string key, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitOperation(key, self);
+            visitor.VisitOperation(key, self);
         }
 
         [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.DebuggerNonUserCode]
-        public static T Accept<T>(this IOpenApiPrimitive self, IOpenApiDocumentVisitor<T> visitor)
+        public static void Accept(this IOpenApiPrimitive self, IOpenApiDocumentVisitor visitor)
         {
-            return visitor.VisitEnumPrimitive(self);
+            visitor.VisitEnumPrimitive(self);
         }
 
 

@@ -1,4 +1,5 @@
 ﻿using Bb;
+using Bb.Analysis;
 using Bb.Codings;
 using System.Diagnostics;
 using System.Runtime.Remoting;
@@ -15,6 +16,7 @@ namespace Bb.OpenApiServices
             this.TargetPath = path;
             this._datas = new Dictionary<object, Data>();
             this._files = new HashSet<string>();
+            this.Diagnostics = new Diagnostics();
         }
 
         #region Append documents
@@ -133,6 +135,8 @@ namespace Bb.OpenApiServices
 
         #endregion Append documents
 
+        public Diagnostics Diagnostics { get; }
+
         public string TargetPath { get; }
 
         public Data GetDataFor(object key)
@@ -150,7 +154,7 @@ namespace Bb.OpenApiServices
         public IEnumerable<string> Files => _files;
 
         private HashSet<string> _files;
-
+ 
     }
 
 

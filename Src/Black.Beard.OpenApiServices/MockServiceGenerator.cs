@@ -45,17 +45,28 @@ namespace Bb.OpenApiServices
 
         public MsProject Project => _project;
 
-        public override void Generate()
+        public override ContextGenerator Generate()
         {
 
             _project.Save();
 
             var ctx = new ContextGenerator(_project.Directory.FullName);
 
-            new OpenApiGenerateDataTemplate().Parse(_document, ctx);
-            new OpenApiGenerateModel("models", this.Configuration.Namespace).Parse(_document, ctx);
-            new OpenApiGenerateServices(this.Contract, "services", this.Configuration.Namespace).Parse(_document, ctx);
-            GenerateWatchdog.Generate(ctx, this.Contract, this.Configuration.Namespace);
+            new ServiceGeneratorProcess<OpenApiDocument>(ctx)
+                
+                .Append(
+                    new OpenApiValidator(),
+                    new OpenApiGenerateDataTemplate(),
+                    new OpenApiGenerateModel("models", this.Configuration.Namespace),
+                    new OpenApiGenerateServices(this.Contract, "services", this.Configuration.Namespace)
+                )
+                
+                .Generate(_document);
+
+            if (ctx.Diagnostics.Success)
+                GenerateWatchdog.Generate(ctx, this.Contract, this.Configuration.Namespace);
+
+            return ctx;
 
         }
 

@@ -1,4 +1,5 @@
 ﻿using Bb.Models;
+using Bb.OpenApiServices;
 
 namespace Bb.Services.Managers
 {
@@ -16,7 +17,7 @@ namespace Bb.Services.Managers
         public string Template { get; internal set; }
 
         public List<Document> Documents { get; set; }
-
+        public ContextGenerator? Context { get; internal set; }
     }
 
 }
