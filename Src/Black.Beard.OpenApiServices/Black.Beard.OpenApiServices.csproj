@@ -52,8 +52,8 @@
     <PackageReference Include="Black.Beard.Process" Version="1.0.62" />
     <PackageReference Include="Black.Beard.Projects.Models" Version="1.0.62" />
     <PackageReference Include="DataAnnotationsExtensions" Version="5.0.1.27" />
-    <PackageReference Include="Microsoft.OpenApi" Version="1.6.6" />
-    <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.6" />
+    <PackageReference Include="Microsoft.OpenApi" Version="1.6.8" />
+    <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.8" />
   </ItemGroup>
 
   <ItemGroup>
