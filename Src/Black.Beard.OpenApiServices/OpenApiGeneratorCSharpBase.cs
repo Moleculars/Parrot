@@ -132,7 +132,6 @@ namespace Bb.OpenApiServices
         private readonly string[] _usings;
         protected readonly DeclarationBloc _tree;
         protected OpenApiDocument _self;
-        protected ContextGenerator _ctx;
         protected Data _datas = new Data();
 
     }

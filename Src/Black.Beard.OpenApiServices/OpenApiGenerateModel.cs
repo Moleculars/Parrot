@@ -73,8 +73,10 @@ namespace Bb.OpenApiServices
                 }
 
                 if (hasMember)
-                    _ctx.AppendDocument("Models", item.Key + ".cs", cs.Code().ToString());
-
+                {
+                    var c = cs.Code().ToString();
+                    _ctx.AppendDocument("Models", item.Key + ".cs", c);
+                }
             }
 
             return null;

@@ -97,29 +97,40 @@ namespace Bb.OpenApiServices
         {
 
             var key = keyText.ToLower();
-
-            if (key == "get")
-                method.Attribute("HttpGet");
-
-            else if (key == "post")
-                method.Attribute("HttpPost");
-
-            else if (key == "delete")
-                method.Attribute("HttpDelete");
-
-            else if (key == "options")
-                method.Attribute("HttpOptions");
-
-            else if (key == "Patch")
-                method.Attribute("Patch");
-
-            else if (key == "Put")
-                method.Attribute("HttpPut");
-
-            else
+            switch (key)
             {
-                CodeHelper.Stop();
+
+                case "get":
+                    method.Attribute("HttpGet");
+                    break;
+
+                case "post":
+                    method.Attribute("HttpPost");
+                    break;
+
+                case "delete":
+                    method.Attribute("HttpDelete");
+                    break;
+
+                case "options":
+                    method.Attribute("HttpOptions");
+                    break;
+
+                case "patch":
+                    method.Attribute("Patch");
+                    break;
+
+                case "put":
+                    method.Attribute("HttpPut");
+                    break;
+
+                default:
+                    CodeHelper.Stop();
+                    break;
+
             }
+
+
         }
 
 
