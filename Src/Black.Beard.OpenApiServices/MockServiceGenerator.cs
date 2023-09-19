@@ -16,7 +16,7 @@ namespace Bb.OpenApiServices
 
         internal override void InitializeDatas(string openApiDocument)
         {
-
+            this._file = openApiDocument;
             _document = OpenApiHelper.LoadOpenApiContract(openApiDocument);
 
             if (_document == null)
@@ -50,7 +50,10 @@ namespace Bb.OpenApiServices
 
             _project.Save();
 
-            var ctx = new ContextGenerator(_project.Directory.FullName);
+            var ctx = new ContextGenerator(_project.Directory.FullName)
+            {
+                ContractDocumentFilename = Path.GetFileName(this._file),
+            };
 
             new ServiceGeneratorProcess<OpenApiDocument>(ctx)
                 
@@ -153,6 +156,7 @@ namespace Bb.OpenApiServices
         }
 
         private MsProject _project;
+        private string _file;
         private OpenApiDocument _document;
     }
 

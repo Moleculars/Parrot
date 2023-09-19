@@ -153,6 +153,8 @@ namespace Bb.OpenApiServices
 
         public IEnumerable<string> Files => _files;
 
+        public string ContractDocumentFilename { get; internal set; }
+
         private HashSet<string> _files;
  
     }

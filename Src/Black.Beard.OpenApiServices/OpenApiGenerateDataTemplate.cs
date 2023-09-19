@@ -355,10 +355,13 @@ namespace Bb.OpenApiServices
                             switch (type.ToLower())
                             {
                                 case "string":
-                                    result = new JsltFunctionCall("getrandom_string"
-                                           , new JsltConstant(self.MinLength, JsltKind.Integer), new JsltConstant(self.MaxLength, JsltKind.Integer)
-                                           , new JsltConstant(self.Pattern, JsltKind.String)
-                                    );
+                                    JsltBase[] arguments = new JsltBase[] 
+                                    {
+                                        new JsltConstant(self.MinLength, JsltKind.Integer)
+                                      , new JsltConstant(self.MaxLength, JsltKind.Integer)
+                                      , new JsltConstant(self.Pattern, JsltKind.String)
+                                    };
+                                    result = new JsltFunctionCall("getrandom_string", arguments);
                                     break;
 
                                 case "int32":

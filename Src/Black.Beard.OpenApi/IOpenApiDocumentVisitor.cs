@@ -5,6 +5,31 @@ namespace Bb.OpenApi
 {
     public interface IOpenApiDocumentVisitor
     {
+
+        /// <summary>
+        /// Gets the path of the current location.
+        /// </summary>
+        /// <returns></returns>
+        string GetPath();
+
+        /// <summary>
+        /// Adds a new segment on current path.
+        /// </summary>
+        /// <param name="segment">The segment.</param>
+        void PushPath(params string[] segments);
+
+        /// <summary>
+        /// remove last segment from current path.
+        /// </summary>
+        /// <param name="segment">The segment.</param>
+        void PopPath();
+
+        /// <summary>
+        /// remove last segment from current path.
+        /// </summary>
+        /// <param name="segment">The segment.</param>
+        void ClearPath();
+
         void VisitDocument(OpenApiDocument self);
 
         void VisitTag(OpenApiTag self);
@@ -35,6 +60,8 @@ namespace Bb.OpenApi
 
         void VisitSecurityScheme(string key, OpenApiSecurityScheme self);
 
+        void VisitPath(OpenApiPaths self);
+
         void VisitPathItem(string key, OpenApiPathItem self);
 
         void VisitOperation(string key, OpenApiOperation self);
@@ -46,7 +73,10 @@ namespace Bb.OpenApi
         void VisitMediaType(OpenApiMediaType self);
 
         void VisitMediaType(string key, OpenApiMediaType self);
-    
+
+        void VisitSchemas(IDictionary<string, OpenApiSchema> self);
+
+
     }
 
 

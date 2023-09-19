@@ -1,5 +1,7 @@
 ﻿using Bb.Analysis;
 using Bb.Codings;
+using Bb.Json.Jslt.CustomServices.MultiCsv;
+using Bb.Json.Jslt.Parser;
 using Bb.OpenApi;
 using DataAnnotationsExtensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,6 +12,7 @@ using SharpCompress.Compressors.Xz;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Security;
+using System.Text;
 
 namespace Bb.OpenApiServices
 {
@@ -19,9 +22,7 @@ namespace Bb.OpenApiServices
 
         internal OpenApiValidator()
         {
-
             this._h = new HashSet<string>();
-
         }
 
         public void Parse(OpenApiDocument self, ContextGenerator ctx)
@@ -33,18 +34,27 @@ namespace Bb.OpenApiServices
 
         public void VisitDocument(OpenApiDocument self)
         {
-
             self.Components.Accept(this);
+            self.Paths.Accept(this);
+        }
 
-            foreach (var item in self.Paths)
+        public void VisitPath(OpenApiPaths self)
+        {
+            foreach (var item in self)
+            {
                 item.Value.Accept(item.Key, this);
-
+            }
         }
 
         public void VisitComponents(OpenApiComponents self)
         {
+            self.Schemas.Accept(this);
+        }
 
-            foreach (KeyValuePair<string, OpenApiSchema> item in self.Schemas)
+        public void VisitSchemas(IDictionary<string, OpenApiSchema> self)
+        {
+
+            foreach (KeyValuePair<string, OpenApiSchema> item in self)
             {
 
                 if (item.Value.IsEmptyType())
@@ -67,6 +77,7 @@ namespace Bb.OpenApiServices
             }
 
         }
+
 
         public void VisitJsonSchema(string kind, string key, OpenApiSchema self)
         {
@@ -132,12 +143,20 @@ namespace Bb.OpenApiServices
             else if (typeName == "object")
             {
 
+                PushPath("properties");
                 foreach (var item in self.Properties)
                     item.Value.Accept("property", item.Key, this);
+                PopPath();
 
+                PushPath("required");
                 foreach (string item in self.Required)
+                {
+                    PushPath(item);
                     if (!self.Properties.Any(c => c.Key == item))
-                        _diag.AddError(TryToResolvePath(self), item, $"the required property {item} is not found in the {key} object");
+                        _diag.AddError(GetLocation, item, $"the required property {item} is not found in the {key} object");
+                    PopPath();
+                }
+                PopPath();
 
             }
 
@@ -151,6 +170,7 @@ namespace Bb.OpenApiServices
         {
             Stop();
 
+            PushPath("enum");
             foreach (IOpenApiAny item in self.Enum)
             {
                 if (item is IOpenApiPrimitive p)
@@ -160,24 +180,12 @@ namespace Bb.OpenApiServices
                     Stop();
                 }
             }
+            PopPath();
         }
 
-        private DiagnosticLocation TryToResolvePath(OpenApiSchema self)
-        {
 
-            if (self.Reference != null)
-            {
+        private DiagnosticLocation GetLocation => new DiagnosticLocation(this._ctx.ContractDocumentFilename, GetPath());
 
-                Stop();
-
-                if (self.Reference != null)
-                    self.Accept("class", self.Reference.Id, this);
-
-            }
-
-            return DiagnosticLocation.Empty;
-
-        }
 
         public void VisitEnumPrimitive(IOpenApiPrimitive self)
         {
@@ -241,8 +249,8 @@ namespace Bb.OpenApiServices
 
             if (self.Type == null)
             {
-                if( self.Reference == null)
-                    _diag.AddError(TryToResolvePath(self), "type", $"type or reference of the property {propertyName} should be specified");
+                if (self.Reference == null)
+                    _diag.AddError(GetLocation, "type", $"type or reference of the property {propertyName} should be specified");
 
                 else
                 {
@@ -252,37 +260,68 @@ namespace Bb.OpenApiServices
             else
             {
 
-                bool acceptMinMax = CheckType(self);
+                var accept = CheckType(self);
 
-                if (self.MaxLength.HasValue)
+                if (!accept.AcceptMinMaxValue)
                 {
-                    if (!acceptMinMax)
-                        _diag.AddError(TryToResolvePath(self), self.Format, $"maxLength is unexpected for the type {self.Type.ToLower()}");
 
-                    else
-                    {
-                        Stop();
-                    }
+                    if (self.Maximum.HasValue)
+                        _diag.AddError(GetLocation, self.Format, $"Maximum is unexpected for the type {self.Type.ToLower()}");
+
+                    if (self.Minimum.HasValue)
+                        _diag.AddError(GetLocation, self.Format, $"minimum is unexpected for the type {self.Type.ToLower()}");
+
+                }
+                else if (!accept.AcceptComma)
+                {
+
+                    if (self.Maximum.HasValue && HasComma(self.Maximum.Value))
+                        _diag.AddError(GetLocation, self.Format, $"Maximum float with decimal is unexpected for the type {self.Type.ToLower()}");
+
+                    if (self.Minimum.HasValue && HasComma(self.Minimum.Value))
+                        _diag.AddError(GetLocation, self.Format, $"minimum float with decimal is unexpected for the type {self.Type.ToLower()}");
                 }
 
-                if (self.MinLength.HasValue)
+                if (!accept.AcceptMinMaxItems)
                 {
-                    if (!acceptMinMax)
-                        _diag.AddError(TryToResolvePath(self), self.Format, $"minLength is unexpected for the type {self.Type.ToLower()}");
-                    else
-                    {
-                        Stop();
-                    }
+                    if (self.UniqueItems.HasValue)
+                        _diag.AddError(GetLocation, self.Format, $"uniqueItems is unexpected for the type {self.Type.ToLower()}");
+
+                    if (self.MaxItems.HasValue)
+                        _diag.AddError(GetLocation, self.Format, $"maxItems is unexpected for the type {self.Type.ToLower()}");
+
+                    if (self.MinItems.HasValue)
+                        _diag.AddError(GetLocation, self.Format, $"minItems is unexpected for the type {self.Type.ToLower()}");
+
                 }
+
+                if (!accept.AcceptMinMaxLength)
+                {
+
+                    if (self.MaxLength.HasValue)
+                        _diag.AddError(GetLocation, self.Format, $"maxLength is unexpected for the type {self.Type.ToLower()}");
+
+                    if (self.MinLength.HasValue)
+                        _diag.AddError(GetLocation, self.Format, $"minLength is unexpected for the type {self.Type.ToLower()}");
+
+                }
+
 
             }
 
         }
 
-        private bool CheckType(OpenApiSchema self)
+        private bool HasComma(decimal value)
         {
 
-            bool acceptMinMax = false;
+            return decimal.Round(value) != value;
+
+        }
+
+        private ExceptedProperties CheckType(OpenApiSchema self)
+        {
+
+            ExceptedProperties result = new ExceptedProperties();
 
             switch (self.Type.ToLower())
             {
@@ -291,7 +330,7 @@ namespace Bb.OpenApiServices
                     break;
 
                 case "integer":
-                    acceptMinMax = true;
+                    result.AcceptMinMaxValue = true;
                     if (!string.IsNullOrEmpty(self.Format))
                         switch (self.Format)
                         {
@@ -299,13 +338,14 @@ namespace Bb.OpenApiServices
                             case "int64":
                                 break;
                             default:
-                                _diag.AddError(TryToResolvePath(self), self.Format, $"the format {self.Format} is not managed for {self.Type.ToLower()}");
+                                _diag.AddError(GetLocation, self.Format, $"the format {self.Format} is not managed for {self.Type.ToLower()}");
                                 break;
                         }
                     break;
 
                 case "number":
-                    acceptMinMax = true;
+                    result.AcceptMinMaxValue = true;
+                    result.AcceptComma = true;
                     if (!string.IsNullOrEmpty(self.Format))
                         switch (self.Format)
                         {
@@ -313,12 +353,13 @@ namespace Bb.OpenApiServices
                             case "float":
                                 break;
                             default:
-                                _diag.AddError(TryToResolvePath(self), self.Format, $"the format {self.Format} is not managed for {self.Type.ToLower()}");
+                                _diag.AddError(GetLocation, self.Format, $"the format {self.Format} is not managed for {self.Type.ToLower()}");
                                 break;
                         }
                     break;
 
                 case "string":
+                    result.AcceptMinMaxLength = true;
                     if (!string.IsNullOrEmpty(self.Format))
                         switch (self.Format)
                         {
@@ -331,10 +372,11 @@ namespace Bb.OpenApiServices
                             case "byte":
                             case "password":
                             case "uuid":
+                            case "date":
                             case "date-time":
                                 break;
                             default:
-                                _diag.AddError(TryToResolvePath(self), self.Format, $"the format {self.Format} is not managed for string");
+                                _diag.AddError(GetLocation, self.Format, $"the format {self.Format} is not managed for string");
                                 break;
                         }
 
@@ -344,12 +386,13 @@ namespace Bb.OpenApiServices
                                 if (primitive.PrimitiveType != PrimitiveType.String)
                                 {
                                     dynamic d = item as dynamic;
-                                    _diag.AddError(TryToResolvePath(self), self.Format, $"the enum value {d.Value} should be {primitive.PrimitiveType} type");
+                                    _diag.AddError(GetLocation, self.Format, $"the enum value {d.Value} should be {primitive.PrimitiveType} type");
                                 }
 
                     break;
 
                 case "array":
+                    result.AcceptMinMaxItems = true;
                     if (self.Items != null)
                     {
 
@@ -357,7 +400,7 @@ namespace Bb.OpenApiServices
                             self.Items.Accept("class", self.Items.Reference.Id, this);
 
                         else
-                            _diag.AddError(TryToResolvePath(self), self.Format, $"Array has not specified type");
+                            _diag.AddError(GetLocation, self.Format, $"Array has not specified type");
 
                     }
                     else if (self.OneOf != null && self.OneOf.Count > 0)
@@ -373,11 +416,12 @@ namespace Bb.OpenApiServices
                 //case JsonObjectType.File:
                 //case JsonObjectType.None:
                 default:
-                    _diag.AddError(TryToResolvePath(self), self.Format, $"the format {self.Format} is not managed for string");
+                    _diag.AddError(GetLocation, self.Format, $"the format {self.Format} is not managed for string");
                     break;
             }
 
-            return acceptMinMax;
+            return result;
+
         }
 
         private LiteralExpressionSyntax GetLiteral(decimal value)
@@ -387,18 +431,22 @@ namespace Bb.OpenApiServices
 
         public void VisitPathItem(string key, OpenApiPathItem self)
         {
+            PushPath("operations");
             foreach (var item in self.Operations)
             {
                 OpenApiOperation o = item.Value;
                 o.Accept(item.Key.ToString(), this);
             }
+            PopPath();
         }
 
         public void VisitOperation(string key, OpenApiOperation self)
         {
 
+            PushPath("parameters");
             foreach (var item in self.Parameters)
                 item.Accept(this);
+            PopPath();
 
             if (self.RequestBody != null)
             {
@@ -439,8 +487,10 @@ namespace Bb.OpenApiServices
 
             }
 
+            PushPath("responses");
             foreach (var item in self.Responses)
                 item.Value.Accept(item.Key, this);
+            PopPath();
 
         }
 
@@ -468,7 +518,7 @@ namespace Bb.OpenApiServices
         public void VisitResponse(string key, OpenApiResponse self)
         {
 
-            if (self.Content != null ||self.Content.Count == 0)
+            if (self.Content != null || self.Content.Count == 0)
             {
                 foreach (var item in self.Content)
                     item.Value.Accept(item.Key, this);
@@ -476,7 +526,7 @@ namespace Bb.OpenApiServices
             }
             else
             {
-                _diag.AddError(DiagnosticLocation.Empty, "content", $"the http result code '{key}' should contains mime result type.");
+                _diag.AddError(GetLocation, "content", $"the http result code '{key}' should contains mime result type.");
             }
 
             if (self.Headers != null)
@@ -501,7 +551,7 @@ namespace Bb.OpenApiServices
 
             if (key == "application/json")
                 self.Schema.Accept(this);
-            
+
             else
             {
                 Stop();
@@ -520,7 +570,7 @@ namespace Bb.OpenApiServices
 
                 if (self.Reference != null)
                     self.Accept("class", self.Reference.Id, this);
-                
+
                 else
                 {
                     foreach (var item in self.Properties)
@@ -567,18 +617,61 @@ namespace Bb.OpenApiServices
             if (self.In == ParameterLocation.Path)
             {
                 if (self.Style != ParameterStyle.Simple)
-                    _diag.AddWarning(DiagnosticLocation.Empty, self.Style.ToString(), $"for parameter '{key}', the style should be simple for parameter specified by path");
+                    _diag.AddWarning(GetLocation, self.Style.ToString(), $"for parameter '{key}', the style should be simple for parameter specified by path");
 
                 if (!self.Required)
-                    _diag.AddWarning(DiagnosticLocation.Empty, "required", $"for parameter '{key}', the style required");
+                    _diag.AddWarning(GetLocation, "required", $"for parameter '{key}', the style required");
 
             }
 
         }
 
+
+        public string GetPath()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("#");
+
+            var l = _path.Reverse().ToList();
+
+            foreach (var item in l)
+            {
+                sb.Append("/");
+                sb.Append(item);
+            }
+
+            return sb.ToString();
+        }
+
+        public void PushPath(params string[] segments)
+        {
+            foreach (var item in segments)
+                _path.Push(item);
+        }
+
+        public void PopPath()
+        {
+            _path.Pop();
+        }
+
+        public void ClearPath()
+        {
+            _path.Clear();
+        }
+
+        private Stack<string> _path = new Stack<string>();
+
         private HashSet<string> _h;
 
     }
 
+
+    public struct ExceptedProperties
+    {
+        public bool AcceptMinMaxValue { get; set; }
+        public bool AcceptMinMaxItems { get; set; }
+        public bool AcceptMinMaxLength { get; set; }
+        public bool AcceptComma { get; internal set; }
+    }
 
 }
