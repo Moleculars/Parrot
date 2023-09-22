@@ -34,7 +34,7 @@ namespace Bb.ParrotServices
             .UseTypeExposedByAttribute(_configuration, Constants.Models.Model)
             .UseTypeExposedByAttribute(_configuration, Constants.Models.Service)
 
-            .AddControllers()
+            .AddControllers()            
             ;
 
 
@@ -137,12 +137,13 @@ namespace Bb.ParrotServices
               .UseReverseProxy()                // Redirect all call start with /proxy/mock/{contractname} on the hosted service
               .UsdeHttpInfoLogger()             // log entries requests
 
-
               .UseEndpoints(endpoints =>
               {
                   endpoints.MapControllers();
-              })
+              })              
+                         
             ;
+
         }
 
         private readonly IConfiguration _configuration;

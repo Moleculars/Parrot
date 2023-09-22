@@ -176,10 +176,11 @@ namespace Flurl
         /// </summary>
         /// <param name="uri">The System.Uri (required)</param>
         /// <exception cref="ArgumentNullException"><paramref name="uri"/> is <see langword="null" />.</exception>
-        public Url(Uri uri)
+        public Url(Uri uri, params string[] segments)
         {
             _originalString = (uri ?? throw new ArgumentNullException(nameof(uri))).OriginalString;
             ParseInternal(uri); // parse eagerly, taking advantage of the fact that we already have a parsed Uri
+            AppendPathSegments(segments);
         }
 
         /// <summary>

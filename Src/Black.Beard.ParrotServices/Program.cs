@@ -7,6 +7,13 @@ using Bb.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Bb;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using System;
+using Flurl;
+using System.Net;
+using Flurl.Http;
 
 internal class Program
 {
@@ -24,15 +31,38 @@ internal class Program
             .GetCurrentClassLogger()
             ;
 
-
-
         logger.Debug("init main");
+
+        var build =
+            CreateHostBuilder(logger, args)
+           .Build()
+           ;
 
         try
         {
-            CreateHostBuilder(logger, args)
-                .Build()
-                .Run();
+                     
+            var runner = build.RunAsync();
+
+            var addresses = build.TryGetAddresses();
+            foreach (var address in addresses)
+            {
+
+                var url = new Url(address).AppendPathSegment("/Watchdog/isupandrunning");
+                var urlTxt = url.ToString();
+
+                var oo = url.SendAsync(HttpMethod.Get).GetAwaiter();
+                var pp = oo.GetResult();
+                if (pp.StatusCode == 200)
+                    logger.Info($"{urlTxt} is listening");
+                else
+                    logger.Error($"{urlTxt} is not listening");
+
+
+            }
+
+            var awaiter = runner.GetAwaiter();
+            awaiter.GetResult();
+
         }
         catch (Exception exception)
         {
@@ -108,8 +138,6 @@ internal class Program
 
                    });
 
-
-
                    webBuilder.ConfigureLogging(l =>
                    {
                        l.ClearProviders()
@@ -120,8 +148,6 @@ internal class Program
                        IncludeScopes = true,
                        IncludeActivityIdsWithBeginScope = true,
                    });
-
-
 
 
                });
