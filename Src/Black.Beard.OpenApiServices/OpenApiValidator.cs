@@ -2,6 +2,7 @@
 using Bb.Codings;
 using Bb.Json.Jslt.CustomServices.MultiCsv;
 using Bb.Json.Jslt.Parser;
+using Bb.Json.Jslt.Services;
 using Bb.OpenApi;
 using DataAnnotationsExtensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,6 +10,7 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using SharpCompress.Compressors.Xz;
+using SharpYaml.Tokens;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Security;
@@ -58,20 +60,29 @@ namespace Bb.OpenApiServices
             {
 
                 if (item.Value.IsEmptyType())
-                {
-                    Stop();
-                }
+                    _diag.AddError(GetLocation, item.Key, $"Should specify a type");
+
                 else
                 {
-                    if (item.Value.Enum.Count > 0)
+
+                    if (item.Value.Type == "array")
                     {
-                        Stop();
+                        if (item.Value.Items != null)
+                            item.Value.Items.Accept(this);
+                        
+                        else
+                        {
+                            //_diag.AddError(GetLocation, item.Key, $"Should specify a type");
+                            Stop();
+                        }
+
+                    }
+
+                    else if (item.Value.Enum.Count > 0)
                         item.Value.Accept("enum", item.Key, this);
-                    }
+
                     else
-                    {
                         item.Value.Accept("class", item.Key, this);
-                    }
                 }
 
             }
@@ -168,8 +179,6 @@ namespace Bb.OpenApiServices
 
         private void VisitJsonSchemaForEnum(OpenApiSchema self)
         {
-            Stop();
-
             PushPath("enum");
             foreach (IOpenApiAny item in self.Enum)
             {
@@ -189,53 +198,20 @@ namespace Bb.OpenApiServices
 
         public void VisitEnumPrimitive(IOpenApiPrimitive self)
         {
-            Stop();
-
-            string fieldName = "";
-            string type = string.Empty;
-            object initialValue = null;
 
             switch (self.PrimitiveType)
             {
                 case PrimitiveType.Integer:
-                    var e1 = self as OpenApiInteger;
-                    fieldName = "Value_" + e1.Value.ToString();
-                    initialValue = e1.Value;
-                    break;
-
                 case PrimitiveType.String:
-                    var e2 = self as OpenApiString;
-                    fieldName = e2.Value.ToString();
-                    //initialValue = e2.Value;
-                    break;
-
                 case PrimitiveType.Long:
-                    Stop();
-                    break;
                 case PrimitiveType.Float:
-                    Stop();
-                    break;
                 case PrimitiveType.Double:
-                    Stop();
-                    break;
-
                 case PrimitiveType.Byte:
-                    Stop();
-                    break;
                 case PrimitiveType.Binary:
-                    Stop();
-                    break;
                 case PrimitiveType.Boolean:
-                    Stop();
-                    break;
                 case PrimitiveType.Date:
-                    Stop();
-                    break;
                 case PrimitiveType.DateTime:
-                    Stop();
-                    break;
                 case PrimitiveType.Password:
-                    Stop();
                     break;
                 default:
                     Stop();
@@ -252,10 +228,12 @@ namespace Bb.OpenApiServices
                 if (self.Reference == null)
                     _diag.AddError(GetLocation, "type", $"type or reference of the property {propertyName} should be specified");
 
-                else
-                {
-                    Stop();
-                }
+                else if (self.Properties.Count > 0)                
+                    _diag.AddWarning(GetLocation, "type", $"type of the property {propertyName} should be 'object'");
+
+                else if (self.Enum.Count > 0)
+                    _diag.AddError(GetLocation, "type", $"type of the property {propertyName} should be specified");
+
             }
             else
             {
@@ -395,12 +373,12 @@ namespace Bb.OpenApiServices
                     result.AcceptMinMaxItems = true;
                     if (self.Items != null)
                     {
-
+                                                
                         if (self.Items.Reference != null)
                             self.Items.Accept("class", self.Items.Reference.Id, this);
 
-                        else
-                            _diag.AddError(GetLocation, self.Format, $"Array has not specified type");
+                        else if (self.IsEmptyType())
+                            _diag.AddError(GetLocation, "", $"Array has not specified type");
 
                     }
                     else if (self.OneOf != null && self.OneOf.Count > 0)
@@ -611,18 +589,38 @@ namespace Bb.OpenApiServices
 
         public void VisitParameter(string key, OpenApiParameter self)
         {
-
             self.Schema.Accept(this);
 
-            if (self.In == ParameterLocation.Path)
-            {
-                if (self.Style != ParameterStyle.Simple)
-                    _diag.AddWarning(GetLocation, self.Style.ToString(), $"for parameter '{key}', the style should be simple for parameter specified by path");
+            if (!self.In.HasValue)
+                _diag.AddError(GetLocation, "in", $"the parameter '{key}', should specified 'In value' or the value is invalid.");
 
-                if (!self.Required)
-                    _diag.AddWarning(GetLocation, "required", $"for parameter '{key}', the style required");
+            else
+                switch (self.In.Value)
+                {
+                    case ParameterLocation.Query:
+                        if (self.Style == ParameterStyle.PipeDelimited || self.Style == ParameterStyle.DeepObject)
+                            _diag.AddWarning(GetLocation, "style", $"for parameter '{key}', the style should not be '{self.Style}'");
+                        if (self.Style == ParameterStyle.SpaceDelimited && !self.Explode)
+                            _diag.AddWarning(GetLocation, "style", $"for parameter '{key}', the style should not be '{self.Style.ToString()}'");
+                        break;
 
-            }
+                    case ParameterLocation.Header:
+                        break;
+
+                    case ParameterLocation.Path:
+                        if (self.Style != ParameterStyle.Simple)
+                            _diag.AddWarning(GetLocation, "style", $"for parameter '{key}', the style should be simple for parameter specified by path");
+
+                        //if (!self.Required)
+                        //    _diag.AddWarning(GetLocation, "required", $"for parameter '{key}', the style required");
+                        break;
+
+                    case ParameterLocation.Cookie:
+                        break;
+
+                    default:
+                        break;
+                }
 
         }
 

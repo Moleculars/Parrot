@@ -150,17 +150,15 @@ namespace Bb.OpenApi
         {
 
             var p = value.ConvertTypeName();
+
             if (p == null)
                 return false;
 
-            if (value.Type == "array")
+            if (_acceptedType.Contains(value.Type))
                 return false;
 
             if (value.Enum.Count > 0)
                 return false;
-
-            if (value.Type == "string" || value.Type == "number")
-                return true;
 
             if (value.Properties.Any())
                 return false;
@@ -242,6 +240,7 @@ namespace Bb.OpenApi
                             case "uuid":
                                 return typeof(Guid);
 
+                            case "date":
                             case "date-time":
                                 return typeof(DateTime);
 
@@ -300,6 +299,7 @@ namespace Bb.OpenApi
             System.Diagnostics.Debugger.Break();
         }
 
+        private static HashSet<string> _acceptedType = new HashSet<string>() { "array", "string", "number", "integer", "boolean", "object" };
 
     }
 

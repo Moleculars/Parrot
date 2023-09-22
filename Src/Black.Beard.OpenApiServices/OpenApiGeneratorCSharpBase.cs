@@ -35,8 +35,17 @@ namespace Bb.OpenApiServices
 
             foreach (var service in _services)
             {
+                try
+                {
 
-                service.Parse(document, _ctx);
+                    service.Parse(document, _ctx);
+
+                }
+                catch (Exception ex)
+                {
+
+                    throw;
+                }
 
                 if (!this._ctx.Diagnostics.Success)
                     return this;

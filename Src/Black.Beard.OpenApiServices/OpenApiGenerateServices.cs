@@ -292,6 +292,7 @@ namespace Bb.OpenApiServices
             //    n = "@" + n;
 
             var p = new CsParameterDeclaration(n, t);
+
             p.ApplyAttributes(self);
 
             if (!string.IsNullOrEmpty(self.Description))

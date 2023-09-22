@@ -134,32 +134,35 @@ namespace Bb.OpenApiServices
         }
 
 
-        public static void ApplyAttributes(this CsParameterDeclaration self, OpenApiParameter source)
+        public static bool ApplyAttributes(this CsParameterDeclaration self, OpenApiParameter source)
         {
-            switch (source.In.Value)
-            {
+            if (source.In.HasValue)
+                switch (source.In.Value)
+                {
 
-                case ParameterLocation.Query:
-                    self.Attribute("FromQuery");
-                    break;
+                    case ParameterLocation.Query:
+                        self.Attribute("FromQuery");
+                        return true;
 
-                case ParameterLocation.Header:
-                    self.Attribute("FromHeader");
-                    break;
+                    case ParameterLocation.Header:
+                        self.Attribute("FromHeader");
+                        return true; 
 
-                case ParameterLocation.Path:
-                    self.Attribute("FromRoute");
-                    break;
+                    case ParameterLocation.Path:
+                        self.Attribute("FromRoute");
+                        return true; 
 
-                case ParameterLocation.Cookie:
-                    CodeHelper.Stop();
-                    break;
+                    case ParameterLocation.Cookie:
+                        CodeHelper.Stop();
+                        return true; 
 
-                default:
-                    CodeHelper.Stop();
-                    break;
+                    default:
+                        CodeHelper.Stop();
+                        break;
 
-            }
+                }
+
+            return false;
 
         }
 

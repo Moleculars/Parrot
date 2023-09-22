@@ -42,7 +42,6 @@ namespace Bb.OpenApiServices
 
         }
 
-
         public MsProject Project => _project;
 
         public override ContextGenerator Generate()
@@ -72,10 +71,6 @@ namespace Bb.OpenApiServices
             return ctx;
 
         }
-
-
-        private string Description;
-
 
         private MsProject GenerateProject()
         {
@@ -158,6 +153,8 @@ namespace Bb.OpenApiServices
         private MsProject _project;
         private string _file;
         private OpenApiDocument _document;
+        private string Description;
+
     }
 
 

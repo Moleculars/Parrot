@@ -206,7 +206,6 @@ namespace Bb.OpenApi
         // [System.Diagnostics.DebuggerNonUserCode]
         public static void Accept(this IOpenApiPrimitive self, IOpenApiDocumentVisitor visitor)
         {
-            Stop();
             visitor.VisitEnumPrimitive(self);
         }
 
