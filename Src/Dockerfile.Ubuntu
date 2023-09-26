@@ -1,5 +1,7 @@
 #See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
+# running under nginix : https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-7.0&tabs=linux-ubuntu
+# : https://www.c-sharpcorner.com/article/how-to-deploy-net-core-application-on-linux/
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/aspnetapp/Dockerfile.ubuntu
 # Learn about building .NET container images:
 FROM mcr.microsoft.com/dotnet/sdk:6.0-jammy AS build
@@ -29,7 +31,7 @@ COPY Black.Beard.ParrotServices/* .
 RUN dotnet restore --use-current-runtime
 
 
-RUN dotnet publish --use-current-runtime --self-contained false --no-restore -o /app
+RUN dotnet publish --use-current-runtime -r linux-x64 --self-contained true --no-restore -o /app
 WORKDIR /app
 
 

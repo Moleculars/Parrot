@@ -37,6 +37,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Include="..\Dockerfile.Ubuntu" Link="Dockerfile.Ubuntu" />
+	  <None Include="..\Dockerfile.Windows" Link="Dockerfile.Windows" />
+	</ItemGroup>
+
+	<ItemGroup>
 
 		<PackageReference Include="Black.Beard.Jslt" Version="1.0.253" />
 

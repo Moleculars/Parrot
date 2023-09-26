@@ -20,6 +20,19 @@ internal class Program
     private static void Main(string[] args)
     {
 
+
+        //var oo2 = RuntimeInformation.OSArchitecture == Architecture.X64;
+        //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        //{
+        //}
+        //else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        //{
+        //}
+        //else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        //{
+        //}
+
+
         var exitCode = 0;
 
         InitializeOs();
@@ -40,25 +53,10 @@ internal class Program
 
         try
         {
-                     
+
             var runner = build.RunAsync();
 
-            var addresses = build.TryGetAddresses();
-            foreach (var address in addresses)
-            {
-
-                var url = new Url(address).AppendPathSegment("/Watchdog/isupandrunning");
-                var urlTxt = url.ToString();
-
-                var oo = url.SendAsync(HttpMethod.Get).GetAwaiter();
-                var pp = oo.GetResult();
-                if (pp.StatusCode == 200)
-                    logger.Info($"{urlTxt} is listening");
-                else
-                    logger.Error($"{urlTxt} is not listening");
-
-
-            }
+            TestService(logger, build);
 
             var awaiter = runner.GetAwaiter();
             awaiter.GetResult();
@@ -80,6 +78,34 @@ internal class Program
             Environment.ExitCode = exitCode;
         }
 
+    }
+
+    private static void TestService(Logger logger, IHost build)
+    {
+
+        var addresses = build.TryGetAddresses();
+        foreach (var address in addresses)
+        {
+
+            if (string.IsNullOrEmpty(address.Host))
+                logger.Error($"{address} can't be tested, because it has not host specified.");
+            
+            else
+            {
+
+                var url = new Url(address).AppendPathSegment("/Watchdog/isupandrunning");
+                var urlTxt = url.ToString();
+
+                var oo = url.SendAsync(HttpMethod.Get).GetAwaiter();
+                var pp = oo.GetResult();
+                if (pp.StatusCode == 200)
+                    logger.Info($"{urlTxt} is listening");
+                else
+                    logger.Error($"{urlTxt} is not listening");
+
+            }
+
+        }
     }
 
     private static void InitializeOs()

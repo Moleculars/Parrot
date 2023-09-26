@@ -4,10 +4,12 @@ using Bb.Middlewares.EntryFullLogger;
 using Bb.Models;
 using Bb.Models.Security;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
+using System.Net;
 
 namespace Bb.ParrotServices
 {
@@ -22,6 +24,19 @@ namespace Bb.ParrotServices
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            // see : https://learn.microsoft.com/fr-fr/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-7.0#fhmo
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor 
+                  | ForwardedHeaders.XForwardedProto;
+
+                //options.ForwardLimit = 2;
+                //options.KnownProxies.Add(IPAddress.Parse("127.0.10.1"));
+                //options.ForwardedForHeaderName = "X-Forwarded-For-My-Custom-Header-Name";
+
+            });
 
 
             // Auto discover all types with attribute [ExposeClass] and register in ioc.
@@ -112,6 +127,17 @@ namespace Bb.ParrotServices
             if (Configuration.TraceAll)
             {
                 app.UseMiddleware<RequestResponseLoggerMiddleware>();
+            }
+
+            if (!env.IsDevelopment())
+            {
+                app.UseForwardedHeaders();
+                app.UseHsts();
+            }
+            else
+            {
+                //app.UseDeveloperExceptionPage();
+                app.UseForwardedHeaders();
             }
 
             app
