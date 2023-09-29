@@ -45,4 +45,5 @@ ENV trace_all=true
 
 EXPOSE 80
 
-ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll", "--urls", "http://localhost:80"]
+# , "--urls", "http://localhost:80"
+ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll"]

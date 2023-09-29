@@ -13,7 +13,7 @@ For launch the docker container
 Or in interactive mode
 ```batch
 -- enter in the container
-    sudo docker run -it --entrypoint /bin/bash blackbeardteam/parrot
+    sudo docker run -p 5000:80 -it --entrypoint /bin/bash blackbeardteam/parrot
 
 -- launch the server
     dotnet Black.Beard.ParrotServices.dll --urls http://localhost:80

@@ -56,7 +56,7 @@ internal class Program
 
             var runner = build.RunAsync();
 
-            TestService(logger, build);
+            //TestService(logger, build);
 
             var awaiter = runner.GetAwaiter();
             awaiter.GetResult();
