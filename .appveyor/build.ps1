@@ -26,7 +26,7 @@ Write-Host setting working directory to $pwd;
 docker info
 $os = If ($isWindows) {'Windows'} Else {'Ubuntu'}
 
-Write-Host docker build --tag $imageName --file "${os}.dockerfile" $pwd
+Write-Host docker build --tag $imageName --file "dockerfile.${os}" $pwd
 docker build --tag $taggedimagelatest --file "Dockerfile.${os}" .
 Write-Host image $taggedimagelatest is generated
 

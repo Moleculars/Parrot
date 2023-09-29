@@ -8,30 +8,30 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0-jammy AS build
 WORKDIR /src
 
 
+
 LABEL maintainer="gaelgael5@gmail.com" github="https://github.com/Moleculars/Parrot"
+
 
 
 WORKDIR /src/Black.Beard.Curl
 COPY Black.Beard.Curl/* .
 RUN dotnet restore --use-current-runtime
 
-
 WORKDIR /src/Black.Beard.OpenApi
 COPY Black.Beard.OpenApi/* .
 RUN dotnet restore --use-current-runtime
 
-
 WORKDIR /src/Black.Beard.OpenApiServices
 COPY Black.Beard.OpenApiServices/ .
 RUN dotnet restore --use-current-runtime
-
 
 WORKDIR /src/ParrotServices
 COPY Black.Beard.ParrotServices/* .
 RUN dotnet restore --use-current-runtime
 
 
-RUN dotnet publish --use-current-runtime -r linux-x64 --self-contained true --no-restore -o /app
+
+RUN dotnet publish --use-current-runtime -r linux-x64 --no-restore -c Release -o /app
 WORKDIR /app
 
 
@@ -45,4 +45,4 @@ ENV trace_all=true
 
 EXPOSE 80
 
-ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll"]
+ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll", "--urls", "http://localhost:80"]
