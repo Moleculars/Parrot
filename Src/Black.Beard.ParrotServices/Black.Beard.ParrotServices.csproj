@@ -9,6 +9,9 @@
 		<StartupObject>Program</StartupObject>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<RootNamespace>Bb</RootNamespace>
+		<Company>Black beard</Company>
+		<AssemblyTitle>Parrot APIs service</AssemblyTitle>
+		<Description>A set of REST APIs used by Parrot for manage service generator</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

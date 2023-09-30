@@ -7,22 +7,22 @@ the service runs under linux docker.
 
 For launch the docker container
 ```batch    
-    sudo docker run -p 127.0.0.1:80:80/tcp blackbeardteam/parrot
+    sudo docker run -p :80:80 blackbeardteam/parrot
 ```
 
 Or in interactive mode
 ```batch
 -- enter in the container
-    sudo docker run -p 5000:80 -it --entrypoint /bin/bash blackbeardteam/parrot
+    sudo docker run -p 80:80 -it --entrypoint /bin/bash blackbeardteam/parrot
 
 -- launch the server
-    dotnet Black.Beard.ParrotServices.dll --urls http://localhost:80
+    dotnet Black.Beard.ParrotServices.dll
 ```
 
 Launch a navigator and open the swagger page
 
 ``` batch
-   explorer.exe "https://{url}:80/swagger/index.html"
+   explorer.exe "https://localhost:80/swagger/index.html"
 ```
 
 

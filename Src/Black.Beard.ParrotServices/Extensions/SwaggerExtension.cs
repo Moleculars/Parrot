@@ -1,6 +1,9 @@
 ﻿using Bb.Models.Security;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection;
 using System.Xml.Linq;
 using System.Xml.XPath;
 
@@ -8,28 +11,77 @@ namespace Bb.Extensions
 {
 
 
-    internal static class SwaggerExtension
+    public static class SwaggerExtension
     {
 
-        public static void AddDocumentation(this SwaggerGenOptions self)
+        public static void AddDocumentation(this SwaggerGenOptions self, Action<OpenApiInfoGenerator<OpenApiInfo>> builder)
         {
 
-            self.DescribeAllParametersInCamelCase();
-            self.IgnoreObsoleteActions();
-            //c.DocInclusionPredicate((f, a) => { return a.ActionDescriptor is ControllerActionDescriptor b && b.MethodInfo.GetCustomAttributes<ExternalApiRouteAttribute>().Any(); });
-            self.SwaggerDoc("v1", new OpenApiInfo
-            {
-                Title = "Parrot APIs",
-                Version = "v1",
-                Description = "A set of REST APIs used by Parrot for manage service generator",
-                License = new OpenApiLicense() { Name = "Only usable with a valid PU partner contract." },
-            });
+            Action<OpenApiInfoGenerator<OpenApiInfo>> defaultBuilder = GetDefaultBuilder();
+
+            var info = defaultBuilder.Generate(builder);
+            self.SwaggerDoc("v1", info);
 
             self.IncludeXmlComments(() => LoadXmlFiles());
-
-
+            //c.DocInclusionPredicate((f, a) => { return a.ActionDescriptor is ControllerActionDescriptor b && b.MethodInfo.GetCustomAttributes<ExternalApiRouteAttribute>().Any(); });
         }
 
+        private static Action<OpenApiInfoGenerator<OpenApiInfo>> GetDefaultBuilder()
+        {
+            var ass = Assembly.GetEntryAssembly();
+            var c = ass.CustomAttributes.ToList();
+
+            string? title = GetServiceName(c);
+            string? version = GetVersion(c);
+            string? description = GetDescription(c);
+
+            if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(version))
+                version = $"{title} {version}";
+
+            Action<OpenApiInfoGenerator<OpenApiInfo>> builder1 = b =>
+            {
+
+                if (!string.IsNullOrEmpty(title))
+                    b.Add(c => c.Title = title);
+
+                if (!string.IsNullOrEmpty(version))
+                    b.Add(c => c.Version = version);
+
+                if (!string.IsNullOrEmpty(description))
+                    b.Add(c => c.Description = description);
+
+            };
+            return builder1;
+        }
+
+        private static string? GetDescription(List<CustomAttributeData> c)
+        {
+            return GetValue(c, typeof(AssemblyDescriptionAttribute));
+        }
+
+        private static string? GetServiceName(List<CustomAttributeData> c)
+        {
+            return GetValue(c, typeof(AssemblyTitleAttribute), typeof(AssemblyProductAttribute));
+        }
+
+        private static string? GetVersion(List<CustomAttributeData> c)
+        {
+            return GetValue(c, typeof(AssemblyInformationalVersionAttribute), typeof(AssemblyFileVersionAttribute));
+        }
+
+        private static string? GetValue(List<CustomAttributeData> c, params Type[] types)
+        {
+
+            foreach (var type in types)
+            {
+                var o = c.Where(d => type == d.AttributeType).Select(e => e.ConstructorArguments.First().Value?.ToString()).FirstOrDefault();
+                if (o != null)
+                    return o;
+            }
+
+            return null;
+
+        }
 
         public static void AddSwaggerWithApiKeySecurity(this SwaggerGenOptions self, IServiceCollection services, IConfiguration configuration, string assemblyName)
         {
@@ -54,7 +106,7 @@ namespace Bb.Extensions
             });
 
 
-            
+
 
             // https://stackoverflow.com/questions/57227912/swaggerui-not-adding-apikey-to-header-with-swashbuckle-5-x
             self.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -75,7 +127,11 @@ namespace Bb.Extensions
 
         }
 
-
+        /// <summary>
+        /// Loads and concat all XML documentation files.
+        /// </summary>
+        /// <param name="patternGlobing">The pattern globing.</param>
+        /// <returns></returns>
         internal static XPathDocument LoadXmlFiles(string patternGlobing = "*.xml")
         {
 
@@ -110,6 +166,7 @@ namespace Bb.Extensions
 
             return new XPathDocument(xml?.CreateReader());
         }
+
     }
 
 

@@ -29,7 +29,7 @@ namespace Bb.ParrotServices
             services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders =
-                    ForwardedHeaders.XForwardedFor 
+                    ForwardedHeaders.XForwardedFor
                   | ForwardedHeaders.XForwardedProto;
 
                 //options.ForwardLimit = 2;
@@ -49,7 +49,7 @@ namespace Bb.ParrotServices
             .UseTypeExposedByAttribute(_configuration, Constants.Models.Model)
             .UseTypeExposedByAttribute(_configuration, Constants.Models.Service)
 
-            .AddControllers()            
+            .AddControllers()
             ;
 
 
@@ -75,7 +75,14 @@ namespace Bb.ParrotServices
                 //services.AddEndpointsApiExplorer();
                 services.AddSwaggerGen(c =>
                 {
-                    c.AddDocumentation();
+                    c.DescribeAllParametersInCamelCase();
+                    c.IgnoreObsoleteActions();
+                    c.AddDocumentation(i =>
+                    {
+                        i
+                         .Licence(l => l.Name("Only usable with a valid partner contract."))
+                         ;
+                    });
                     c.AddSwaggerWithApiKeySecurity(services, _configuration, $"{Assembly.GetExecutingAssembly().GetName().Name}");
                     //c.TagActionsBy(a => new List<string> { a.ActionDescriptor is ControllerActionDescriptor b ? b.ControllerTypeInfo.Assembly.FullName.Split('.')[2].Split(',')[0].Replace("Web", "") : a.ActionDescriptor.DisplayName });
                 });
@@ -166,8 +173,8 @@ namespace Bb.ParrotServices
               .UseEndpoints(endpoints =>
               {
                   endpoints.MapControllers();
-              })              
-                         
+              })
+
             ;
 
         }
