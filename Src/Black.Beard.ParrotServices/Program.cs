@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using NLog;
 using NLog.Web;
+using Bb.Services;
 
 internal class Program
 {
@@ -38,6 +39,7 @@ internal class Program
             var runner = build.RunAsync();
 
             // TestService(logger, build);
+            EnumerateListeners(logger, build);
 
             var awaiter = runner.GetAwaiter();
             awaiter.GetResult();
@@ -58,6 +60,14 @@ internal class Program
             NLog.LogManager.Shutdown();
             Environment.ExitCode = exitCode;
         }
+
+    }
+
+    private static void EnumerateListeners(Logger logger, IHost build)
+    {
+        var addresses = build.GetServerAcceptedAddresses();
+        foreach (var address in addresses)
+            logger.Info($"address : {address}");
 
     }
 
