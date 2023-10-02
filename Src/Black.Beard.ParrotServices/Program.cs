@@ -1,42 +1,22 @@
-
+using Bb;
+using Bb.Extensions;
 using Bb.ParrotServices;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using NLog;
 using NLog.Web;
-using Bb.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Bb;
-using System.Runtime.InteropServices;
-using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using System;
-using Flurl;
-using System.Net;
-using Flurl.Http;
-using Bb.Services;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
 
-
-        //var oo2 = RuntimeInformation.OSArchitecture == Architecture.X64;
-        //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        //{
-        //}
-        //else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        //{
-        //}
-        //else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        //{
-        //}
-
-
         var exitCode = 0;
 
         InitializeOs();
+
+        var configLogPath = Path.Combine(Directory.GetCurrentDirectory(), "Configs", "NLog.config");
+        NLog.LogManager.Configuration = new NLog.Config.XmlLoggingConfiguration(configLogPath);
 
         // Initialize log
         var logger = NLog.LogManager
@@ -111,10 +91,22 @@ internal class Program
     private static void InitializeOs()
     {
 
-        var currentAssembly = Assembly.GetAssembly(typeof(Program));
-        Directory.SetCurrentDirectory(Path.GetDirectoryName(currentAssembly.Location));
+
+        //var oo2 = RuntimeInformation.OSArchitecture == Architecture.X64;
+        //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        //{
+        //}
+        //else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        //{
+        //}
+        //else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        //{
+        //}
 
         Console.WriteLine("Current directory : " + Directory.GetCurrentDirectory());
+
+        var currentAssembly = Assembly.GetAssembly(typeof(Program));
+        Directory.SetCurrentDirectory(Path.GetDirectoryName(currentAssembly.Location));
 
         var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         if (isWindows)
@@ -135,7 +127,7 @@ internal class Program
 
         }
 
-        Console.WriteLine("writing directory : " + Configuration.CurrentDirectoryToWrite);
+        Console.WriteLine("setting directory to writing : " + Configuration.CurrentDirectoryToWrite);
 
     }
 
