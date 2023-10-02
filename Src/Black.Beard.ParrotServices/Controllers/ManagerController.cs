@@ -38,6 +38,8 @@ namespace Bb.ParrotServices.Controllers
             _builder = builder;
             _logger = logger;
 
+            var add = server.GetServerAcceptedAddresses();
+
             var addresses = server.Features.Get<IServerAddressesFeature>()?.Addresses?.ToArray();
             if (addresses != null)
             {

@@ -12,10 +12,10 @@ namespace Bb.Extensions
         }
 
 
-        public static IEnumerable<Uri> TryGetAddresses(this IHost self)
+        public static IEnumerable<string> TryGetAddresses(this IHost self)
         {
-            
-            List<Uri> addresses = new List<Uri>();
+
+            List<string> addresses = new List<string>();
 
             try
             {
@@ -27,7 +27,7 @@ namespace Bb.Extensions
                     IServerAddressesFeature addressFeature = server.Features.Get<IServerAddressesFeature>();
                     if (addressFeature != null)
                         foreach (var address in addressFeature.Addresses)
-                            addresses.Add( new Uri(address));
+                            addresses.Add(address);
 
                 }
 
@@ -35,7 +35,7 @@ namespace Bb.Extensions
             catch (Exception)
             {
 
-                
+
             }
 
             return addresses;

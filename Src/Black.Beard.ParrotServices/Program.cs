@@ -56,7 +56,7 @@ internal class Program
 
             var runner = build.RunAsync();
 
-            //TestService(logger, build);
+            TestService(logger, build);
 
             var awaiter = runner.GetAwaiter();
             awaiter.GetResult();
@@ -87,23 +87,25 @@ internal class Program
         foreach (var address in addresses)
         {
 
-            if (string.IsNullOrEmpty(address.Host))
-                logger.Error($"{address} can't be tested, because it has not host specified.");
+            logger.Debug($"addresse : {address}");
+
+            //if (string.IsNullOrEmpty(address.Host))
+            //    logger.Error($"{address} can't be tested, because it has not host specified.");
             
-            else
-            {
+            //else
+            //{
 
-                var url = new Url(address).AppendPathSegment("/Watchdog/isupandrunning");
-                var urlTxt = url.ToString();
+            //    var url = new Url(address).AppendPathSegment("/Watchdog/isupandrunning");
+            //    var urlTxt = url.ToString();
 
-                var oo = url.SendAsync(HttpMethod.Get).GetAwaiter();
-                var pp = oo.GetResult();
-                if (pp.StatusCode == 200)
-                    logger.Info($"{urlTxt} is listening");
-                else
-                    logger.Error($"{urlTxt} is not listening");
+            //    var oo = url.SendAsync(HttpMethod.Get).GetAwaiter();
+            //    var pp = oo.GetResult();
+            //    if (pp.StatusCode == 200)
+            //        logger.Info($"{urlTxt} is listening");
+            //    else
+            //        logger.Error($"{urlTxt} is not listening");
 
-            }
+            //}
 
         }
     }

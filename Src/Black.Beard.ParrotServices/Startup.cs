@@ -79,8 +79,7 @@ namespace Bb.ParrotServices
                     c.IgnoreObsoleteActions();
                     c.AddDocumentation(i =>
                     {
-                        i
-                         .Licence(l => l.Name("Only usable with a valid partner contract."))
+                        i.Licence(l => l.Name("Only usable with a valid partner contract."))
                          ;
                     });
                     c.AddSwaggerWithApiKeySecurity(services, _configuration, $"{Assembly.GetExecutingAssembly().GetName().Name}");
