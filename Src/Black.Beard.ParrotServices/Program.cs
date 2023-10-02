@@ -16,7 +16,7 @@ internal class Program
 
         InitializeOs();
 
-        var configLogPath = Path.Combine(Directory.GetCurrentDirectory(), "Configs", "NLog.config");
+        var configLogPath = Path.Combine(Directory.GetCurrentDirectory(), "nlog.config");
         NLog.LogManager.Configuration = new NLog.Config.XmlLoggingConfiguration(configLogPath);
 
         // Initialize log
