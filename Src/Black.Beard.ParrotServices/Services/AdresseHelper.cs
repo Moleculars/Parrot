@@ -4,6 +4,9 @@ using System.Net;
 using Microsoft.AspNetCore.Http.Features;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
+using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc.Core.Infrastructure;
+using Flurl;
 
 namespace Bb.Services
 {
@@ -13,57 +16,63 @@ namespace Bb.Services
     {
 
 
+        public static List<Uri> GetServerAcceptedAddresses(this IHost self)
+        {
+
+            List<Uri> addresses = new List<Uri>();
+
+            IServer server = self.Services.GetService<IServer>();
+
+            if (server != null)
+                return server.GetServerAcceptedAddresses();
+
+            return addresses;
+
+        }
+
         public static List<Uri> GetServerAcceptedAddresses(this IServer self)
         {
 
-            var d = GetLocalIPv4();
-
+            var localIps = GetLocalIPv4();
+            HashSet<string> hash = new HashSet<string>();
             List<Uri> uris = new List<Uri>();
+            var schemes = self.GetServerAddresses();
 
-            var add = self.Features.Get<IHttpConnectionFeature>();
-            var addresses = self.Features.Get<IServerAddressesFeature>()?.Addresses?.ToArray();
-            if (addresses != null)
-            {
-                foreach (string? address in addresses)
-                {
+            foreach (Uri u in schemes)
+                foreach (var item in localIps)
+                    hash.Add(new Url(u.Scheme, item.ToString(), u.Port, u.Segments).ToString());
 
-                    var a = new Uri(address);
-                    uris.Add(a);
-
-                }
-            }
+            foreach (string address in hash)
+                uris.Add(new Uri(address));
 
             return uris;
 
         }
 
-        public static List<Uri> GetServerListenAddresses(this IServer self)
+
+        public static List<Uri> GetServerAddresses(this IServer self)
         {
 
-            var listenAdresses = GetLocalIPv4();
+            List<Uri> schemes = new List<Uri>();
 
-            List<Uri> uris = new List<Uri>();
-
-            var add = self.Features.Get<IHttpConnectionFeature>();
             var addresses = self.Features.Get<IServerAddressesFeature>()?.Addresses?.ToArray();
             if (addresses != null)
-            {
                 foreach (string? address in addresses)
                 {
-                    if (address.ToLower().StartsWith("http:"))
+                    try
                     {
-
-
-
+                        var u = new Uri(address);
+                        schemes.Add(u);
                     }
-
+                    catch (Exception)
+                    {
+                        Debug.WriteLine($"address {address} can't be convert in uri");
+                    }
                 }
-            }
 
-            return uris;
+            return schemes;
 
         }
-
 
         public static List<IPAddress> GetLocalIPv4Ethernet() => GetLocalIPv4(NetworkInterfaceType.Ethernet);
 

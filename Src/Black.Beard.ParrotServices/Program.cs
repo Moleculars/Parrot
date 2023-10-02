@@ -14,6 +14,7 @@ using System;
 using Flurl;
 using System.Net;
 using Flurl.Http;
+using Bb.Services;
 
 internal class Program
 {
@@ -56,7 +57,7 @@ internal class Program
 
             var runner = build.RunAsync();
 
-            TestService(logger, build);
+            // TestService(logger, build);
 
             var awaiter = runner.GetAwaiter();
             awaiter.GetResult();
@@ -80,35 +81,32 @@ internal class Program
 
     }
 
-    private static void TestService(Logger logger, IHost build)
-    {
-
-        var addresses = build.TryGetAddresses();
-        foreach (var address in addresses)
-        {
-
-            logger.Debug($"addresse : {address}");
-
-            //if (string.IsNullOrEmpty(address.Host))
-            //    logger.Error($"{address} can't be tested, because it has not host specified.");
-            
-            //else
-            //{
-
-            //    var url = new Url(address).AppendPathSegment("/Watchdog/isupandrunning");
-            //    var urlTxt = url.ToString();
-
-            //    var oo = url.SendAsync(HttpMethod.Get).GetAwaiter();
-            //    var pp = oo.GetResult();
-            //    if (pp.StatusCode == 200)
-            //        logger.Info($"{urlTxt} is listening");
-            //    else
-            //        logger.Error($"{urlTxt} is not listening");
-
-            //}
-
-        }
-    }
+    //private static void TestService(Logger logger, IHost build)
+    //{
+    //    var addresses =  build.GetServerAcceptedAddresses();
+    //    foreach (var address in addresses)
+    //    {
+    //        if (string.IsNullOrEmpty(address.Host))
+    //            logger.Error($"{address} can't be tested, because host is not specified.");
+    //        else
+    //        {
+    //            var url = new Url(address).AppendPathSegments("watchdog", "isupandrunning");
+    //            var urlTxt = url.ToString();
+    //            try
+    //            {
+    //                var oo = url.SendAsync(HttpMethod.Get).GetAwaiter();
+    //                var pp = oo.GetResult();
+    //                if (pp.StatusCode == 200)
+    //                    logger.Info($"{urlTxt} is listening");
+    //                else
+    //                    logger.Error($"{urlTxt} is not listening");
+    //            }
+    //            catch (Exception)
+    //            {
+    //            }
+    //        }
+    //    }
+    //}
 
     private static void InitializeOs()
     {

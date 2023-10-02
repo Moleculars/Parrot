@@ -38,20 +38,14 @@ namespace Bb.ParrotServices.Controllers
             _builder = builder;
             _logger = logger;
 
-            var add = server.GetServerAcceptedAddresses();
-
-            var addresses = server.Features.Get<IServerAddressesFeature>()?.Addresses?.ToArray();
-            if (addresses != null)
-            {
-                foreach (string? address in addresses)
+            var addresses = server.GetServerAcceptedAddresses();
+            foreach (Uri address in addresses)
                 {
-                    var a = new Uri(address);
-                    if (a.Scheme == "http")
-                        this._http = a;
+                    if (address.Scheme.ToLower() == "http")
+                        this._http = address;
                     else
-                        this._https = a;
+                        this._https = address;
                 }
-            }
 
         }
 

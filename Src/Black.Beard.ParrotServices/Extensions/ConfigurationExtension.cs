@@ -9,38 +9,7 @@ namespace Bb.Extensions
         static ConfigurationExtension()
         {
             _stringComparer = StringComparer.CurrentCultureIgnoreCase;
-        }
-
-
-        public static IEnumerable<string> TryGetAddresses(this IHost self)
-        {
-
-            List<string> addresses = new List<string>();
-
-            try
-            {
-
-                IServer server = self.Services.GetService<IServer>();
-
-                if (server != null)
-                {
-                    IServerAddressesFeature addressFeature = server.Features.Get<IServerAddressesFeature>();
-                    if (addressFeature != null)
-                        foreach (var address in addressFeature.Addresses)
-                            addresses.Add(address);
-
-                }
-
-            }
-            catch (Exception)
-            {
-
-
-            }
-
-            return addresses;
-
-        }
+        }               
 
         public static bool Evaluate(this string valueName, string expected)
         {
