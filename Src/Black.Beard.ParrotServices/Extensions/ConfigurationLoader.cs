@@ -25,14 +25,15 @@ namespace Bb.Extensions
 
             if (!File.Exists(path))
             {
-                _logger.Debug($"no configuration {Path.GetFileName(path)} found.");
+                _logger.Debug($"Configuration file '{Path.GetFileName(path)}' not found.");
                 path = Path.Combine(_env.ContentRootPath, $"{file}{extension}");
             }
 
             if (File.Exists(path))
             {
-                _logger.Debug($"configuration {Path.GetFileName(path)} is configured for loading");
+                _logger.Debug($"configuration file {Path.GetFileName(path)} is loading.");
                 _config.AddJsonFile(path, optional: optional, reloadOnChange: reloadOnChange);
+                _logger.Debug($"configuration file {Path.GetFileName(path)} is loaded successfully.");
             }
             else
                 _logger.Error($"missing configuration {path}");

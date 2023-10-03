@@ -8,7 +8,7 @@
 
         public ProjectBuilderContract(ProjectBuilderProvider parent, string contract)
         {
-            _logger = _parent._logger;
+            _logger = parent._logger;
             _parent = parent;
             Contract = contract;
 
