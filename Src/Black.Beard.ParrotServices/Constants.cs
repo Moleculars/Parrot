@@ -10,6 +10,7 @@
         public static bool UseSwagger { get; internal set; }
 
         public static string? CurrentDirectoryToWrite { get; internal set; }
+        public static string? TraceLogToWrite { get; internal set; }
 
     }
 

@@ -28,7 +28,7 @@ namespace Bb.Services.Managers
 
         public ProjectBuilderTemplate(ProjectBuilderProvider rootParent, ProjectBuilderContract parent, string template)
         {
-
+            _logger = rootParent._logger;
             _rootParent = rootParent;
             _parent = parent;
 
@@ -512,11 +512,16 @@ namespace Bb.Services.Managers
             };
 
             var dirRoot = new DirectoryInfo(Path.Combine(rootPath, "Templates"));
+            _logger.LogDebug($"ProjectBuilderTemplate.List : dirRoot = {dirRoot}");
+            _logger.LogDebug($"ProjectBuilderTemplate.List : Root = {Root}");
             if (dirRoot.Exists)
             {
                 var files = dirRoot.GetFiles("*.json");
                 foreach (var item in files)
                 {
+
+                    _logger.LogDebug($"ProjectBuilderTemplate.List : file = {item.FullName}");
+
                     var relative = new Uri(Root).MakeRelativeUri(new Uri(item.FullName));
                     result.Documents.Add(new Document() { Kind = "jslt", File = relative.ToString() });
                 }
@@ -552,7 +557,7 @@ namespace Bb.Services.Managers
         public string Contract { get; }
 
         public readonly string Root;
-
+        private readonly ILogger<ProjectBuilderProvider> _logger;
         private readonly ProjectBuilderProvider _rootParent;
         private readonly ProjectBuilderContract _parent;
         private readonly string _templateConfigFilename;

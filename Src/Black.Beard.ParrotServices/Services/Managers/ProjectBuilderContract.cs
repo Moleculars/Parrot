@@ -8,6 +8,7 @@
 
         public ProjectBuilderContract(ProjectBuilderProvider parent, string contract)
         {
+            _logger = _parent._logger;
             _parent = parent;
             Contract = contract;
 
@@ -53,7 +54,7 @@
 
         public readonly string Contract;
         public readonly string Root;
-
+        internal readonly ILogger<ProjectBuilderProvider> _logger;
         private readonly ProjectBuilderProvider _parent;
         private Dictionary<string, ProjectBuilderTemplate> _templates;
     }

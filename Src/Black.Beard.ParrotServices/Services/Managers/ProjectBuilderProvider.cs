@@ -5,6 +5,7 @@ using Bb.Models.Security;
 using Microsoft.AspNetCore.Components;
 using Bb.ComponentModel.Factories;
 using Bb.Services.ProcessHosting;
+using Bb.ParrotServices.Controllers;
 
 namespace Bb.Services.Managers
 {
@@ -19,8 +20,9 @@ namespace Bb.Services.Managers
             BuildGeneratorList();
         }
 
-        public ProjectBuilderProvider(LocalProcessCommandService host, ServiceReferential referential)
+        public ProjectBuilderProvider(LocalProcessCommandService host, ServiceReferential referential, ILogger<ProjectBuilderProvider> logger)
         {
+            _logger = logger;
             _referential = referential;
             _host = host;
             _items = new Dictionary<string, ProjectBuilderContract>();
@@ -169,6 +171,7 @@ namespace Bb.Services.Managers
 
         public string Root => _root;
 
+        internal readonly ILogger<ProjectBuilderProvider> _logger;
         internal readonly ServiceReferential _referential;
         internal readonly LocalProcessCommandService _host;
         private readonly Dictionary<string, ProjectBuilderContract> _items;

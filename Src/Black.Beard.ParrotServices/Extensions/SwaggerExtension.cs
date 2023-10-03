@@ -22,7 +22,7 @@ namespace Bb.Extensions
             var info = defaultBuilder.Generate(builder);
             self.SwaggerDoc("v1", info);
 
-            self.IncludeXmlComments(() => LoadXmlFiles());
+            self.IncludeXmlComments(() => LoadXmlFiles("Black.*.xml"));
             //c.DocInclusionPredicate((f, a) => { return a.ActionDescriptor is ControllerActionDescriptor b && b.MethodInfo.GetCustomAttributes<ExternalApiRouteAttribute>().Any(); });
         }
 
@@ -90,7 +90,7 @@ namespace Bb.Extensions
                 try
                 {
 
-                    Console.WriteLine($"try to load {file.FullName}");
+                    Console.WriteLine($"try to load documentation {file.FullName}");
                     XElement dependentXml = XElement.Load(file.FullName);
 
                     if (xml == null)

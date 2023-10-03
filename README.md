@@ -7,7 +7,7 @@ the service runs under linux docker.
 
 For launch the docker container
 ```batch    
-    sudo docker run -p :80:80 blackbeardteam/parrot
+    sudo docker run -p 80:80 blackbeardteam/parrot
 ```
 
 Or in interactive mode
@@ -160,3 +160,7 @@ If the command return systemd/
 sudo systemctl start docker
 ```
 
+## Push variables in the docker.
+all environment variables started by "parrot_log_" are injected in configuration of the log.
+
+* parrot_log_directory : can be used for customize the targer folder of the logs.

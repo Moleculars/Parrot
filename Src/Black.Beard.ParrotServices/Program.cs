@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using NLog;
 using NLog.Web;
 using Bb.Services;
+using System.Collections;
+using System.Diagnostics;
 
 internal class Program
 {
@@ -14,24 +16,12 @@ internal class Program
 
         var exitCode = 0;
 
-        InitializeOs();
+        InitializeByOs();
 
-        var configLogPath = Path.Combine(Directory.GetCurrentDirectory(), "nlog.config");
-        NLog.LogManager.Configuration = new NLog.Config.XmlLoggingConfiguration(configLogPath);
+        Logger logger = InitializeLogger();
 
-        // Initialize log
-        var logger = NLog.LogManager
-            .Setup()
-            .SetupExtensions(s => { })
-            .GetCurrentClassLogger()
-            ;
-
-        logger.Debug("init main");
-
-        var build =
-            CreateHostBuilder(logger, args)
-           .Build()
-           ;
+        var build = CreateHostBuilder(logger, args)
+                   .Build();
 
         try
         {
@@ -39,7 +29,7 @@ internal class Program
             var runner = build.RunAsync();
 
             // TestService(logger, build);
-            EnumerateListeners(logger, build);
+            EnumerateListeners(logger, build); // logger all ip can accept connection 
 
             var awaiter = runner.GetAwaiter();
             awaiter.GetResult();
@@ -61,6 +51,35 @@ internal class Program
             Environment.ExitCode = exitCode;
         }
 
+    }
+
+    private static Logger InitializeLogger()
+    {
+
+        // target folder where write
+        NLog.GlobalDiagnosticsContext.Set("parrot_log_directory", Configuration.TraceLogToWrite);
+
+        // push environment variables in the log
+        foreach (DictionaryEntry item in Environment.GetEnvironmentVariables())
+            if (item.Key != null
+                && !string.IsNullOrEmpty(item.Key.ToString())
+                && item.Key.ToString().StartsWith("parrot_log_"))
+                NLog.GlobalDiagnosticsContext.Set(item.Key.ToString(), item.Value?.ToString());
+
+        // load the configuration file
+        var configLogPath = Path.Combine(Directory.GetCurrentDirectory(), "nlog.config");
+        NLog.LogManager.Configuration = new NLog.Config.XmlLoggingConfiguration(configLogPath);
+
+        // Initialize log
+        var logger = NLog.LogManager
+            .Setup()
+            .SetupExtensions(s => { })
+            .GetCurrentClassLogger()
+            ;
+
+        logger.Debug("log initialized");
+
+        return logger;
     }
 
     private static void EnumerateListeners(Logger logger, IHost build)
@@ -98,46 +117,47 @@ internal class Program
     //    }
     //}
 
-    private static void InitializeOs()
+    private static void InitializeByOs()
     {
-
-
-        //var oo2 = RuntimeInformation.OSArchitecture == Architecture.X64;
-        //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        //{
-        //}
-        //else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        //{
-        //}
-        //else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        //{
-        //}
 
         Console.WriteLine("Current directory : " + Directory.GetCurrentDirectory());
 
         var currentAssembly = Assembly.GetAssembly(typeof(Program));
         Directory.SetCurrentDirectory(Path.GetDirectoryName(currentAssembly.Location));
 
-        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-        if (isWindows)
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-
             Configuration.CurrentDirectoryToWrite = Path.GetDirectoryName(currentAssembly.Location);
-
+            Configuration.TraceLogToWrite = Path.Combine("c:\\", "tmp", "logsparrot");
         }
-        else
+
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            var isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-            if (isLinux)
-            {
-                Configuration.CurrentDirectoryToWrite = Path.Combine("home", "parrot");
-            }
-            else
-                throw new Exception($"Os {RuntimeInformation.OSDescription} not managed");
-
+            Configuration.CurrentDirectoryToWrite = Path.Combine("home", "parrot");
+            Configuration.TraceLogToWrite = Path.Combine("tmp", "logsparrot");
         }
 
-        Console.WriteLine("setting directory to writing : " + Configuration.CurrentDirectoryToWrite);
+        else
+            throw new Exception($"Os {RuntimeInformation.OSDescription} not managed");
+
+        if (!Directory.Exists(Configuration.CurrentDirectoryToWrite))
+            Directory.CreateDirectory(Configuration.CurrentDirectoryToWrite);
+
+        if (!Directory.Exists(Configuration.TraceLogToWrite))
+            Directory.CreateDirectory(Configuration.TraceLogToWrite);
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            Configuration.TraceLogToWrite += "\\";
+        }
+
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            Configuration.TraceLogToWrite += "/";
+        }
+
+        Console.WriteLine("setting directory to generate projects in : " + Configuration.CurrentDirectoryToWrite);
+        Console.WriteLine("setting directory to output logs : " + Configuration.TraceLogToWrite);
 
     }
 
