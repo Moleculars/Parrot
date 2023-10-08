@@ -188,7 +188,7 @@ namespace Bb.ParrotServices.Controllers
 
             var result = await templateObject.Build();
 
-            if (result.Item2.HasValue && result.Item2.Value > 0)
+            if (result.HasValue && result.Value > 0)
                 return BadRequest(result.ToString());
 
             return Ok(result.ToString());
@@ -226,7 +226,7 @@ namespace Bb.ParrotServices.Controllers
 
             var buildResult = await templateObject.Build();
 
-            if (buildResult.Item2.HasValue && buildResult.Item2.Value == 0)
+            if (buildResult.HasValue && buildResult.Value == 0)
             {
 
                 var ports = await templateObject.Run(host, GetHttpPort(), GetHttpsPort()); // todo : comment retrouver le hostname
@@ -238,7 +238,7 @@ namespace Bb.ParrotServices.Controllers
 
             }
 
-            return BadRequest(buildResult.Item1?.ToString());
+            return BadRequest(buildResult.ToString());
 
         }
 

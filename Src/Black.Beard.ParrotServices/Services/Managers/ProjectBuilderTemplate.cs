@@ -10,6 +10,7 @@ using System.Diagnostics;
 using Bb.Services.ProcessHosting;
 using Bb.ParrotServices.Exceptions;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace Bb.Services.Managers
 {
@@ -39,7 +40,7 @@ namespace Bb.Services.Managers
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <param name="template">The template.</param>
-        ///// <exception cref="Bb.ParrotServices.Exceptions.MockHttpException">template {template} not found</exception>
+        /// <exception cref="Bb.ParrotServices.Exceptions.MockHttpException">template {template} not found</exception>
         public ProjectBuilderTemplate(ProjectBuilderContract parent, string template)
         {
             _parent = parent;
@@ -199,69 +200,8 @@ namespace Bb.Services.Managers
         /// <summary>
         /// Build the project for the specified contract
         /// </summary>
-        public async Task<(StringBuilder?, int?)> Build()
+        public async Task<int?> Build()
         {
-
-            StringBuilder sb = new StringBuilder();
-
-            void _intercept(object sender, TaskEventArgs args)
-            {
-
-                switch (args.Status)
-                {
-
-                    case TaskEventEnum.Started:
-                        sb.AppendLine("Started");
-                        Trace.WriteLine("Started", "trace");
-                        break;
-
-                    case TaskEventEnum.ErrorReceived:
-                        sb.AppendLine("Error : " + args.DateReceived.Data);
-                        Trace.WriteLine(args.DateReceived.Data, "Error");
-                        break;
-
-                    case TaskEventEnum.DataReceived:
-                        sb.AppendLine("Info : " + args.DateReceived.Data);
-                        Trace.WriteLine(args.DateReceived.Data, "Info");
-                        break;
-
-                    case TaskEventEnum.Completed:
-                        var instance = args.Process.Tag as ServiceReferentialContract;
-                        if (instance != null)
-                        {
-                            _rootParent._referential.Remove(instance);
-                            sb.AppendLine($"Info : {instance.Parent.Template}/{instance.Contract} ended");
-                            Trace.WriteLine($"{instance.Parent.Template}/{instance.Contract} ended", "Info");
-
-                        }
-                        else
-                        {
-                            sb.AppendLine($"Info : Completed");
-                            Trace.WriteLine($"Completed", "Info");
-                        }
-                        break;
-
-                    case TaskEventEnum.CompletedWithException:
-                        var instance1 = args.Process.Tag as ServiceReferentialContract;
-                        if (instance1 != null)
-                        {
-                            _rootParent._referential.Remove(instance1);
-                            sb.AppendLine($"Error : {instance1.Parent.Template}/{instance1.Contract} ended with exception");
-                            Trace.WriteLine($"{instance1.Parent.Template}/{instance1.Contract} ended with exception", "Error");
-                        }
-                        else
-                        {
-                            sb.AppendLine("Error : ended with exception");
-                            Trace.WriteLine("ended with exception", "Error");
-                        }
-                        break;
-
-                    default:
-                        break;
-
-                }
-
-            }
 
             var projectFile = GetFileProject();
             int? exitResult = 0;
@@ -269,37 +209,40 @@ namespace Bb.Services.Managers
             {
                 using (var cmd = new ProcessCommand()
                          .Command($"dotnet.exe", $"build \"{projectFile.FullName}\" -c release /p:Version=1.0.0.0")
-                         .Intercept(_intercept)
+                         .Intercept(InterceptTraces)
                          .Run())
                 {
                     cmd.Wait();
                     exitResult = cmd.ExitCode;
                 }
 
-                return (sb, exitResult);
+                return exitResult;
 
             }
 
-            return (null, null);
+            return 1;
 
         }
 
-        private void InterceptRun(object sender, TaskEventArgs args)
+        private void InterceptTraces(object sender, TaskEventArgs args)
         {
+
+            var id = args.Process.Id;
 
             switch (args.Status)
             {
 
                 case TaskEventEnum.Started:
-                    Trace.WriteLine("Started", "trace");
+
+                    _logger.LogInformation("Started process {id}", id);
                     break;
 
                 case TaskEventEnum.ErrorReceived:
-                    Trace.WriteLine(args.DateReceived.Data, "Error");
+                    _logger.LogError("{id} : " + Format(args?.DateReceived?.Data), id);
                     break;
 
                 case TaskEventEnum.DataReceived:
-                    Trace.WriteLine(args.DateReceived.Data, "Info");
+                    _logger.LogInformation("{id} : " + Format(args?.DateReceived?.Data), id);
                     break;
 
                 case TaskEventEnum.Completed:
@@ -307,10 +250,10 @@ namespace Bb.Services.Managers
                     if (instance != null)
                     {
                         _rootParent._referential.Remove(instance);
-                        Trace.WriteLine($"{instance.Parent.Template}/{instance.Contract} ended", "Info");
+                        _logger.LogInformation($"{instance.Parent.Template}/{instance.Contract} {id} is ended", id);
                     }
                     else
-                        Trace.WriteLine($"Completed", "Info");
+                        _logger.LogInformation("{id} is Completed", id);
                     Running = null;
                     _id = null;
                     break;
@@ -320,10 +263,10 @@ namespace Bb.Services.Managers
                     if (instance1 != null)
                     {
                         _rootParent._referential.Remove(instance1);
-                        Trace.WriteLine($"{instance1.Parent.Template}/{instance1.Contract} ended with exception", "Error");
+                        _logger.LogInformation($"{instance1.Parent.Template}/{instance1.Contract} ended with exception", "Error");
                     }
                     else
-                        Trace.WriteLine("ended with exception", "Error");
+                        _logger.LogInformation("ended with exception", "Error");
                     Running = null;
                     _id = null;
                     break;
@@ -332,6 +275,15 @@ namespace Bb.Services.Managers
                     break;
 
             }
+
+        }
+
+        private static string Format(string? data)
+        {
+            if (!string.IsNullOrEmpty(data))
+                return data.Replace("{", "'").Replace("}", "'");
+
+            return string.Empty;
 
         }
 
@@ -385,7 +337,7 @@ namespace Bb.Services.Managers
             var instance = _rootParent._referential.Register(Template, _parent.Contract, uriHttp, uriHttps);
 
             _rootParent._host
-                .Intercept(InterceptRun)
+                .Intercept(InterceptTraces)
                 .Run(_id.Value, c =>
                 {
                     c.Command($"dotnet.exe")
@@ -629,7 +581,14 @@ namespace Bb.Services.Managers
         private readonly string _defaultConfig;
         private Guid? _id;
 
-        public ProjectItem Running { get; private set; }
+        /// <summary>
+        /// Gets the running description.
+        /// if the service don't run. the instance is null.
+        /// </summary>
+        /// <value>
+        /// The running.
+        /// </value>
+        public ProjectItem? Running { get; private set; }
     }
 
 }
