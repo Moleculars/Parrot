@@ -17,12 +17,16 @@
 	<ItemGroup>
 	  <Compile Remove="Attributes\**" />
 	  <Compile Remove="Middlewares\Exceptions\**" />
+	  <Compile Remove="Services\Git\**" />
 	  <Content Remove="Attributes\**" />
 	  <Content Remove="Middlewares\Exceptions\**" />
+	  <Content Remove="Services\Git\**" />
 	  <EmbeddedResource Remove="Attributes\**" />
 	  <EmbeddedResource Remove="Middlewares\Exceptions\**" />
+	  <EmbeddedResource Remove="Services\Git\**" />
 	  <None Remove="Attributes\**" />
 	  <None Remove="Middlewares\Exceptions\**" />
+	  <None Remove="Services\Git\**" />
 	</ItemGroup>
 
 	<ItemGroup>

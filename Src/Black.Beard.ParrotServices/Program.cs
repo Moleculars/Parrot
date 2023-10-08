@@ -127,21 +127,21 @@ internal class Program
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            Configuration.CurrentDirectoryToWrite = Path.GetDirectoryName(currentAssembly.Location);
-            Configuration.TraceLogToWrite = Path.Combine("c:\\", "tmp", "logsparrot");
+            Configuration.CurrentDirectoryToWriteProjects = Path.Combine("c:\\", "tmp", "parrot", "project");
+            Configuration.TraceLogToWrite = Path.Combine("c:\\", "tmp", "parrot", "logs");
         }
 
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            Configuration.CurrentDirectoryToWrite = Path.Combine("home", "parrot");
-            Configuration.TraceLogToWrite = Path.Combine("tmp", "logsparrot");
+            Configuration.CurrentDirectoryToWriteProjects = Path.Combine("tmp", "parrot", "project");
+            Configuration.TraceLogToWrite = Path.Combine("tmp", "parrot", "logs");
         }
 
         else
             throw new Exception($"Os {RuntimeInformation.OSDescription} not managed");
 
-        if (!Directory.Exists(Configuration.CurrentDirectoryToWrite))
-            Directory.CreateDirectory(Configuration.CurrentDirectoryToWrite);
+        if (!Directory.Exists(Configuration.CurrentDirectoryToWriteProjects))
+            Directory.CreateDirectory(Configuration.CurrentDirectoryToWriteProjects);
 
         if (!Directory.Exists(Configuration.TraceLogToWrite))
             Directory.CreateDirectory(Configuration.TraceLogToWrite);
@@ -156,7 +156,7 @@ internal class Program
             Configuration.TraceLogToWrite += "/";
         }
 
-        Console.WriteLine("setting directory to generate projects in : " + Configuration.CurrentDirectoryToWrite);
+        Console.WriteLine("setting directory to generate projects in : " + Configuration.CurrentDirectoryToWriteProjects);
         Console.WriteLine("setting directory to output logs : " + Configuration.TraceLogToWrite);
 
     }

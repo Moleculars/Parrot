@@ -15,11 +15,20 @@ namespace Bb.Services.Managers
     public class ProjectBuilderProvider : IInitialize
     {
 
+        /// <summary>
+        /// Initializes the <see cref="ProjectBuilderProvider"/> class.
+        /// </summary>
         static ProjectBuilderProvider()
         {
             BuildGeneratorList();
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProjectBuilderProvider"/> class.
+        /// </summary>
+        /// <param name="host">The host centralize all ran service.</param>
+        /// <param name="referential">The referential.</param>
+        /// <param name="logger">The logger.</param>
         public ProjectBuilderProvider(LocalProcessCommandService host, ServiceReferential referential, ILogger<ProjectBuilderProvider> logger)
         {
             _logger = logger;
@@ -29,16 +38,19 @@ namespace Bb.Services.Managers
         }
 
         /// <summary>
-        /// Initializes the current service.
+        /// Initializes the <see cref="ProjectBuilderProvider" />.
         /// </summary>
-        /// <param name="services">The services.</param>
-        public void Initialize(IServiceProvider services)
+        /// <param name="services">The service provider.</param>
+        public virtual void Initialize(IServiceProvider services)
         {
-            Initialize(Configuration.CurrentDirectoryToWrite);
+            Initialize(Configuration.CurrentDirectoryToWriteProjects);
         }
 
-
-        public void Initialize(string pathRoot)
+        /// <summary>
+        /// Initializes the <see cref="ProjectBuilderProvider" />.
+        /// </summary>
+        /// <param name="pathRoot">The path root where the contracts will be generate.</param>
+        public virtual void Initialize(string pathRoot)
         {
 
             if (!Directory.Exists(pathRoot))
@@ -51,21 +63,129 @@ namespace Bb.Services.Managers
 
         }
 
-        public ProjectBuilderContract Contract(string contract)
+        /// <summary>
+        /// return the contract for specified contract name.
+        /// </summary>
+        /// <param name="contractName">The contract name.</param>
+        /// <returns></returns>
+        public ProjectBuilderContract Contract(string contractName)
         {
 
-            contract = contract.ToLower();
+            contractName = contractName.ToLower();
 
-            if (!_items.TryGetValue(contract, out var builder))
-                _items.Add(contract, builder = new ProjectBuilderContract(this, contract));
+            if (!_items.TryGetValue(contractName, out var builder))
+                lock (_lock)
+                    if (!_items.TryGetValue(contractName, out builder))
+                        _items.Add(contractName, builder = new ProjectBuilderContract(this, contractName));
 
             return builder;
 
         }
 
+        /// <summary>
+        /// Lists the by template.
+        /// </summary>
+        /// <param name="templateName">Name of the template.</param>
+        /// <returns></returns>
+        public List<ProjectDocument> ListByTemplate(string templateName)
+        {
+
+            var result = new List<ProjectDocument>();
+
+            var dirRoot = new DirectoryInfo(_root);
+            var dirs = dirRoot.GetDirectories();
+            foreach (var dir in dirs)
+            {
+                var contract = Contract(dir.Name);
+                if (contract.TemplateExist(templateName))
+                {
+
+
+                    var template = contract.Template(templateName);
+
+                    ContextGenerator ctx = new ContextGenerator(template.Root);
+
+                    var item = template.List(ctx);
+                    result.Add(item);
+                }
+            }
+
+            return result;
+
+        }
+
+        /// <summary>
+        /// return the list of contracts already exists in the referential
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<ProjectBuilderTemplate>> List()
+        {
+
+            List<ProjectBuilderTemplate> items = new List<ProjectBuilderTemplate>();
+
+            var dirRoot = new DirectoryInfo(_root);
+            var dirs = dirRoot.GetDirectories();
+            foreach (var dir in dirs)
+            {
+                ProjectBuilderContract contract = Contract(dir.Name);
+                items.AddRange(contract.List());
+            }
+
+            Thread.Yield();
+
+            return items;
+
+        }
+
+        /// <summary>
+        /// return the list of template services runnings. every service runs is tested
+        /// </summary>
+        /// <param name="templateName">Name of the template.</param>
+        /// <returns></returns>
+        public async Task<List<ProjectRunning>> ListRunningsByTemplate(string templateName)
+        {
+
+            var result = new List<ProjectRunning>();
+
+            var dirRoot = new DirectoryInfo(_root);
+            var dirs = dirRoot.GetDirectories();
+            foreach (var dir in dirs)
+            {
+                var contract = Contract(dir.Name);
+                if (contract.TemplateExist(templateName))
+                {
+                    var template = contract.Template(templateName);
+                    var item = await template.IsRunnings();
+                    result.Add(item);
+                }
+            }
+
+            return result;
+
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether contract exists in the referential.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [contract exists]; otherwise, <c>false</c>.
+        /// </value>
+        public bool ContractExists
+        {
+            get
+            {
+                return Directory.Exists(_root)
+                    && File.Exists(Path.Combine(_root, "contract.json"))
+                    ;
+            }
+        }
+
+
+        #region generators
 
         internal Type ResolveGenerator(string template)
         {
+
             if (_generators.TryGetValue(template, out var generator))
                 return generator;
 
@@ -98,77 +218,14 @@ namespace Bb.Services.Managers
                         yield return type;
         }
 
-        public List<ProjectDocument> ListByTemplate(string templateName)
-        {
+        #endregion generators
 
-            var result = new List<ProjectDocument>();
-
-            var dirRoot = new DirectoryInfo(_root);
-            var dirs = dirRoot.GetDirectories();
-            foreach (var dir in dirs)
-            {
-                var contract = Contract(dir.Name);
-                if (contract.TemplateExist(templateName))
-                {
-                    var template = contract.Template(templateName);
-                    var item = template.List();
-                    result.Add(item);
-                }
-            }
-
-            return result;
-
-        }
-
-        public async Task<List<ProjectBuilderTemplate>> List()
-        {
-
-            List<ProjectBuilderTemplate> items = new List<ProjectBuilderTemplate>();
-
-            var dirRoot = new DirectoryInfo(_root);
-            var dirs = dirRoot.GetDirectories();
-            foreach (var dir in dirs)
-            {
-                ProjectBuilderContract contract = Contract(dir.Name);
-                items.AddRange(contract.List());
-            }
-
-            return items;
-
-        }
-
-        public async Task<List<ProjectRunning>> ListRunningsByTemplate(string templateName)
-        {
-
-            var result = new List<ProjectRunning>();
-
-            var dirRoot = new DirectoryInfo(_root);
-            var dirs = dirRoot.GetDirectories();
-            foreach (var dir in dirs)
-            {
-                var contract = Contract(dir.Name);
-                if (contract.TemplateExist(templateName))
-                {
-                    var template = contract.Template(templateName);
-                    var item = await template.ListRunnings();
-                    result.Add(item);
-                }
-            }
-
-            return result;
-
-        }
-
-        public bool ContractExists
-        {
-            get
-            {
-                return Directory.Exists(_root)
-                    && File.Exists(Path.Combine(_root, "contract.json"))
-                    ;
-            }
-        }
-
+        /// <summary>
+        /// Gets the root path for access to the ressource.
+        /// </summary>
+        /// <value>
+        /// The root.
+        /// </value>
         public string Root => _root;
 
         internal readonly ILogger<ProjectBuilderProvider> _logger;
@@ -177,6 +234,8 @@ namespace Bb.Services.Managers
         private readonly Dictionary<string, ProjectBuilderContract> _items;
         private string _root;
         private static Dictionary<string, Type> _generators;
+        private volatile object _lock = new object();
+
     }
 
 }

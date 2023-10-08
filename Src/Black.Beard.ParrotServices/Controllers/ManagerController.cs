@@ -69,7 +69,6 @@ namespace Bb.ParrotServices.Controllers
         {
 
             // verify fileInfo
-            // verify fileInfo
             if (string.IsNullOrEmpty(upfile?.FileName))
             {
                 _logger.LogError("No file was received");
@@ -81,8 +80,6 @@ namespace Bb.ParrotServices.Controllers
                 _logger.LogError("file stream is not selected or empty");
                 return BadRequest("file stream is not selected or empty");
             }
-
-
 
             ProjectBuilderTemplate templateObject;
             var project = _builder.Contract(contract);
@@ -96,7 +93,6 @@ namespace Bb.ParrotServices.Controllers
                 return NotFound(e.Message);
             }
 
-
             // Save contract
             var filepath = templateObject.GetPath("contract.json");
             var f = new FileInfo(filepath);
@@ -107,13 +103,23 @@ namespace Bb.ParrotServices.Controllers
             // Generate project
             var result = templateObject.GenerateProject(filepath);
 
-            if (result.Context.Diagnostics.Success)
+            if (result != null && result.Context != null)
             {
-                Trace.WriteLine($"{template} service {contract} has been generated", "info");
-                return Ok(result);
+                if (result.Context.Diagnostics.Success)
+                {
+                    Trace.WriteLine($"{template} service {contract} has been generated", "info");
+                    return Ok(result);
+                }
+
+                return BadRequest(GetBadModel(result.Context.Diagnostics));
             }
 
-            return BadRequest(GetBadModel(result.Context.Diagnostics));
+            var diag = new Diagnostics
+            {
+                { SeverityEnum.Error, string.Empty, 0, 0, 0, "Project generation failed", "Project generation failed" }
+            };
+
+            return BadRequest(GetBadModel(diag));
 
         }
 

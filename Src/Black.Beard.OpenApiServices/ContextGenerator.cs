@@ -22,7 +22,7 @@ namespace Bb.OpenApiServices
         #region Append documents
 
         /// <summary>
-        /// create a new document on filesystem with specified content
+        /// create a new document on file system with specified content
         /// </summary>
         /// <param name="path">The path.</param>
         /// <param name="filename">The filename.</param>
@@ -39,7 +39,7 @@ namespace Bb.OpenApiServices
         }
 
         /// <summary>
-        /// create a new document on filesystem with specified content
+        /// create a new document on file system with specified content
         /// </summary>
         /// <param name="filename">The filename.</param>
         /// <param name="content">The content.</param>

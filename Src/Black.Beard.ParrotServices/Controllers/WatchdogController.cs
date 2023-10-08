@@ -33,7 +33,7 @@ namespace Bb.ParrotServices.Controllers
             foreach (var item in list)
             {
                 string value = "Stopped";
-                Models.ProjectRunning r = await item.ListRunnings();
+                Models.ProjectRunning r = await item.IsRunnings();
                 if (r != null)
                     if (r.Started)
                         value = "Started";

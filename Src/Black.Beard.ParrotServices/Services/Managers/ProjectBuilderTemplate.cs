@@ -13,9 +13,17 @@ using System.Text;
 
 namespace Bb.Services.Managers
 {
+
+
+    /// <summary>
+    /// manipulate templates
+    /// </summary>
     public class ProjectBuilderTemplate
     {
 
+        /// <summary>
+        /// Initializes the <see cref="ProjectBuilderTemplate"/> class.
+        /// </summary>
         static ProjectBuilderTemplate()
         {
 
@@ -26,46 +34,66 @@ namespace Bb.Services.Managers
 
         }
 
-        public ProjectBuilderTemplate(ProjectBuilderProvider rootParent, ProjectBuilderContract parent, string template)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProjectBuilderTemplate"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="template">The template.</param>
+        ///// <exception cref="Bb.ParrotServices.Exceptions.MockHttpException">template {template} not found</exception>
+        public ProjectBuilderTemplate(ProjectBuilderContract parent, string template)
         {
-            _logger = rootParent._logger;
-            _rootParent = rootParent;
             _parent = parent;
+            _rootParent = parent.Parent;
+            _logger = _rootParent._logger;
 
-            Template = template;
             Contract = _parent.Contract;
             Root = Path.Combine(parent.Root, template);
 
-            _templateConfigFilename = Path.Combine(Root, template + ".json");
-
+            
+            Template = template;
             _generatorType = _rootParent.ResolveGenerator(Template);
             if (_generatorType == null)
                 throw new MockHttpException($"template {template} not found");
-
+            _templateConfigFilename = Path.Combine(Root, template + ".json");
             var instance = GetGenerator();
+
+
             _configurationType = instance.ConfigurationType;
             _defaultConfig = JsonConvert.SerializeObject(instance.GetConfiguration(), jsonSerializerSettings);
 
         }
 
-
+        /// <summary>
+        /// Gets a path for specified name.
+        /// </summary>
+        /// <param name="filename">The filename.</param>
+        /// <returns></returns>
         public string GetPath(string filename)
         {
             var filepath = Path.Combine(Root, filename);
             return filepath;
         }
 
-        public string GetPath(string[] path)
-        {
-            var filepath = Root;
-            foreach (var item in path)
-                filepath = Path.Combine(filepath, item);
-            return filepath;
-        }
-
+        ///// <summary>
+        ///// return  the path.
+        ///// </summary>
+        ///// <param name="path">The path.</param>
+        ///// <returns></returns>
+        //public string GetPath(string[] path)
+        //{
+        //    var filepath = Root;
+        //    foreach (var item in path)
+        //        filepath = Path.Combine(filepath, item);
+        //    return filepath;
+        //}
 
         #region Config
 
+        /// <summary>
+        /// Sets the configuration for the template.
+        /// </summary>
+        /// <param name="action">The action.</param>
+        /// <returns></returns>
         public ProjectBuilderTemplate SetConfig(Action<object> action)
         {
 
@@ -75,6 +103,11 @@ namespace Bb.Services.Managers
             return this;
         }
 
+        /// <summary>
+        /// Writes the configuration in the referential.
+        /// </summary>
+        /// <param name="config">The configuration.</param>
+        /// <param name="control">The control.</param>
         private void WriteConfig(object config, string control)
         {
             var configTxt = JsonConvert.SerializeObject(config, jsonSerializerSettings);
@@ -82,6 +115,10 @@ namespace Bb.Services.Managers
                 _templateConfigFilename.Save(configTxt);
         }
 
+        /// <summary>
+        /// return the configurations for manipulate the generator template.
+        /// </summary>
+        /// <returns></returns>
         public object Config()
         {
             return GetConfig(out _);
@@ -102,7 +139,6 @@ namespace Bb.Services.Managers
 
         #endregion Config
 
-
         /// <summary>
         /// Writes the document on disk.
         /// </summary>
@@ -122,11 +158,12 @@ namespace Bb.Services.Managers
         /// <summary>
         /// Generate project
         /// </summary>
-        /// <param name="file"></param>
-        public ProjectDocument GenerateProject(string file)
+        /// <param name="fileContract">the file where the contract is located</param>
+        /// <returns>if the generator can't be resolve, the result is null.</returns>
+        public ProjectDocument? GenerateProject(string fileContract)
         {
 
-            ContextGenerator ctx = null;
+            ProjectDocument result = null;
             var config = Config();
             var generator = GetGenerator();
 
@@ -135,18 +172,23 @@ namespace Bb.Services.Managers
 
                 generator.ApplyConfiguration(config);
 
-                ctx = generator
+                ContextGenerator ctx = generator
                     .Initialize(Contract, Template, Root)
-                    .InitializeDataSources(file)
+                    .InitializeDataSources(fileContract)
                     .Generate();
+
+                result = List(ctx);
 
             }
 
-            var result = List(ctx);
             return result;
 
         }
 
+        /// <summary>
+        /// test if the template was generated for the current template.
+        /// </summary>
+        /// <returns></returns>
         public bool Exists()
         {
             var dir = new DirectoryInfo(Root);
@@ -155,7 +197,7 @@ namespace Bb.Services.Managers
         }
 
         /// <summary>
-        /// Build the contract
+        /// Build the project for the specified contract
         /// </summary>
         public async Task<(StringBuilder?, int?)> Build()
         {
@@ -415,7 +457,10 @@ namespace Bb.Services.Managers
         }
 
 
-
+        /// <summary>
+        /// Kills the process.
+        /// </summary>
+        /// <returns></returns>
         public async Task<bool> Kill()
         {
 
@@ -469,7 +514,6 @@ namespace Bb.Services.Managers
         }
 
 
-
         internal string GetDirectoryProject(params string[] path)
         {
 
@@ -494,20 +538,20 @@ namespace Bb.Services.Managers
 
         }
 
-
-
-
-        private ServiceGenerator? GetGenerator() => (ServiceGenerator)Activator.CreateInstance(_generatorType);
-
-        public ProjectDocument List(ContextGenerator ctx = null)
+        /// <summary>
+        /// return the list of document in the project.
+        /// </summary>
+        /// <param name="ctx">The CTX.</param>
+        /// <returns></returns>
+        public ProjectDocument List(ContextGenerator ctx)
         {
 
-            string rootPath = ctx?.TargetPath ?? Path.Combine(Root, "service");
+            string rootPath = ctx.TargetPath;
             ProjectDocument result = new ProjectDocument()
             {
                 Contract = _parent.Contract,
                 Template = Template,
-                Context = ctx ?? new ContextGenerator(rootPath)
+                Context = ctx
 
             };
 
@@ -519,10 +563,10 @@ namespace Bb.Services.Managers
                 var files = dirRoot.GetFiles("*.json");
                 foreach (var item in files)
                 {
-
                     _logger.LogDebug($"ProjectBuilderTemplate.List : file = {item.FullName}");
-
-                    var relative = new Uri(Root).MakeRelativeUri(new Uri(item.FullName));
+                    var target = new Uri(item.FullName);
+                    var relative = new Uri(rootPath);
+                    relative = relative.MakeRelativeUri(target);
                     result.Documents.Add(new Document() { Kind = "jslt", File = relative.ToString() });
                 }
             }
@@ -531,7 +575,11 @@ namespace Bb.Services.Managers
 
         }
 
-        public async Task<ProjectRunning> ListRunnings()
+        /// <summary>
+        /// return runnings status
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ProjectRunning> IsRunnings()
         {
 
             ProjectRunning result = new ProjectRunning(Running)
@@ -552,11 +600,25 @@ namespace Bb.Services.Managers
 
         }
 
+        /// <summary>
+        /// The template name
+        /// </summary>
         public readonly string Template;
 
+        /// <summary>
+        /// Gets the contract name.
+        /// </summary>
+        /// <value>
+        /// The contract.
+        /// </value>
         public string Contract { get; }
 
+        /// <summary>
+        /// The root path of the template
+        /// </summary>
         public readonly string Root;
+        
+        private ServiceGenerator? GetGenerator() => (ServiceGenerator)Activator.CreateInstance(_generatorType);
         private readonly ILogger<ProjectBuilderProvider> _logger;
         private readonly ProjectBuilderProvider _rootParent;
         private readonly ProjectBuilderContract _parent;
