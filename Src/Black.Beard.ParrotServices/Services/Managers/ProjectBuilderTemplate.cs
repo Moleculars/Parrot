@@ -50,7 +50,7 @@ namespace Bb.Services.Managers
             Contract = _parent.Contract;
             Root = Path.Combine(parent.Root, template);
 
-            
+
             Template = template;
             _generatorType = _rootParent.ResolveGenerator(Template);
             if (_generatorType == null)
@@ -207,6 +207,7 @@ namespace Bb.Services.Managers
             int? exitResult = 0;
             if (projectFile != null)
             {
+
                 using (var cmd = new ProcessCommand()
                          .Command($"dotnet.exe", $"build \"{projectFile.FullName}\" -c release /p:Version=1.0.0.0")
                          .Intercept(InterceptTraces)
@@ -220,6 +221,7 @@ namespace Bb.Services.Managers
 
             }
 
+            _logger.LogError($"Failed to locate a project to build in {Root}");
             return 1;
 
         }
@@ -290,16 +292,18 @@ namespace Bb.Services.Managers
         /// <summary>
         /// Run the contract
         /// </summary>
-        public async Task<ProjectItem> Run(string publicHost, int? httpCurrentPort, int? httpsCurrentPort)
+        public async Task<ProjectItem?> Run(string publicHost, int? httpCurrentPort, int? httpsCurrentPort)
         {
 
             var projectFile = GetFileProject();
 
             if (projectFile == null)
+            {
+                _logger.LogError($"Failed to locate a project to run in {Root}");
                 return null;
+            }
 
             string internalHost = "localhost";
-
 
             Uri? uriHttp = null;
             Uri? uriHttps = null;
@@ -569,7 +573,7 @@ namespace Bb.Services.Managers
         /// The root path of the template
         /// </summary>
         public readonly string Root;
-        
+
         private ServiceGenerator? GetGenerator() => (ServiceGenerator)Activator.CreateInstance(_generatorType);
         private readonly ILogger<ProjectBuilderProvider> _logger;
         private readonly ProjectBuilderProvider _rootParent;
