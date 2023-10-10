@@ -165,6 +165,7 @@ namespace Bb.ParrotServices.Controllers
                 return NotFound(e.Message);
             }
 
+            _logger.LogDebug("build target template : {root}", templateObject.Root);
             var result = await templateObject.Build();
 
             if (result.HasValue && result.Value > 0)

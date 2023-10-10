@@ -268,16 +268,15 @@ namespace Bb.Services.Managers
             {
 
                 case TaskEventEnum.Started:
-
-                    _logger.LogInformation("Started process {id}", id);
+                    _logger.LogInformation("Started process {id}. {cmd} {args}", id, args.Process.FileNameText, args.Process.ArgumentText);
                     break;
 
                 case TaskEventEnum.ErrorReceived:
-                    _logger.LogError("{id} : " + Format(args?.DateReceived?.Data), id);
+                    _logger.LogError("process {id} : " + Format(args?.DateReceived?.Data), id);
                     break;
 
                 case TaskEventEnum.DataReceived:
-                    _logger.LogInformation("{id} : " + Format(args?.DateReceived?.Data), id);
+                    _logger.LogInformation("process {id} : " + Format(args?.DateReceived?.Data), id);
                     break;
 
                 case TaskEventEnum.Completed:
@@ -285,10 +284,10 @@ namespace Bb.Services.Managers
                     if (instance != null)
                     {
                         _rootParent._referential.Remove(instance);
-                        _logger.LogInformation($"{instance.Parent.Template}/{instance.Contract} {id} is ended", id);
+                        _logger.LogInformation($"{instance.Parent.Template}/{instance.Contract} process {id} is ended", id);
                     }
                     else
-                        _logger.LogInformation("{id} is Completed", id);
+                        _logger.LogInformation("process {id} is Completed", id);
                     Running = null;
                     _id = null;
                     break;
