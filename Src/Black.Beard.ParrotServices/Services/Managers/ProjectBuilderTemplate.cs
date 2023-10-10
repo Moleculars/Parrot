@@ -141,6 +141,33 @@ namespace Bb.Services.Managers
         #endregion Config
 
         /// <summary>
+        /// Gets the template configuration file path.
+        /// </summary>
+        /// <value>
+        /// The template configuration filename.
+        /// </value>
+        public string TemplateConfigFilename => _templateConfigFilename;
+
+        /// <summary>
+        /// Removes the template if exists.
+        /// </summary>
+        public void RemoveTemplateIfExists()
+        {
+            var f = new FileInfo(_templateConfigFilename);
+            if (f.Exists)
+                f.Delete();
+        }
+
+        /// <summary>
+        /// Writes the document on disk.
+        /// </summary>
+        /// <param name="upfile">The upfile.</param>
+        public void WriteOnDisk(IFormFile upfile)
+        {
+            WriteOnDisk(upfile, _templateConfigFilename);
+        }
+
+        /// <summary>
         /// Writes the document on disk.
         /// </summary>
         /// <param name="upfile">The upfile.</param>
@@ -151,8 +178,12 @@ namespace Bb.Services.Managers
             if (!Directory.Exists(Root))
                 Directory.CreateDirectory(Root);
 
+            RemoveTemplateIfExists();
+
             using (var stream = new FileStream(filepath, FileMode.Create))
                 upfile.CopyTo(stream);
+
+            _templateConfigFilename = filepath;
 
         }
 
@@ -161,7 +192,7 @@ namespace Bb.Services.Managers
         /// </summary>
         /// <param name="fileContract">the file where the contract is located</param>
         /// <returns>if the generator can't be resolve, the result is null.</returns>
-        public ProjectDocument? GenerateProject(string fileContract)
+        public ProjectDocument? GenerateProject()
         {
 
             ProjectDocument result = null;
@@ -175,7 +206,7 @@ namespace Bb.Services.Managers
 
                 ContextGenerator ctx = generator
                     .Initialize(Contract, Template, Root)
-                    .InitializeDataSources(fileContract)
+                    .InitializeDataSources(_templateConfigFilename)
                     .Generate();
 
                 result = List(ctx);
@@ -578,11 +609,12 @@ namespace Bb.Services.Managers
         private readonly ILogger<ProjectBuilderProvider> _logger;
         private readonly ProjectBuilderProvider _rootParent;
         private readonly ProjectBuilderContract _parent;
-        private readonly string _templateConfigFilename;
         private readonly Type _generatorType;
         private static readonly JsonSerializerSettings jsonSerializerSettings;
         private readonly Type _configurationType;
         private readonly string _defaultConfig;
+        
+        private  string _templateConfigFilename;
         private Guid? _id;
 
         /// <summary>

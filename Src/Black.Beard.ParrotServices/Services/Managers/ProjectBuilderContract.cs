@@ -32,7 +32,7 @@
         /// </summary>
         /// <param name="templateName">Name of the template.</param>
         /// <returns></returns>
-        public bool TemplateExist(string templateName)
+        public bool TemplateExistsOnDisk(string templateName)
         {
             return Directory.Exists(Path.Combine(Root, templateName));
         }

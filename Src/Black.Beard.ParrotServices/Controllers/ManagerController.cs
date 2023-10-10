@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Bb.Services.Managers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Bb.Analysis;
+using Microsoft.Extensions.Logging;
 
 namespace Bb.ParrotServices.Controllers
 {
@@ -40,12 +41,12 @@ namespace Bb.ParrotServices.Controllers
 
             var addresses = server.GetServerAcceptedAddresses();
             foreach (Uri address in addresses)
-                {
-                    if (address.Scheme.ToLower() == "http")
-                        this._http = address;
-                    else
-                        this._https = address;
-                }
+            {
+                if (address.Scheme.ToLower() == "http")
+                    this._http = address;
+                else
+                    this._https = address;
+            }
 
         }
 
@@ -67,6 +68,8 @@ namespace Bb.ParrotServices.Controllers
         //[DisableRequestSizeLimit]
         public async Task<IActionResult> UploadOpenApiContract([FromRoute] string template, [FromRoute] string contract, IFormFile upfile)
         {
+
+            _logger.LogDebug("Root : {root}", _builder.Root);
 
             // verify fileInfo
             if (string.IsNullOrEmpty(upfile?.FileName))
@@ -94,22 +97,20 @@ namespace Bb.ParrotServices.Controllers
             }
 
             // Save contract
-            var filepath = templateObject.GetPath("contract.json");
-            var f = new FileInfo(filepath);
-            if (f.Exists)
-                f.Delete();
-            templateObject.WriteOnDisk(upfile, filepath);
+            templateObject.WriteOnDisk(upfile);
 
             // Generate project
-            var result = templateObject.GenerateProject(filepath);
+            var result = templateObject.GenerateProject();
 
             if (result != null && result.Context != null)
             {
                 if (result.Context.Diagnostics.Success)
                 {
-                    Trace.WriteLine($"{template} service {contract} has been generated", "info");
+                    _logger.LogInformation($"{template}/{contract} has been generated");
                     return Ok(result);
                 }
+                else
+                    _logger.LogError($"Failed to generate {template}/{contract}");
 
                 return BadRequest(GetBadModel(result.Context.Diagnostics));
             }
@@ -123,36 +124,12 @@ namespace Bb.ParrotServices.Controllers
 
         }
 
-        private ModelStateDictionary GetBadModel(Diagnostics diagnostics)
-        {
-
-            var model = new ModelStateDictionary();
-
-            foreach (var diagnostic in diagnostics)
-            {
-
-                string message;
-
-                //if (diagnostic.Location.Start.IsEmpty)
-                //{
-                //}
-                //else
-                //    //message += diagnostic.Location.Start.;
-
-                model.AddModelError(diagnostic.Severity + (model.Count + 1).ToString(), diagnostic.ToString());
-            
-            }
-
-            return model;
-
-        }
-
         /// <summary>
         /// Gets the existing generated services list for the specified template.
         /// </summary>
         /// <param name="template">The template.</param>
         /// <returns>returns the list of existing generated list (launch or not) with jslt template list.</returns>
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ProjectDocument>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProjectDocuments))]
         [HttpGet("list")]
         [Produces("application/json")]
         public async Task<IActionResult> GetGeneratedServicesByTemplate([FromRoute] string template)
@@ -391,6 +368,30 @@ namespace Bb.ParrotServices.Controllers
 
 
         internal readonly ProjectBuilderProvider _builder;
+
+        private ModelStateDictionary GetBadModel(Diagnostics diagnostics)
+        {
+
+            var model = new ModelStateDictionary();
+
+            foreach (var diagnostic in diagnostics)
+            {
+
+                string message;
+
+                //if (diagnostic.Location.Start.IsEmpty)
+                //{
+                //}
+                //else
+                //    //message += diagnostic.Location.Start.;
+
+                model.AddModelError(diagnostic.Severity + (model.Count + 1).ToString(), diagnostic.ToString());
+
+            }
+
+            return model;
+
+        }
 
         private Uri? _http { get; }
         private Uri? _https { get; }

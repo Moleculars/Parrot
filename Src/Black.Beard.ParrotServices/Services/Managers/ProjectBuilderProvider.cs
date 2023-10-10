@@ -56,10 +56,7 @@ namespace Bb.Services.Managers
             if (!Directory.Exists(pathRoot))
                 Directory.CreateDirectory(pathRoot);
 
-            _root = Path.Combine(pathRoot, "Services");
-
-            if (!Directory.Exists(_root))
-                Directory.CreateDirectory(_root);
+            _root = pathRoot;
 
         }
 
@@ -87,19 +84,26 @@ namespace Bb.Services.Managers
         /// </summary>
         /// <param name="templateName">Name of the template.</param>
         /// <returns></returns>
-        public List<ProjectDocument> ListByTemplate(string templateName)
+        public ProjectDocuments ListByTemplate(string templateName)
         {
 
-            var result = new List<ProjectDocument>();
+            _logger.LogDebug("looking in folder Root : {root}", _root);
+
+            var result = new ProjectDocuments()
+            {
+                Root = _root
+            };
+
+            // c:\tmp\parrot\projects
+            // C:\tmp\parrot\projects\parcel\mock
 
             var dirRoot = new DirectoryInfo(_root);
             var dirs = dirRoot.GetDirectories();
             foreach (var dir in dirs)
             {
                 var contract = Contract(dir.Name);
-                if (contract.TemplateExist(templateName))
+                if (contract.TemplateExistsOnDisk(templateName))
                 {
-
 
                     var template = contract.Template(templateName);
 
@@ -152,7 +156,7 @@ namespace Bb.Services.Managers
             foreach (var dir in dirs)
             {
                 var contract = Contract(dir.Name);
-                if (contract.TemplateExist(templateName))
+                if (contract.TemplateExistsOnDisk(templateName))
                 {
                     var template = contract.Template(templateName);
                     var item = await template.IsRunnings();

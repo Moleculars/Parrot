@@ -127,13 +127,13 @@ internal class Program
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            Configuration.CurrentDirectoryToWriteProjects = Path.Combine("c:\\", "tmp", "parrot", "project");
+            Configuration.CurrentDirectoryToWriteProjects = Path.Combine("c:\\", "tmp", "parrot", "projects");
             Configuration.TraceLogToWrite = Path.Combine("c:\\", "tmp", "parrot", "logs");
         }
 
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            Configuration.CurrentDirectoryToWriteProjects = Path.Combine("tmp", "parrot", "project");
+            Configuration.CurrentDirectoryToWriteProjects = Path.Combine("tmp", "parrot", "projects");
             Configuration.TraceLogToWrite = Path.Combine("tmp", "parrot", "logs");
         }
 
