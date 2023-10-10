@@ -94,9 +94,6 @@ namespace Bb.Services.Managers
                 Root = _root
             };
 
-            // c:\tmp\parrot\projects
-            // C:\tmp\parrot\projects\parcel\mock
-
             var dirRoot = new DirectoryInfo(_root);
             var dirs = dirRoot.GetDirectories();
             foreach (var dir in dirs)

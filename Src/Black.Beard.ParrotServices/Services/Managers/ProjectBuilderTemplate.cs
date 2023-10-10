@@ -234,10 +234,12 @@ namespace Bb.Services.Managers
         public async Task<int?> Build()
         {
 
-            var projectFile = GetFileProject();
+            FileInfo? projectFile = GetFileProject();
             int? exitResult = 0;
             if (projectFile != null)
             {
+
+                _logger.LogError("starting build {project}", projectFile.FullName);
 
                 using (var cmd = new ProcessCommand()
                          .Command($"dotnet.exe", $"build \"{projectFile.FullName}\" -c release /p:Version=1.0.0.0")

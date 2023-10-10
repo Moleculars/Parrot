@@ -1,5 +1,7 @@
 ﻿namespace Bb.Middlewares.EntryFullLogger
 {
+
+
     public class RequestResponseLogModel
     {
 

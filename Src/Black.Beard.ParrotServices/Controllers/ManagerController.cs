@@ -69,7 +69,7 @@ namespace Bb.ParrotServices.Controllers
         public async Task<IActionResult> UploadOpenApiContract([FromRoute] string template, [FromRoute] string contract, IFormFile upfile)
         {
 
-            _logger.LogDebug("Root : {root}", _builder.Root);
+            _logger.LogDebug("Upload root : {root}", _builder.Root);
 
             // verify fileInfo
             if (string.IsNullOrEmpty(upfile?.FileName))
@@ -149,6 +149,8 @@ namespace Bb.ParrotServices.Controllers
         [Produces("text/plain")]
         public async Task<IActionResult> Build([FromRoute] string template, [FromRoute] string contract)
         {
+
+            _logger.LogDebug("build root : {root}", _builder.Root);
 
             var project = _builder.Contract(contract);
 

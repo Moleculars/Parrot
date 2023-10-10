@@ -17,14 +17,16 @@ namespace Bb.Middlewares.EntryFullLogger
         }
 
         public async Task InvokeAsync(HttpContext httpContext, IRequestResponseLogModelCreator logCreator)
-        {
-            RequestResponseLogModel log = logCreator.LogModel;
+        { 
+
             // Middleware is enabled only when the EnableRequestResponseLogging config value is set.
             if (_options == null || !_options.IsEnabled)
             {
                 await _next(httpContext);
                 return;
             }
+
+            RequestResponseLogModel log = logCreator.LogModel;
             log.RequestDateTimeUtc = DateTime.UtcNow;
             HttpRequest request = httpContext.Request;
 
@@ -46,7 +48,7 @@ namespace Bb.Middlewares.EntryFullLogger
             log.RequestHost = request.Host.ToString();
             log.RequestContentType = request.ContentType;
 
-            // Temporarily replace the HttpResponseStream, which is a write-only stream, with a MemoryStream to capture it's value in-flight.
+            // Temporary replace the HttpResponseStream, which is a write-only stream, with a Memory stream to capture it's value in-flight.
             HttpResponse response = httpContext.Response;
             var originalResponseBody = response.Body;
             using var newResponseBody = new MemoryStream();
@@ -87,6 +89,7 @@ namespace Bb.Middlewares.EntryFullLogger
 
             //var jsonString = logCreator.LogString(); /*log json*/
             _logger.Log(logCreator);
+
         }
 
         private void LogError(RequestResponseLogModel log, Exception exception)
