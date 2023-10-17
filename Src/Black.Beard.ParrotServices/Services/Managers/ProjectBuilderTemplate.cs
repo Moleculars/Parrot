@@ -11,6 +11,7 @@ using Bb.Services.ProcessHosting;
 using Bb.ParrotServices.Exceptions;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Bb.Services.Managers
 {
@@ -41,15 +42,16 @@ namespace Bb.Services.Managers
         /// <param name="parent">The parent.</param>
         /// <param name="template">The template.</param>
         /// <exception cref="Bb.ParrotServices.Exceptions.MockHttpException">template {template} not found</exception>
-        public ProjectBuilderTemplate(ProjectBuilderContract parent, string template)
+        public ProjectBuilderTemplate(ProjectBuilderContract parent, string template, LocalProcessCommandService host)
         {
+
             _parent = parent;
             _rootParent = parent.Parent;
             _logger = _rootParent._logger;
+            _host = host;
 
             Contract = _parent.Contract;
             Root = Path.Combine(parent.Root, template);
-
 
             Template = template;
             _generatorType = _rootParent.ResolveGenerator(Template);
@@ -57,7 +59,6 @@ namespace Bb.Services.Managers
                 throw new MockHttpException($"template {template} not found");
             _templateConfigFilename = Path.Combine(Root, template + ".json");
             var instance = GetGenerator();
-
 
             _configurationType = instance.ConfigurationType;
             _defaultConfig = JsonConvert.SerializeObject(instance.GetConfiguration(), jsonSerializerSettings);
@@ -74,19 +75,6 @@ namespace Bb.Services.Managers
             var filepath = Path.Combine(Root, filename);
             return filepath;
         }
-
-        ///// <summary>
-        ///// return  the path.
-        ///// </summary>
-        ///// <param name="path">The path.</param>
-        ///// <returns></returns>
-        //public string GetPath(string[] path)
-        //{
-        //    var filepath = Root;
-        //    foreach (var item in path)
-        //        filepath = Path.Combine(filepath, item);
-        //    return filepath;
-        //}
 
         #region Config
 
@@ -190,7 +178,6 @@ namespace Bb.Services.Managers
         /// <summary>
         /// Generate project
         /// </summary>
-        /// <param name="fileContract">the file where the contract is located</param>
         /// <returns>if the generator can't be resolve, the result is null.</returns>
         public ProjectDocument? GenerateProject()
         {
@@ -231,93 +218,31 @@ namespace Bb.Services.Managers
         /// <summary>
         /// Build the project for the specified contract
         /// </summary>
-        public async Task<int?> Build()
+        public async Task<(int, string?)> Build()
         {
 
             FileInfo? projectFile = GetFileProject();
-            int? exitResult = 0;
+            int exitResult = 1;
             if (projectFile != null)
             {
 
-                _logger.LogError("starting build {project}", projectFile.FullName);
+                _logger.LogInformation("starting build {project}", projectFile.FullName);
 
-                using (var cmd = new ProcessCommand()
-                         .Command($"dotnet.exe", $"build \"{projectFile.FullName}\" -c release /p:Version=1.0.0.0")
-                         .Intercept(InterceptTraces)
-                         .Run())
-                {
-                    cmd.Wait();
-                    exitResult = cmd.ExitCode;
-                }
+                var cmd = _host.RunAndGet(new DotnetCommand(), c =>
+                          {
+                              c.Arguments($"build \"{projectFile.FullName}\" -c release /p:Version=1.0.0.0")
+                               .Intercept(InterceptTraces);
+                          });
+                cmd.Wait();
+                exitResult = cmd.ExitCode.HasValue ? cmd.ExitCode.Value : 1;
 
-                return exitResult;
+                _logger.LogInformation("ended {project} with exit code {exitResult}", projectFile.FullName, exitResult);
+                return (exitResult, cmd.Trace);
 
             }
 
             _logger.LogError($"Failed to locate a project to build in {Root}");
-            return 1;
-
-        }
-
-        private void InterceptTraces(object sender, TaskEventArgs args)
-        {
-
-            var id = args.Process.Id;
-
-            switch (args.Status)
-            {
-
-                case TaskEventEnum.Started:
-                    _logger.LogInformation("Started process {id}. {cmd} {args}", id, args.Process.FileNameText, args.Process.ArgumentText);
-                    break;
-
-                case TaskEventEnum.ErrorReceived:
-                    _logger.LogError("process {id} : " + Format(args?.DateReceived?.Data), id);
-                    break;
-
-                case TaskEventEnum.DataReceived:
-                    _logger.LogInformation("process {id} : " + Format(args?.DateReceived?.Data), id);
-                    break;
-
-                case TaskEventEnum.Completed:
-                    var instance = args.Process.Tag as ServiceReferentialContract;
-                    if (instance != null)
-                    {
-                        _rootParent._referential.Remove(instance);
-                        _logger.LogInformation($"{instance.Parent.Template}/{instance.Contract} process {id} is ended", id);
-                    }
-                    else
-                        _logger.LogInformation("process {id} is Completed", id);
-                    Running = null;
-                    _id = null;
-                    break;
-
-                case TaskEventEnum.CompletedWithException:
-                    var instance1 = args.Process.Tag as ServiceReferentialContract;
-                    if (instance1 != null)
-                    {
-                        _rootParent._referential.Remove(instance1);
-                        _logger.LogInformation($"{instance1.Parent.Template}/{instance1.Contract} ended with exception", "Error");
-                    }
-                    else
-                        _logger.LogInformation("ended with exception", "Error");
-                    Running = null;
-                    _id = null;
-                    break;
-
-                default:
-                    break;
-
-            }
-
-        }
-
-        private static string Format(string? data)
-        {
-            if (!string.IsNullOrEmpty(data))
-                return data.Replace("{", "'").Replace("}", "'");
-
-            return string.Empty;
+            return (exitResult, $"Failed to locate a project to build in {Root}");
 
         }
 
@@ -372,25 +297,18 @@ namespace Bb.Services.Managers
 
             var instance = _rootParent._referential.Register(Template, _parent.Contract, uriHttp, uriHttps);
 
-            _rootParent._host
-                .Intercept(InterceptTraces)
-                .Run(_id.Value, c =>
-                {
-                    c.Command($"dotnet.exe")
-                     .SetWorkingDirectory(workingDirectory)
-                     .Arguments($"run \"{projectFile.Name}\" --urls {urls.ToString()}") // -c Development 
-                     ;
-                }, instance)
-                //.Wait(id, 500)
-                ;
-
-            var task = _rootParent._host.GetTask(_id.Value);
-            task.Wait(1500);
-
-            if (task.ExitCode > 0)
+            DotnetCommand cmd = _host.RunAndGet(new DotnetCommand(_id.Value, instance), c =>
             {
+                c.SetWorkingDirectory(workingDirectory)
+                 .Arguments($"run \"{projectFile.Name}\" --urls {urls.ToString()}") // -c Development 
+                 .Intercept(InterceptTraces)
+                 ;
+            });
+
+            cmd.Wait(1500);
+
+            if (cmd.ExitCode > 0)
                 throw new Exception("Service can't start");
-            }
 
             Running = new ProjectItem()
             {
@@ -464,10 +382,13 @@ namespace Bb.Services.Managers
 
                     task.Intercept((c, args) =>
                     {
+                        
                         if (args.Status == TaskEventEnum.Completed)
                             result = true;
-                        if (args.Status == TaskEventEnum.CompletedWithException)
+
+                        if (args.Status == TaskEventEnum.RanWithException)
                             result = true;
+
                     });
 
                     task.Cancel();
@@ -500,7 +421,6 @@ namespace Bb.Services.Managers
             return null;
 
         }
-
 
         internal string GetDirectoryProject(params string[] path)
         {
@@ -588,6 +508,42 @@ namespace Bb.Services.Managers
 
         }
 
+
+        private void InterceptTraces(object sender, TaskEventArgs args)
+        {
+
+            var id = args.Process.Id;
+
+            switch (args.Status)
+            {
+
+                case TaskEventEnum.Completed:
+                    var instance = args.Process.Tag as ServiceReferentialContract;
+                    if (instance != null)
+                    {
+                        _rootParent._referential.Remove(instance);
+                    }
+                    Running = null;
+                    _id = null;
+                    break;
+
+                case TaskEventEnum.RanWithException:
+                    var instance1 = args.Process.Tag as ServiceReferentialContract;
+                    if (instance1 != null)
+                    {
+                        _rootParent._referential.Remove(instance1);
+                    }
+                    Running = null;
+                    _id = null;
+                    break;
+
+                default:
+                    break;
+
+            }
+
+        }
+
         /// <summary>
         /// The template name
         /// </summary>
@@ -608,6 +564,7 @@ namespace Bb.Services.Managers
 
         private ServiceGenerator? GetGenerator() => (ServiceGenerator)Activator.CreateInstance(_generatorType);
         private readonly ILogger<ProjectBuilderProvider> _logger;
+        private readonly LocalProcessCommandService _host;
         private readonly ProjectBuilderProvider _rootParent;
         private readonly ProjectBuilderContract _parent;
         private readonly Type _generatorType;

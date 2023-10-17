@@ -2,6 +2,7 @@
 using Bb.ParrotServices.Controllers;
 using Bb.Process;
 using System.Diagnostics;
+using System.Security.Cryptography;
 
 namespace Bb.Services.ProcessHosting
 {
@@ -13,43 +14,88 @@ namespace Bb.Services.ProcessHosting
     public class LocalProcessCommandService : ProcessCommandService
     {
 
-        public LocalProcessCommandService()
+        public LocalProcessCommandService(ILogger<LocalProcessCommandService> logger)
         {
-            Intercept(Interceptor);
+            _logger = logger;
+            Intercept(log);
+            var o = this;
         }
 
-        private void Interceptor(object sender, TaskEventArgs args)
+        private void log(object sender, TaskEventArgs args)
         {
+
+            var id = args.Process.Id;
 
             switch (args.Status)
             {
-
                 case TaskEventEnum.Started:
-                    Trace.WriteLine("Started", "trace");
+                    _logger.LogInformation("Started process {id}. {cmd} {args}", id, args.Process.FileNameText, args.Process.ArgumentText);
+                    break;
+
+                case TaskEventEnum.FailedToStart:
                     break;
 
                 case TaskEventEnum.ErrorReceived:
-                    Trace.WriteLine(args.DateReceived.Data, "Error");
+                    _logger.LogError("process {id} : " + Format(args?.DateReceived?.Data), id);
                     break;
 
                 case TaskEventEnum.DataReceived:
-                    Trace.WriteLine(args.DateReceived.Data, "Info");
+                    _logger.LogInformation("process {id} : " + Format(args?.DateReceived?.Data), id);
                     break;
 
                 case TaskEventEnum.Completed:
-                    Trace.WriteLine($"Completed", "Info");
+                    var instance = args.Process.Tag as ServiceReferentialContract;
+                    if (instance != null)
+                    {
+                        _logger.LogInformation($"{instance.Parent.Template}/{instance.Contract} process {id} is ended", id);
+                    }
+                    else
+                        _logger.LogInformation("process {id} is Completed", id);
                     break;
 
-                case TaskEventEnum.CompletedWithException:
-                    Trace.WriteLine("ended with exception", "Error");
+                case TaskEventEnum.RanWithException:
+                    var instance1 = args.Process.Tag as ServiceReferentialContract;
+                    if (instance1 != null)
+                    {
+                        _logger.LogError($"{instance1.Parent.Template}/{instance1.Contract} ended with exception");
+                    }
+                    else
+                        _logger.LogError("ended with exception");
+                    break;
+
+                case TaskEventEnum.RanCanceled:
+                    _logger.LogInformation("process {id} is canceled", id);
+                    break;
+                case TaskEventEnum.FailedToCancel:
+                    _logger.LogInformation("process {id} is failed to cancel", id);
+                    break;
+
+                case TaskEventEnum.Releasing:
+                    _logger.LogInformation("process {id} is Completed", id);
+                    break;
+
+                case TaskEventEnum.Disposing:
+                    _logger.LogInformation("process {id} is Completed", id);
                     break;
 
                 default:
                     break;
-
             }
 
+
         }
+
+
+        private static string Format(string? data)
+        {
+            if (!string.IsNullOrEmpty(data))
+                return data.Replace("{", "'").Replace("}", "'");
+
+            return string.Empty;
+
+        }
+
+        private readonly ILogger<LocalProcessCommandService> _logger;
 
     }
 

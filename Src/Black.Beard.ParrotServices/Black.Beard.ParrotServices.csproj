@@ -50,13 +50,13 @@
 
 	<ItemGroup>
 
-		<PackageReference Include="Black.Beard.Jslt" Version="1.0.255" />
+		<PackageReference Include="Black.Beard.Jslt" Version="1.0.259" />
 
-		<PackageReference Include="Black.Beard.Process" Version="1.0.64" />
+		<PackageReference Include="Black.Beard.Process" Version="1.0.70" />
 
-		<PackageReference Include="Black.Beard.Projects.Models" Version="1.0.64" />
+		<PackageReference Include="Black.Beard.Projects.Models" Version="1.0.70" />
 
-		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.64" />
+		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.70" />
 
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
@@ -64,13 +64,13 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration.NewtonsoftJson" Version="5.0.1" />
 		<PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
 
-		<PackageReference Include="Microsoft.OpenApi" Version="1.6.8" />
+		<PackageReference Include="Microsoft.OpenApi" Version="1.6.9" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
 		
-		<PackageReference Include="NLog" Version="5.*" />
-		<PackageReference Include="NLog.DiagnosticSource" Version="5.0.0" />
-		<PackageReference Include="NLog.Extensions.Logging" Version="5.3.4" />
-		<PackageReference Include="NLog.Web.AspNetCore" Version="5.*" />
+		<PackageReference Include="NLog" Version="5.2.5" />
+		<PackageReference Include="NLog.DiagnosticSource" Version="5.2.0" />
+		<PackageReference Include="NLog.Extensions.Logging" Version="5.3.5" />
+		<PackageReference Include="NLog.Web.AspNetCore" Version="5.3.5" />
 
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 	</ItemGroup>

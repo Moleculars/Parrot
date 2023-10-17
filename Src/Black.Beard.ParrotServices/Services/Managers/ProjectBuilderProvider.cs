@@ -29,7 +29,10 @@ namespace Bb.Services.Managers
         /// <param name="host">The host centralize all ran service.</param>
         /// <param name="referential">The referential.</param>
         /// <param name="logger">The logger.</param>
-        public ProjectBuilderProvider(LocalProcessCommandService host, ServiceReferential referential, ILogger<ProjectBuilderProvider> logger)
+        public ProjectBuilderProvider(
+              LocalProcessCommandService host
+            , ServiceReferential referential
+            , ILogger<ProjectBuilderProvider> logger)
         {
             _logger = logger;
             _referential = referential;
@@ -73,7 +76,7 @@ namespace Bb.Services.Managers
             if (!_items.TryGetValue(contractName, out var builder))
                 lock (_lock)
                     if (!_items.TryGetValue(contractName, out builder))
-                        _items.Add(contractName, builder = new ProjectBuilderContract(this, contractName));
+                        _items.Add(contractName, builder = new ProjectBuilderContract(this, contractName, _host));
 
             return builder;
 

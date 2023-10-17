@@ -145,7 +145,7 @@ namespace Bb.ParrotServices.Controllers
         /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(NotFoundObjectResult))]
-        [HttpPut("{contract}/build")]
+        [HttpPost("{contract}/build")]
         [Produces("text/plain")]
         public async Task<IActionResult> Build([FromRoute] string template, [FromRoute] string contract)
         {
@@ -168,8 +168,8 @@ namespace Bb.ParrotServices.Controllers
             _logger.LogDebug("build target template : {root}", templateObject.Root);
             var result = await templateObject.Build();
 
-            if (result.HasValue && result.Value > 0)
-                return BadRequest(result.ToString());
+            if (result.Item1 > 0)
+                return BadRequest(result.Item2);
 
             return Ok(result.ToString());
 
@@ -206,7 +206,7 @@ namespace Bb.ParrotServices.Controllers
 
             var buildResult = await templateObject.Build();
 
-            if (buildResult.HasValue && buildResult.Value == 0)
+            if (buildResult.Item1 == 0)
             {
 
                 var ports = await templateObject.Run(host, GetHttpPort(), GetHttpsPort()); // todo : comment retrouver le hostname
@@ -218,7 +218,7 @@ namespace Bb.ParrotServices.Controllers
 
             }
 
-            return BadRequest(buildResult.ToString());
+            return BadRequest(buildResult.Item2);
 
         }
 

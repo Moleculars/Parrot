@@ -17,9 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Black.Beard.Analysis" Version="1.0.64" />
-    <PackageReference Include="Microsoft.OpenApi" Version="1.6.8" />
-    <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.8" />
+    <PackageReference Include="Black.Beard.Analysis" Version="1.0.70" />
+    <PackageReference Include="Microsoft.OpenApi" Version="1.6.9" />
+    <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.9" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 

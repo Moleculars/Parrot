@@ -11,6 +11,10 @@ namespace Bb.OpenApiServices
     public class ContextGenerator
     {
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ContextGenerator"/> class.
+        /// </summary>
+        /// <param name="path">The path.</param>
         public ContextGenerator(string path)
         {
             this.TargetPath = path;
@@ -153,7 +157,7 @@ namespace Bb.OpenApiServices
 
         public IEnumerable<string> Files => _files;
 
-        public string ContractDocumentFilename { get; internal set; }
+        public string? ContractDocumentFilename { get; internal set; }
 
         private HashSet<string> _files;
  
