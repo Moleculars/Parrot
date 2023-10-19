@@ -31,7 +31,7 @@ namespace Bb.Services.ProcessHosting
         public DotnetCommand(Guid id, object tag)
             : base(id, tag)
         {
-            Command($"dotnet.exe");
+            Command($"dotnet");
             Intercept(log);
         }
 
