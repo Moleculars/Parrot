@@ -37,6 +37,7 @@ COPY --from=build /app .
 ENV use_swagger=true
 ENV trace_all=true
 
-EXPOSE 80
+# EXPOSE 80	# with "mcr.microsoft.com/dotnet/aspnet:6.0"
+EXPOSE 5000
 
 ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll"]
