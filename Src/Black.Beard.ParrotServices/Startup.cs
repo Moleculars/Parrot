@@ -167,7 +167,7 @@ namespace Bb.ParrotServices
               }))
 
               .UseReverseProxy()                // Redirect all call start with /proxy/mock/{contractname} on the hosted service
-              .UsdeHttpInfoLogger()             // log entries requests
+              .UseHttpInfoLogger()             // log entries requests
 
               .UseEndpoints(endpoints =>
               {

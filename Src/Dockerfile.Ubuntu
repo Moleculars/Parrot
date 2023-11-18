@@ -24,8 +24,8 @@ COPY Black.Beard.ParrotServices/* .
 RUN dotnet restore --use-current-runtime
 
 
-RUN dotnet publish --use-current-runtime -r linux-x64 --no-restore -c Release -o /app
-WORKDIR /app
+# RUN dotnet publish --use-current-runtime -r linux-x64 --no-restore -c Release -o /app
+# WORKDIR /app
 
 
 # final stage/image
@@ -41,3 +41,5 @@ ENV trace_all=true
 EXPOSE 5000
 
 ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll"]
+
+

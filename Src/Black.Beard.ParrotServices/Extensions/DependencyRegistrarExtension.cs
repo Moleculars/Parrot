@@ -8,7 +8,7 @@ namespace Bb.Extensions
     {
 
 
-        public static IApplicationBuilder UsdeHttpInfoLogger(this IApplicationBuilder builder) => builder.UseMiddleware<HttpInfoLoggerMiddleware>();
+        public static IApplicationBuilder UseHttpInfoLogger(this IApplicationBuilder builder) => builder.UseMiddleware<HttpInfoLoggerMiddleware>();
 
         public static IApplicationBuilder UseApiKey(this IApplicationBuilder builder) => builder.UseMiddleware<ApiKeyHandlerMiddleware>();
 
