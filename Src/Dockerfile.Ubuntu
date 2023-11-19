@@ -3,29 +3,27 @@
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/aspnetapp/Dockerfile.ubuntu
 # Learn about building .NET container images:
 FROM mcr.microsoft.com/dotnet/sdk:6.0-jammy AS build
-WORKDIR /src
-
 LABEL maintainer="gaelgael5@gmail.com" github="https://github.com/Moleculars/Parrot"
 
+
 WORKDIR /src/Black.Beard.Curl
-COPY Black.Beard.Curl/* .
+COPY Black.Beard.Curl/ /src/Black.Beard.Curl
 RUN dotnet restore --use-current-runtime
 
 WORKDIR /src/Black.Beard.OpenApi
-COPY Black.Beard.OpenApi/* .
+COPY Black.Beard.OpenApi/ /src/Black.Beard.OpenApi
 RUN dotnet restore --use-current-runtime
 
 WORKDIR /src/Black.Beard.OpenApiServices
-COPY Black.Beard.OpenApiServices/ .
+COPY Black.Beard.OpenApiServices/ /src/Black.Beard.OpenApiServices
 RUN dotnet restore --use-current-runtime
 
 WORKDIR /src/ParrotServices
-COPY Black.Beard.ParrotServices/* .
+COPY Black.Beard.ParrotServices/ /src/ParrotServices
 RUN dotnet restore --use-current-runtime
 
-
-# RUN dotnet publish --use-current-runtime -r linux-x64 --no-restore -c Release -o /app
-# WORKDIR /app
+RUN dotnet publish --use-current-runtime -r linux-x64 --no-restore -c Release -o /app
+WORKDIR /app
 
 
 # final stage/image
