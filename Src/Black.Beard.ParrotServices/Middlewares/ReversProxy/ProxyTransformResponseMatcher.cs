@@ -1,4 +1,6 @@
-﻿using Bb.Services.ProcessHosting;
+﻿using Bb.Extensions;
+using Bb.Services.ProcessHosting;
+using Flurl;
 using System.Text;
 
 namespace Bb.Middlewares.ReversProxy
@@ -62,7 +64,7 @@ namespace Bb.Middlewares.ReversProxy
                         string message = await t.Transform(context, responseMessage);
 
                         var req = context.Request;
-                        var _current = new Flurl.Url(req.Scheme, req.Host.Host, req.Host.Port.HasValue ? req.Host.Port.Value : 80)
+                        var _current = new Url(req.Scheme, req.Host.Host, req.Host.Port.HasValue ? req.Host.Port.Value : 80)
                             .AppendPathSegments(translator.QuerySource);
 
                         message = message

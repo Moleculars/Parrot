@@ -3,11 +3,13 @@
 
 namespace Bb.ParrotServices
 {
+
     /// <summary>
     /// A requirement that an ApiKey must be present.
     /// </summary>
     public class ApiKeyRequirement : IAuthorizationRequirement
     {
+
         /// <summary>
         /// Get the list of api keys
         /// </summary>

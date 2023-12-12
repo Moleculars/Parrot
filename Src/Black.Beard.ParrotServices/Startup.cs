@@ -8,22 +8,29 @@ using Microsoft.AspNetCore.HttpOverrides;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Reflection;
-using Microsoft.Extensions.Configuration;
-using System.Net;
+using Bb.Swashbuckle;
 
 namespace Bb.ParrotServices
 {
     public class Startup
     {
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Startup"/> class.
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
         public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        /// <summary>
+        /// Configures the services.
+        /// </summary>
+        /// <param name="services">The services.</param>
         public void ConfigureServices(IServiceCollection services)
         {
+
 
             // see : https://learn.microsoft.com/fr-fr/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-7.0#fhmo
             services.Configure<ForwardedHeadersOptions>(options =>
@@ -39,7 +46,7 @@ namespace Bb.ParrotServices
             });
 
 
-            // Auto discover all types with attribute [ExposeClass] and register in ioc.
+            // Auto discover all types with attribute [ExposeClass] for register  in ioc.
             services.UseTypeExposedByAttribute(_configuration, Constants.Models.Configuration, c =>
             {
                 services.BindConfiguration(c, _configuration);
@@ -47,11 +54,10 @@ namespace Bb.ParrotServices
                 //var cc2 = c.GenerateContracts();
             })
             .UseTypeExposedByAttribute(_configuration, Constants.Models.Model)
-            .UseTypeExposedByAttribute(_configuration, Constants.Models.Service)
+            .UseTypeExposedByAttribute(_configuration, Constants.Models.Service);
 
-            .AddControllers()
-            ;
 
+            services.AddControllers();
 
 
             // Auto discovers all services with Authorize attribute and 
@@ -64,28 +70,29 @@ namespace Bb.ParrotServices
                         options.AddPolicy(policyModel.Name, policy => policy.RequireAssertion(a => Authorize(a, policyModel)));
                 });
             var currentAssembly = Assembly.GetAssembly(typeof(Program));
-            policies.Save(Path.GetDirectoryName(currentAssembly.Location));
-
+            policies.SaveInFolder(Path.GetDirectoryName(currentAssembly.Location));
 
 
             if (Configuration.UseSwagger) // Swagger OpenAPI 
             {
                 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
                 // https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-5.0&tabs=visual-studio
-                //services.AddEndpointsApiExplorer();
+                services.AddEndpointsApiExplorer();
                 services.AddSwaggerGen(c =>
                 {
                     c.DescribeAllParametersInCamelCase();
                     c.IgnoreObsoleteActions();
                     c.AddDocumentation(i =>
                     {
-                        i.Licence(l => l.Name("Only usable with a valid partner contract."))
-                         ;
-                    });
-                    c.AddSwaggerWithApiKeySecurity(services, _configuration, $"{Assembly.GetExecutingAssembly().GetName().Name}");
-                    //c.TagActionsBy(a => new List<string> { a.ActionDescriptor is ControllerActionDescriptor b ? b.ControllerTypeInfo.Assembly.FullName.Split('.')[2].Split(',')[0].Replace("Web", "") : a.ActionDescriptor.DisplayName });
+                        i.Licence(l => l.Name("Only usable with a valid partner contract."));
+                    }, "Black.*.xml");
+                    c.AddSwaggerWithApiKeySecurity(services, _configuration);
+                    c.DocumentFilter<AppendInheritanceDocumentFilter>();
+                    c.UseOneOfForPolymorphism();
+
                 });
             }
+
 
         }
 
@@ -119,7 +126,13 @@ namespace Bb.ParrotServices
 
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+
+        /// <summary>
+        /// Configures the specified application.
+        /// </summary>
+        /// <param name="app">The application.</param>
+        /// <param name="env">The env.</param>
+        /// <param name="loggerFactory">The logger factory.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
 
@@ -130,10 +143,10 @@ namespace Bb.ParrotServices
                    .UseSwaggerUI();
             }
 
+            
             if (Configuration.TraceAll)
-            {
                 app.UseMiddleware<RequestResponseLoggerMiddleware>();
-            }
+
 
             if (!env.IsDevelopment())
             {

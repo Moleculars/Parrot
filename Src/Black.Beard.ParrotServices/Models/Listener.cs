@@ -11,7 +11,9 @@
         }
 
         public Swagger Http { get; internal set; }
+
         public Swagger Https { get; internal set; }
+
     }
 
 }

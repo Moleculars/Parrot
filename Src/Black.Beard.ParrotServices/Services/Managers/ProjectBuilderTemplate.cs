@@ -1,6 +1,5 @@
 ﻿using Bb.Process;
 using Bb.OpenApiServices;
-using Newtonsoft.Json;
 using Flurl;
 using Bb.Models;
 using Flurl.Http;
@@ -12,6 +11,7 @@ using Bb.ParrotServices.Exceptions;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.CodeAnalysis.Emit;
+using System.Text.Json;
 
 namespace Bb.Services.Managers
 {
@@ -28,10 +28,10 @@ namespace Bb.Services.Managers
         /// </summary>
         static ProjectBuilderTemplate()
         {
-
-            jsonSerializerSettings = new JsonSerializerSettings
+            
+            jsonSerializerSettings = new JsonSerializerOptions()
             {
-                TypeNameHandling = TypeNameHandling.All
+                WriteIndented = true
             };
 
         }
@@ -57,11 +57,15 @@ namespace Bb.Services.Managers
             _generatorType = _rootParent.ResolveGenerator(Template);
             if (_generatorType == null)
                 throw new MockHttpException($"template {template} not found");
-            _templateConfigFilename = Path.Combine(Root, template + ".json");
+            
+            _templateFilename = Path.Combine(Root, template + ".json");
+            _templateConfigFilename = Path.Combine(Root, template + ".config.json");
             var instance = GetGenerator();
+            if (instance == null)
+                throw new MockHttpException($"instance {template} can not be created");
 
             _configurationType = instance.ConfigurationType;
-            _defaultConfig = JsonConvert.SerializeObject(instance.GetConfiguration(), jsonSerializerSettings);
+            _defaultConfig = JsonSerializer.Serialize(instance.GetConfiguration(), _configurationType, jsonSerializerSettings);
 
         }
 
@@ -85,7 +89,6 @@ namespace Bb.Services.Managers
         /// <returns></returns>
         public ProjectBuilderTemplate SetConfig(Action<object> action)
         {
-
             var config = GetConfig(out var control);
             action(config);
             WriteConfig(config, control);
@@ -99,7 +102,10 @@ namespace Bb.Services.Managers
         /// <param name="control">The control.</param>
         private void WriteConfig(object config, string control)
         {
-            var configTxt = JsonConvert.SerializeObject(config, jsonSerializerSettings);
+
+            _templateConfigFilename.SerializeAndSaveConfiguration(config, _configurationType);
+
+            var configTxt = JsonSerializer.Serialize(config, _configurationType, jsonSerializerSettings); 
             if (configTxt != control)
                 _templateConfigFilename.Save(configTxt);
         }
@@ -108,21 +114,25 @@ namespace Bb.Services.Managers
         /// return the configurations for manipulate the generator template.
         /// </summary>
         /// <returns></returns>
-        public object Config()
+        public object? Config()
         {
             return GetConfig(out _);
         }
 
-        private object GetConfig(out string control)
+        private object? GetConfig(out string control)
         {
 
             if (File.Exists(_templateConfigFilename))
+            {
                 control = _templateConfigFilename.LoadFromFile();
-
+                return control.DeserializeConfiguration(_configurationType, jsonSerializerSettings);
+            }
             else
+            {
                 control = _defaultConfig;
+                return control.Deserialize(_configurationType, jsonSerializerSettings);                
+            }
 
-            return JsonConvert.DeserializeObject(control, _configurationType, jsonSerializerSettings);
 
         }
 
@@ -137,11 +147,19 @@ namespace Bb.Services.Managers
         public string TemplateConfigFilename => _templateConfigFilename;
 
         /// <summary>
+        /// Gets the template filename.
+        /// </summary>
+        /// <value>
+        /// The template filename.
+        /// </value>
+        public string TemplateFilename => _templateFilename;
+
+        /// <summary>
         /// Removes the template if exists.
         /// </summary>
         public void RemoveTemplateIfExists()
         {
-            var f = new FileInfo(_templateConfigFilename);
+            var f = new FileInfo(_templateFilename);
             if (f.Exists)
                 f.Delete();
         }
@@ -152,15 +170,15 @@ namespace Bb.Services.Managers
         /// <param name="upfile">The upfile.</param>
         public void WriteOnDisk(IFormFile upfile)
         {
-            WriteOnDisk(upfile, _templateConfigFilename);
+            WriteOnDisk(upfile, _templateFilename);
         }
 
         /// <summary>
         /// Writes the document on disk.
         /// </summary>
-        /// <param name="upfile">The upfile.</param>
-        /// <param name="filepath">The filepath.</param>
-        public void WriteOnDisk(IFormFile upfile, string filepath)
+        /// <param name="upFile">The upload document.</param>
+        /// <param name="filePath">The file path.</param>
+        public void WriteOnDisk(IFormFile upFile, string filePath)
         {
 
             if (!Directory.Exists(Root))
@@ -168,10 +186,10 @@ namespace Bb.Services.Managers
 
             RemoveTemplateIfExists();
 
-            using (var stream = new FileStream(filepath, FileMode.Create))
-                upfile.CopyTo(stream);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+                upFile.CopyTo(stream);
 
-            _templateConfigFilename = filepath;
+            _templateFilename = filePath;
 
         }
 
@@ -182,7 +200,7 @@ namespace Bb.Services.Managers
         public ProjectDocument? GenerateProject()
         {
 
-            ProjectDocument result = null;
+            ProjectDocument? result = default;
             var config = Config();
             var generator = GetGenerator();
 
@@ -193,7 +211,7 @@ namespace Bb.Services.Managers
 
                 ContextGenerator ctx = generator
                     .Initialize(Contract, Template, Root)
-                    .InitializeDataSources(_templateConfigFilename)
+                    .InitializeDataSources(_templateFilename)
                     .Generate();
 
                 result = List(ctx);
@@ -568,11 +586,13 @@ namespace Bb.Services.Managers
         private readonly ProjectBuilderProvider _rootParent;
         private readonly ProjectBuilderContract _parent;
         private readonly Type _generatorType;
-        private static readonly JsonSerializerSettings jsonSerializerSettings;
+        private static readonly JsonSerializerOptions jsonSerializerSettings;
         private readonly Type _configurationType;
         private readonly string _defaultConfig;
         
+        private  string _templateFilename;
         private  string _templateConfigFilename;
+
         private Guid? _id;
 
         /// <summary>

@@ -30,10 +30,8 @@ namespace UnitTests
             .Generate()
             ;
 
-
             var dir = Path.Combine(generator.Directory, name + ".csproj");
-
-
+                        
             using (var cmd = new ProcessCommand()
                      .Command($"dotnet.exe" , $"build \"{dir}\" -c release /p:Version=1.0.0.0")
                      //.OutputOnTraces()
@@ -42,9 +40,7 @@ namespace UnitTests
                 cmd.Wait();
             }
 
-
         }
-
 
         private readonly string _file;
         private readonly DirectoryInfo? _baseDirectory;

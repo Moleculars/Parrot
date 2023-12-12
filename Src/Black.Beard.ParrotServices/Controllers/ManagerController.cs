@@ -19,11 +19,11 @@ using Microsoft.Extensions.Logging;
 namespace Bb.ParrotServices.Controllers
 {
 
-
     [ApiController]
     [Route("[controller]/{template}")]
     [Authorize(Policy = "Manager")]
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(HttpExceptionModel))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(HttpExceptionModel))]
     public class ManagerController : ControllerBase
     {
 
@@ -59,8 +59,8 @@ namespace Bb.ParrotServices.Controllers
         /// <returns>Return the list of template.</returns>
         /// <exception cref="Bb.ParrotServices.Exceptions.BadRequestException">No file received.</exception>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProjectDocument))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(BadRequestObjectResult))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(NotFoundObjectResult))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpPost("{contract}/upload")]
         //[Consumes("form-data")]
         [Produces("application/json")]
@@ -144,7 +144,7 @@ namespace Bb.ParrotServices.Controllers
         /// <exception cref="T:NotFoundObjectResult">the template is not found</exception>
         /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(NotFoundObjectResult))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpPost("{contract}/build")]
         [Produces("text/plain")]
         public async Task<IActionResult> Build([FromRoute] string template, [FromRoute] string contract)
@@ -183,7 +183,7 @@ namespace Bb.ParrotServices.Controllers
         /// <exception cref="T:NotFoundObjectResult">the template is not found</exception>
         /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(NotFoundObjectResult))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpPut("{contract}/run")]
         [Produces("application/json")]
         public async Task<IActionResult> Run([FromRoute] string template, [FromRoute] string contract)
@@ -231,7 +231,7 @@ namespace Bb.ParrotServices.Controllers
         /// <returns></returns>
         /// <exception cref="T:NotFoundObjectResult">the template is not found</exception>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(NotFoundObjectResult))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpPut("{contract}/kill")]
         [Produces("application/json")]
         public async Task<IActionResult> Kill([FromRoute] string template, [FromRoute] string contract)
@@ -271,7 +271,6 @@ namespace Bb.ParrotServices.Controllers
             return Ok(items);
         }
 
-
         /// <summary>
         /// Download the specified data template.
         /// </summary>
@@ -281,7 +280,7 @@ namespace Bb.ParrotServices.Controllers
         /// <returns></returns>
         /// <exception cref="T:NotFoundObjectResult">the template is not found</exception>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(NotFoundObjectResult))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("{contract}/download_template")]
         [Produces("application/octet-stream")]
         public async Task<IActionResult> DownloadDataTemplate([FromRoute] string template, [FromRoute] string contract, [FromQuery] string filename)
@@ -321,8 +320,8 @@ namespace Bb.ParrotServices.Controllers
         /// <exception cref="T:BadRequestObjectResult">No file received</exception>
         /// <exception cref="T:NotFoundObjectResult">the template is not found</exception>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(BadRequestObjectResult))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(NotFoundObjectResult))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpPost("{contract}/upload_template")]
         public async Task<IActionResult> UploadDataTemplate([FromRoute] string template, [FromRoute] string contract, IFormFile upfile)
         {

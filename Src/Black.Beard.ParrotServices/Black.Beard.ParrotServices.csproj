@@ -15,22 +15,21 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Attributes\**" />
-	  <Compile Remove="Middlewares\Exceptions\**" />
-	  <Compile Remove="Services\Git\**" />
-	  <Content Remove="Attributes\**" />
-	  <Content Remove="Middlewares\Exceptions\**" />
-	  <Content Remove="Services\Git\**" />
-	  <EmbeddedResource Remove="Attributes\**" />
-	  <EmbeddedResource Remove="Middlewares\Exceptions\**" />
-	  <EmbeddedResource Remove="Services\Git\**" />
-	  <None Remove="Attributes\**" />
-	  <None Remove="Middlewares\Exceptions\**" />
-	  <None Remove="Services\Git\**" />
+		<Compile Remove="Attributes\**" />
+		<Compile Remove="Middlewares\Exceptions\**" />
+		<Compile Remove="Services\Git\**" />
+		<Content Remove="Attributes\**" />
+		<Content Remove="Middlewares\Exceptions\**" />
+		<Content Remove="Services\Git\**" />
+		<EmbeddedResource Remove="Attributes\**" />
+		<EmbeddedResource Remove="Middlewares\Exceptions\**" />
+		<EmbeddedResource Remove="Services\Git\**" />
+		<None Remove="Attributes\**" />
+		<None Remove="Middlewares\Exceptions\**" />
+		<None Remove="Services\Git\**" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Remove="Extensions\UseExtension.cs" />
 		<Compile Remove="Middlewares\HtmlPackExtension.cs" />
 		<Compile Remove="Middlewares\HtmlVisitor.cs" />
 		<Compile Remove="Middlewares\IHtmlVisitor.cs" />
@@ -44,33 +43,33 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Include="..\Dockerfile.Ubuntu" Link="Dockerfile.Ubuntu" />
-	  <None Include="..\Dockerfile.Windows" Link="Dockerfile.Windows" />
+		<None Include="..\Dockerfile.Ubuntu" Link="Dockerfile.Ubuntu" />
+		<None Include="..\Dockerfile.Windows" Link="Dockerfile.Windows" />
 	</ItemGroup>
 
 	<ItemGroup>
 
-		<PackageReference Include="Black.Beard.Jslt" Version="1.0.259" />
+		<PackageReference Include="Black.Beard.Jslt" Version="1.0.285" />
 
-		<PackageReference Include="Black.Beard.Process" Version="1.0.70" />
+		<PackageReference Include="Black.Beard.Process" Version="1.0.72" />
 
-		<PackageReference Include="Black.Beard.Projects.Models" Version="1.0.70" />
+		<PackageReference Include="Black.Beard.Projects.Models" Version="1.0.72" />
 
-		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.70" />
+		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.72" />
 
-		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.NewtonsoftJson" Version="5.0.1" />
 		<PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
 
-		<PackageReference Include="Microsoft.OpenApi" Version="1.6.9" />
+		<PackageReference Include="Microsoft.OpenApi" Version="1.6.11" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
-		
-		<PackageReference Include="NLog" Version="5.2.5" />
+
+		<PackageReference Include="NLog" Version="5.2.7" />
 		<PackageReference Include="NLog.DiagnosticSource" Version="5.2.0" />
-		<PackageReference Include="NLog.Extensions.Logging" Version="5.3.5" />
-		<PackageReference Include="NLog.Web.AspNetCore" Version="5.3.5" />
+		<PackageReference Include="NLog.Extensions.Logging" Version="5.3.7" />
+		<PackageReference Include="NLog.Web.AspNetCore" Version="5.3.7" />
 
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 	</ItemGroup>
@@ -79,6 +78,7 @@
 		<ProjectReference Include="..\Black.Beard.Curl\Black.Beard.Curl.csproj" />
 		<ProjectReference Include="..\Black.Beard.OpenApiServices\Black.Beard.OpenApiServices.csproj" />
 		<ProjectReference Include="..\Black.Beard.OpenApi\Black.Beard.OpenApi.csproj" />
+		<ProjectReference Include="..\Black.Beard.Web.Server\Black.Beard.Web.Server.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -91,9 +91,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="Properties\launchSettings.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
+		<None Update="Properties\launchSettings.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 </Project>

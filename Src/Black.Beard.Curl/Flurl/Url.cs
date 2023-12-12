@@ -12,20 +12,6 @@ namespace Flurl
     public class Url
     {
 
-        private string _originalString;
-        private bool _parsed;
-        private string _scheme;
-        private string _userInfo;
-        private string _host;
-        private List<string> _pathSegments;
-        private QueryParamCollection _queryParams;
-        private string _fragment;
-        private int? _port;
-        private bool _leadingSlash;
-        private bool _trailingSlash;
-        private bool _trailingQmark;
-        private bool _trailingHash;
-
         #region public properties
 
         /// <summary>
@@ -82,6 +68,8 @@ namespace Flurl
             Scheme?.Length > 0 ? ":" : "",
             Authority?.Length > 0 ? "//" : "",
             Authority);
+
+        public Uri BaseAddress => new Uri(this.Root);
 
         /// <summary>
         /// i.e. "/path" in "https://www.site.com/path". Empty string if not present. Leading and trailing "/" retained exactly as specified by user.
@@ -148,7 +136,7 @@ namespace Flurl
         public bool IsSecureScheme => !IsRelative && (Scheme.OrdinalEquals("https", true) || Scheme.OrdinalEquals("wss", true));
         #endregion
 
-        #region ctors and parsing methods
+        #region constructors and parsing methods
 
         public Url(string scheme, string host, int port, params string[] segments)
             : this()
@@ -286,9 +274,11 @@ namespace Flurl
                     yield return segments[i];
             }
         }
+        
         #endregion
 
         #region fluent builder methods
+        
         /// <summary>
         /// Appends a segment to the URL path, ensuring there is one and only one '/' character as a separator.
         /// </summary>
@@ -554,6 +544,7 @@ namespace Flurl
         #endregion
 
         #region conversion, equality, etc.
+        
         /// <summary>
         /// Converts this Url object to its string representation.
         /// </summary>
@@ -562,14 +553,14 @@ namespace Flurl
         public string ToString(bool encodeSpaceAsPlus)
         {
             if (!_parsed)
-                return _originalString ?? "";
+                return _originalString ?? string.Empty;
 
             return string.Concat(
                 Root,
                 encodeSpaceAsPlus ? Path.Replace("%20", "+") : Path,
-                _trailingQmark || QueryParams.Any() ? "?" : "",
+                _trailingQmark || QueryParams.Any() ? "?" : string.Empty,
                 QueryParams.ToString(encodeSpaceAsPlus),
-                _trailingHash || Fragment?.Length > 0 ? "#" : "",
+                _trailingHash || Fragment?.Length > 0 ? "#" : string.Empty,
                 Fragment).Trim();
         }
 
@@ -618,7 +609,8 @@ namespace Flurl
         public override int GetHashCode() => this.ToString().GetHashCode();
         #endregion
 
-        #region static utility methods
+        #region static utility methods        
+
         /// <summary>
         /// Basically a Path.Combine for URLs. Ensures exactly one '/' separates each segment,
         /// and exactly on '&amp;' separates each query parameter.
@@ -751,6 +743,23 @@ namespace Flurl
         /// <param name="url">The string to check</param>
         /// <returns>true if the string is a well-formed absolute URL</returns>
         public static bool IsValid(string url) => url != null && Uri.IsWellFormedUriString(url, UriKind.Absolute);
+        
         #endregion
+
+
+        private string _originalString;
+        private bool _parsed;
+        private string _scheme;
+        private string _userInfo;
+        private string _host;
+        private List<string> _pathSegments;
+        private QueryParamCollection _queryParams;
+        private string _fragment;
+        private int? _port;
+        private bool _leadingSlash;
+        private bool _trailingSlash;
+        private bool _trailingQmark;
+        private bool _trailingHash;
+
     }
 }

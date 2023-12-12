@@ -12,6 +12,10 @@ namespace Flurl.CodeGen
         private int _indent;
         private bool _wrapping;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CodeWriter"/> class.
+        /// </summary>
+        /// <param name="filePath">The file path.</param>
         public CodeWriter(string filePath)
         {
             _sw = new StreamWriter(File.OpenWrite(filePath));
@@ -31,17 +35,14 @@ namespace Flurl.CodeGen
             }
 
             if (line == "}" || line == "{")
-            {
                 _indent--;
-            }
 
             _sw.Write(new String('\t', _indent));
             _sw.WriteLine(line);
 
             if (line == "" || line.StartsWith("//") || line.EndsWith("]"))
-            {
                 _wrapping = false;
-            }
+            
             else if (line.EndsWith(";") || line.EndsWith("}"))
             {
                 if (_wrapping)
@@ -63,15 +64,29 @@ namespace Flurl.CodeGen
             return this; // fluent!
         }
 
+        /// <summary>
+        /// Writes a line terminator to the text stream.
+        /// </summary>
+        /// <exception cref="T:System.ObjectDisposedException">
+        /// The System.IO.TextWriter is closed.
+        /// </exception>
+        /// <exception cref="T:System.IO.IOException">
+        /// An I/O error occurs.
+        /// </exception>
+        /// <returns></returns>
         public CodeWriter WriteLine()
         {
             _sw.WriteLine();
             return this;
         }
 
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             _sw.Dispose();
         }
+
     }
 }

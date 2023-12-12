@@ -26,7 +26,10 @@ namespace Bb.ParrotServices.Controllers
         {
 
             WatchdogResult result
-                = new WatchdogResult(new WatchdogResultItem("current_datetime", DateTime.UtcNow.ToString("u")));
+                = new WatchdogResult(
+                    new WatchdogResultItem("current_datetime", DateTime.UtcNow.ToString("u")),
+                    new WatchdogResultItem("os_version", Environment.OSVersion.ToString())
+                    );
 
             var list = await _builder.List();
 

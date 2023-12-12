@@ -9,6 +9,7 @@ using Flurl.Util;
 
 namespace Flurl.Http
 {
+
 	/// <summary>
 	/// Interface defining FlurlClient's contract (useful for mocking and DI)
 	/// </summary>
@@ -51,6 +52,7 @@ namespace Flurl.Http
 	/// </summary>
 	public class FlurlClient : IFlurlClient
 	{
+
 		/// <summary>
 		/// Initializes a new instance of <see cref="FlurlClient"/>.
 		/// </summary>

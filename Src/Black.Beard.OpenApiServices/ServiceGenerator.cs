@@ -23,7 +23,7 @@ namespace Bb.OpenApiServices
         /// <value>
         /// The type of the configuration.
         /// </value>
-        public override Type ConfigurationType => typeof(T);
+        public override Type? ConfigurationType => typeof(T);
 
         /// <summary>
         /// Gets the configuration.
@@ -31,13 +31,17 @@ namespace Bb.OpenApiServices
         /// <value>
         /// The configuration.
         /// </value>
-        public T Configuration { get; set; }
+        public T? Configuration { get; set; }
 
-        public override object GetConfiguration() => Configuration;
+        public override object? GetConfiguration() => Configuration;
 
-        public override void ApplyConfiguration(object configuration)
+        /// <summary>
+        /// Applies the configuration.
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        public override void ApplyConfiguration(object? configuration)
         {
-            this.Configuration = (T)configuration;
+            this.Configuration = configuration as T;
         }
 
     }
@@ -54,11 +58,11 @@ namespace Bb.OpenApiServices
             };
         }
 
-        public abstract object GetConfiguration();
+        public abstract object? GetConfiguration();
 
-        public abstract void ApplyConfiguration(object token);
+        public abstract void ApplyConfiguration(object? token);
 
-        public abstract Type ConfigurationType { get; }
+        public abstract Type? ConfigurationType { get; }
 
         internal abstract void InitializeDatas(string file);
 
@@ -88,6 +92,10 @@ namespace Bb.OpenApiServices
             return path.LoadFromFile().Map(_objectForMap);
         }
 
+        /// <summary>
+        /// Sets the object for map.
+        /// </summary>
+        /// <param name="mapObject">The map object.</param>
         public void SetObjectForMap (object mapObject)
         {
             _objectForMap = mapObject;

@@ -1,5 +1,6 @@
 ﻿namespace Bb.Models
 {
+
     public class Swagger
     {
 

@@ -10,6 +10,7 @@ namespace Flurl.Http
 	/// </summary>
 	public static class ResponseExtensions
 	{
+
 		/// <summary>
 		/// Deserializes JSON-formatted HTTP response body to object of type T. Intended to chain off an async HTTP.
 		/// </summary>
@@ -63,5 +64,6 @@ namespace Flurl.Http
 			if (resp == null) return null;
 			return await resp.GetBytesAsync().ConfigureAwait(false);
 		}
+
 	}
 }
