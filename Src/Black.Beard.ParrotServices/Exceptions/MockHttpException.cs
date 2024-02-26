@@ -4,11 +4,8 @@ namespace Bb.ParrotServices.Exceptions
 {
 
     [Serializable]
-    public class MockHttpException : ParrotException
+    public class MockHttpException : HttpException
     {
-        virtual public int HttpResponseCode { get; } = 500;
-
-        virtual public string Value { get; } = "Internal Server Error";
 
         public MockHttpException() : base() { }
 

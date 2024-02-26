@@ -5,12 +5,13 @@ using System;
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
 using System.Text.Json.Serialization;
+using Bb.ComponentModel;
 
 namespace Bb.Models.Security
 {
 
 
-    [ExposeClass(Context = Constants.Models.Configuration, ExposedType = typeof(ApiKeyConfiguration), LifeCycle = IocScopeEnum.Singleton, Name = "")]
+    [ExposeClass(Context = ConstantsCore.Configuration, ExposedType = typeof(ApiKeyConfiguration), LifeCycle = IocScopeEnum.Singleton, Name = "")]
     public class ApiKeyConfiguration
     {
                

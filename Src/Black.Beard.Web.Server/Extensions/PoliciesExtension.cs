@@ -1,5 +1,5 @@
 ﻿using Bb.Models.Security;
-using Flurl;
+using Bb;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;

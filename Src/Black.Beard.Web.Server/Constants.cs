@@ -29,6 +29,15 @@
         /// </value>
         public static string? CurrentDirectoryToWriteProjects { get; set; }
 
+
+        /// <summary>
+        /// Gets or sets the current directory to write generators.
+        /// </summary>
+        /// <value>
+        /// The current directory to write generators.
+        /// </value>
+        public static string? CurrentDirectoryToWriteGenerators { get; set; }
+
         /// <summary>
         /// Gets or sets the trace log to write.
         /// </summary>
@@ -46,9 +55,9 @@
         public static class Models
         {
 
-            public const string Configuration = "Configuration";
             public const string Service = "Service";
             public const string Model = "Model";
+            public const string Plugin = "Plugin";
 
         }
 

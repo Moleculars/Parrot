@@ -1,6 +1,6 @@
 ﻿using Bb.Mock;
 using Bb.Services.Managers;
-using Flurl.Util;
+using Bb.Util;
 using Microsoft.AspNetCore.Mvc;
 
 #pragma warning disable CS8618, CS1591

@@ -1,27 +1,19 @@
 ﻿using Bb.OpenApiServices;
 using Bb.Models;
 using Bb.ComponentModel.Attributes;
-using Bb.Models.Security;
-using Microsoft.AspNetCore.Components;
 using Bb.ComponentModel.Factories;
 using Bb.Services.ProcessHosting;
-using Bb.ParrotServices.Controllers;
+using Bb.ComponentModel;
 
 namespace Bb.Services.Managers
 {
+
 
 
     [ExposeClass(Context = Constants.Models.Service, LifeCycle = IocScopeEnum.Singleton)]
     public class ProjectBuilderProvider : IInitialize
     {
 
-        /// <summary>
-        /// Initializes the <see cref="ProjectBuilderProvider"/> class.
-        /// </summary>
-        static ProjectBuilderProvider()
-        {
-            BuildGeneratorList();
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProjectBuilderProvider"/> class.
@@ -34,11 +26,16 @@ namespace Bb.Services.Managers
             , ServiceReferential referential
             , ILogger<ProjectBuilderProvider> logger)
         {
+
             _logger = logger;
             _referential = referential;
             _host = host;
             _items = new Dictionary<string, ProjectBuilderContract>();
+
+            _manager = new PluginManager<ServiceGenerator>();
+
         }
+
 
         /// <summary>
         /// Initializes the <see cref="ProjectBuilderProvider" />.
@@ -46,8 +43,9 @@ namespace Bb.Services.Managers
         /// <param name="services">The service provider.</param>
         public virtual void Initialize(IServiceProvider services)
         {
-            Initialize(Configuration.CurrentDirectoryToWriteProjects);
+            Initialize(Configuration.CurrentDirectoryToWriteGenerators);
         }
+
 
         /// <summary>
         /// Initializes the <see cref="ProjectBuilderProvider" />.
@@ -55,20 +53,20 @@ namespace Bb.Services.Managers
         /// <param name="pathRoot">The path root where the contracts will be generate.</param>
         public virtual void Initialize(string pathRoot)
         {
-
-            if (!Directory.Exists(pathRoot))
-                Directory.CreateDirectory(pathRoot);
-
             _root = pathRoot;
-
+            _manager.Initialize(pathRoot);           
+            BuildGeneratorList();
         }
+
+    
 
         /// <summary>
         /// return the contract for specified contract name.
         /// </summary>
         /// <param name="contractName">The contract name.</param>
+        /// <param name="createIfNotExists">if set to <c>true</c> [create if not exists].</param>
         /// <returns></returns>
-        public ProjectBuilderContract Contract(string contractName)
+        public ProjectBuilderContract Contract(string contractName, bool createIfNotExists = false)
         {
 
             contractName = contractName.ToLower();
@@ -76,11 +74,13 @@ namespace Bb.Services.Managers
             if (!_items.TryGetValue(contractName, out var builder))
                 lock (_lock)
                     if (!_items.TryGetValue(contractName, out builder))
-                        _items.Add(contractName, builder = new ProjectBuilderContract(this, contractName, _host));
+                        if (createIfNotExists)
+                            _items.Add(contractName, builder = new ProjectBuilderContract(this, contractName, _host));
 
             return builder;
 
         }
+
 
         /// <summary>
         /// Lists the by template.
@@ -118,6 +118,7 @@ namespace Bb.Services.Managers
 
         }
 
+
         /// <summary>
         /// return the list of contracts already exists in the referential
         /// </summary>
@@ -140,6 +141,7 @@ namespace Bb.Services.Managers
             return items;
 
         }
+
 
         /// <summary>
         /// return the list of template services runnings. every service runs is tested
@@ -167,6 +169,7 @@ namespace Bb.Services.Managers
             return result;
 
         }
+
 
         /// <summary>
         /// Gets a value indicating whether contract exists in the referential.
@@ -197,30 +200,70 @@ namespace Bb.Services.Managers
 
         }
 
-        private static void BuildGeneratorList()
+
+        /// <summary>
+        /// Writes the document on disk and register the new plugin.
+        /// </summary>
+        /// <param name="upfile">The upload document.</param>
+        public void AddGeneratorAssembly(IFormFile upfile)
         {
-            _generators = new Dictionary<string, Type>();
-            var list = GetGeneratorTypes().ToList();
+
+            DirectoryInfo directoryPath = _manager.GetPluginDirectory(Path.GetFileNameWithoutExtension(upfile.FileName));
+
+            string filePath = Path.Combine(directoryPath.FullName, upfile.FileName);
+            var f = upfile.Save();
+            var md5 = f.Md5();
+
+            var directoryPath2 = Path.Combine(directoryPath.FullName, md5);
+            var targetDirectory = new DirectoryInfo(directoryPath2);
+            targetDirectory.Refresh();
+            if (!targetDirectory.Exists)
+            {
+
+                targetDirectory.Create();
+                f.Uncompress(targetDirectory);
+
+                TypeDiscovery.Instance.AddDirectories(targetDirectory.FullName);
+                BuildGeneratorList();
+
+            }
+            else
+            {
+
+            }
+
+        }
+
+        /// <summary>
+        /// Builds or rebuild the list of generator.
+        /// </summary>
+        public void BuildGeneratorList()
+        {
+
+            var generators = new Dictionary<string, Type>();
+            var list = _manager.DiscoverPluginList().ToList();
             foreach (var type in list)
             {
 
                 var name = type.Name;
                 if (name.EndsWith("Generator"))
                     name = name.Substring(0, name.Length - "Generator".Length);
+
                 if (name.EndsWith("Service"))
                     name = name.Substring(0, name.Length - "Service".Length);
-                _generators.Add(name.ToLower(), type);
-            }
-        }
 
-        private static IEnumerable<Type> GetGeneratorTypes()
-        {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (var assembly in assemblies)
-                foreach (var type in assembly.GetTypes())
-                    if (!type.IsAbstract && typeof(ServiceGenerator).IsAssignableFrom(type))
-                        yield return type;
+                generators.Add(name.ToLower(), type);
+
+            }
+
+            if (generators.Count == 0)
+                this._logger.LogWarning("No generator found");
+
+            else
+                _generators = generators;
+
         }
+            
 
         #endregion generators
 
@@ -236,6 +279,7 @@ namespace Bb.Services.Managers
         internal readonly ServiceReferential _referential;
         internal readonly LocalProcessCommandService _host;
         private readonly Dictionary<string, ProjectBuilderContract> _items;
+        private readonly PluginManager<ServiceGenerator> _manager;
         private string _root;
         private static Dictionary<string, Type> _generators;
         private volatile object _lock = new object();

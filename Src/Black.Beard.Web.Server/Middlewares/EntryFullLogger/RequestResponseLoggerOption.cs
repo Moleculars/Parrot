@@ -1,8 +1,10 @@
-﻿using Bb.ComponentModel.Attributes;
+﻿using Bb.ComponentModel;
+using Bb.ComponentModel.Attributes;
 
 namespace Bb.Middlewares.EntryFullLogger
 {
-    [ExposeClass(Context = Constants.Models.Configuration, ExposedType = typeof(RequestResponseLoggerOption), LifeCycle = IocScopeEnum.Singleton)]
+
+    [ExposeClass(Context = ConstantsCore.Configuration, ExposedType = typeof(RequestResponseLoggerOption), LifeCycle = IocScopeEnum.Singleton)]
     public class RequestResponseLoggerOption
     {
 

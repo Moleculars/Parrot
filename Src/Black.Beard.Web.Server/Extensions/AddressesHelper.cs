@@ -1,14 +1,12 @@
 ﻿using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Hosting.Server;
 using System.Net;
-using Microsoft.AspNetCore.Http.Features;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc.Core.Infrastructure;
-using Flurl;
+using Bb;
 
-namespace Bb.Services
+namespace Bb.Extensions
 {
 
     /// <summary>

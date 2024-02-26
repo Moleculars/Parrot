@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Black.Beard.Analysis" Version="1.0.94" />
+    <PackageReference Include="Black.Beard.Helpers.ContentLoaders" Version="2.0.26" />
+    <PackageReference Include="Black.Beard.Helpers.ContentLoaders.Files" Version="2.0.26" />
+    <PackageReference Include="Black.Beard.Jslt" Version="1.0.296" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="D:\srcs\Black.Beard.OpenApi\src\Black.Beard.OpenApiServices\Black.Beard.OpenApiServices.csproj" />
+    <ProjectReference Include="D:\srcs\Black.Beard.OpenApi\src\Black.Beard.OpenApi\Black.Beard.OpenApi.csproj" />
+  </ItemGroup>
+
+</Project>

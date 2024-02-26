@@ -1,5 +1,6 @@
 ﻿using Bb.Analysis;
 using Bb.Codings;
+using Bb.Extensions;
 using Bb.Json.Jslt.Asts;
 using Bb.OpenApi;
 using Microsoft.OpenApi.Any;
@@ -9,7 +10,7 @@ using System.Reflection.Emit;
 namespace Bb.OpenApiServices
 {
 
-    public abstract class OpenApiGeneratorJsltBase : DiagnosticGeneratorBase, IOpenApiDocumentGenericVisitor<JsltBase>, IServiceGenerator<OpenApiDocument>
+    public abstract class OpenApiGeneratorJsltBase : DiagnosticGeneratorBase, IOpenApiGenericVisitor<JsltBase>, IServiceGenerator<OpenApiDocument>
     {
 
         public OpenApiGeneratorJsltBase()

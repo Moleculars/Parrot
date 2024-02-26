@@ -1,20 +1,13 @@
-using Bb.Process;
-using Bb.OpenApiServices;
 using Bb.ParrotServices.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
-using System.Text;
-using Bb.Services;
 using Bb.Models;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Hosting.Server;
-using System.Diagnostics;
-using SharpYaml.Model;
 using Microsoft.AspNetCore.Authorization;
 using Bb.Services.Managers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Bb.Analysis;
-using Microsoft.Extensions.Logging;
+using Bb.Extensions;
+using Bb.Analysis.Traces;
 
 namespace Bb.ParrotServices.Controllers
 {
@@ -85,10 +78,10 @@ namespace Bb.ParrotServices.Controllers
             }
 
             ProjectBuilderTemplate templateObject;
-            var project = _builder.Contract(contract);
+            var project = _builder.Contract(contract, true);
             try
             {
-                templateObject = project.Template(template);
+                templateObject = project.Template(template, true);
             }
             catch (MockHttpException e)
             {
@@ -115,10 +108,8 @@ namespace Bb.ParrotServices.Controllers
                 return BadRequest(GetBadModel(result.Context.Diagnostics));
             }
 
-            var diag = new Diagnostics
-            {
-                { SeverityEnum.Error, string.Empty, 0, 0, 0, "Project generation failed", "Project generation failed" }
-            };
+            var diag = new ScriptDiagnostics();
+            diag.AddError(TextLocation.Empty, "Project generation failed", "Project generation failed");
 
             return BadRequest(GetBadModel(diag));
 
@@ -371,7 +362,7 @@ namespace Bb.ParrotServices.Controllers
 
         internal readonly ProjectBuilderProvider _builder;
 
-        private ModelStateDictionary GetBadModel(Diagnostics diagnostics)
+        private ModelStateDictionary GetBadModel(ScriptDiagnostics diagnostics)
         {
 
             var model = new ModelStateDictionary();

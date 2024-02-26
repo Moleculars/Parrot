@@ -1,17 +1,14 @@
 ﻿using Bb.Process;
 using Bb.OpenApiServices;
-using Flurl;
 using Bb.Models;
-using Flurl.Http;
+using Bb.Http;
 using Bb.Mock;
-using System.Diagnostics.Contracts;
-using System.Diagnostics;
 using Bb.Services.ProcessHosting;
 using Bb.ParrotServices.Exceptions;
 using System.Text;
-using Microsoft.Extensions.Logging;
-using Microsoft.CodeAnalysis.Emit;
 using System.Text.Json;
+using Bb.Builds;
+using Microsoft.CodeAnalysis;
 
 namespace Bb.Services.Managers
 {
@@ -245,6 +242,16 @@ namespace Bb.Services.Managers
             {
 
                 _logger.LogInformation("starting build {project}", projectFile.FullName);
+
+                var build = ProjectRoslynBuilderHelper.CreateCsharpBuild(projectFile, true)                    
+                    .ResetSdk();
+
+                build.SetOutputKind(OutputKind.WindowsApplication, "Program");
+
+                var buildResult = build.Build();
+
+                var errors = buildResult.Errors.ToList();
+
 
                 var cmd = _host.RunAndGet(new DotnetCommand(), c =>
                           {
@@ -493,7 +500,7 @@ namespace Bb.Services.Managers
                     var target = new Uri(item.FullName);
                     var relative = new Uri(rootPath);
                     relative = relative.MakeRelativeUri(target);
-                    result.Documents.Add(new Document() { Kind = "jslt", File = relative.ToString() });
+                    result.Documents.Add(new Models.Document() { Kind = "jslt", File = relative.ToString() });
                 }
             }
 

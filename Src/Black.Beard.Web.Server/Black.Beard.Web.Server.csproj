@@ -10,12 +10,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Black.Beard.ComponentModel" Version="1.0.41" />
-	  <PackageReference Include="Black.Beard.ComponentModel.Attributes" Version="1.0.41" />
-	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders" Version="2.0.19" />
-	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders.Files" Version="2.0.19" />
-	  <PackageReference Include="NLog" Version="5.2.7" />
-	  <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.7" />
+	  <Compile Remove="Configs\UrlBuildGitAzure.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Black.Beard.ComponentModel" Version="1.0.48" />
+	  <PackageReference Include="Black.Beard.ComponentModel.Attributes" Version="1.0.48" />
+	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders" Version="2.0.26" />
+	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders.Files" Version="2.0.26" />
+	  <PackageReference Include="Black.Beard.Http" Version="1.0.12" />
+	  <PackageReference Include="NLog" Version="5.2.8" />
+	  <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.8" />
 	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 	</ItemGroup>
 

@@ -1,5 +1,6 @@
 ﻿using Bb.Analysis;
 using Bb.Codings;
+using Bb.Extensions;
 using Bb.Json.Jslt.CustomServices.MultiCsv;
 using Bb.Json.Jslt.Parser;
 using Bb.Json.Jslt.Services;
@@ -19,7 +20,7 @@ using System.Text;
 namespace Bb.OpenApiServices
 {
 
-    public class OpenApiValidator : DiagnosticGeneratorBase, IServiceGenerator<OpenApiDocument>, IOpenApiDocumentVisitor
+    public class OpenApiValidator : DiagnosticGeneratorBase, IServiceGenerator<OpenApiDocument>, IOpenApiVisitor
     {
 
         internal OpenApiValidator()

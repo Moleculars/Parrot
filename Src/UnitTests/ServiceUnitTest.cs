@@ -1,10 +1,10 @@
 using Bb.Process;
 using Bb.OpenApiServices;
 using Bb.ParrotServices;
-using Flurl;
-using Flurl.Http;
+using Bb;
+using Bb.Http;
 using System;
-using Bb.Curl.Commands;
+using Bb.Curls;
 using Bb;
 
 namespace UnitTests

@@ -11,6 +11,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Bb.Extensions;
 
 namespace Bb.OpenApiServices
 {

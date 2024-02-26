@@ -1,6 +1,6 @@
 ﻿using Bb.Extensions;
 using Bb.Services.ProcessHosting;
-using Flurl;
+using Bb;
 using System.Text;
 
 namespace Bb.Middlewares.ReversProxy

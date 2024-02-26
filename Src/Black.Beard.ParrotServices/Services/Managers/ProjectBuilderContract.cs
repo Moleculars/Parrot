@@ -38,14 +38,16 @@ namespace Bb.Services.Managers
         /// return the template the specified template name.
         /// </summary>
         /// <param name="templateName">Name of the template.</param>
+        /// <param name="createIfNotExists">if set to <c>true</c> [create if not exists].</param>
         /// <returns></returns>
-        public ProjectBuilderTemplate Template(string templateName)
+        public ProjectBuilderTemplate Template(string templateName, bool createIfNotExists = false)
         {
 
             if (!_templates.TryGetValue(templateName, out var template1))
                 lock (_lock)
                     if (!_templates.TryGetValue(templateName, out template1))
-                        _templates.Add(templateName, template1 = new ProjectBuilderTemplate(this, templateName, _host));
+                        if (createIfNotExists)
+                            _templates.Add(templateName, template1 = new ProjectBuilderTemplate(this, templateName, _host));
 
             return template1;
 

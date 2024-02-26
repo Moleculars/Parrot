@@ -1,10 +1,11 @@
-﻿using Bb.ComponentModel.Attributes;
+﻿using Bb.ComponentModel;
+using Bb.ComponentModel.Attributes;
 //using Oldtonsoft.Json.Linq;
 
 namespace Bb.Models.Security
 {
 
-    [ExposeClass (Context = Constants.Models.Configuration, ExposedType = typeof(PolicyProfilList), LifeCycle = IocScopeEnum.Singleton)]
+    [ExposeClass (Context = ConstantsCore.Configuration, ExposedType = typeof(PolicyProfilList), LifeCycle = IocScopeEnum.Singleton)]
     public class PolicyProfilList
     {
                 

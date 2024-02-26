@@ -9,10 +9,11 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Reflection;
 using Bb.Swashbuckle;
+using Bb.ComponentModel;
 
 namespace Bb.ParrotServices
 {
-    public class Startup
+    public class Startup : StartupBase
     {
 
         /// <summary>
@@ -47,15 +48,7 @@ namespace Bb.ParrotServices
 
 
             // Auto discover all types with attribute [ExposeClass] for register  in ioc.
-            services.UseTypeExposedByAttribute(_configuration, Constants.Models.Configuration, c =>
-            {
-                services.BindConfiguration(c, _configuration);
-                //var cc1 = JsonSchema.FromType(c).ToJson();
-                //var cc2 = c.GenerateContracts();
-            })
-            .UseTypeExposedByAttribute(_configuration, Constants.Models.Model)
-            .UseTypeExposedByAttribute(_configuration, Constants.Models.Service);
-
+            DiscoversTypes(services, _configuration);
 
             services.AddControllers();
 
@@ -95,37 +88,7 @@ namespace Bb.ParrotServices
 
 
         }
-
-        /// <summary>
-        /// evaluate permissions.
-        /// </summary>
-        /// <param name="arg">The argument.</param>
-        /// <param name="policy">The policy.</param>
-        /// <returns></returns>
-        private async Task<bool> Authorize(AuthorizationHandlerContext arg, PolicyModel policy)
-        {
-
-            if (arg.User != null)
-            {
-
-                var res = (DefaultHttpContext)arg.Resource;
-                var path = res.Request.Path;
-
-                PolicyModelRoute route = policy.Evaluate(path);
-
-                var i = arg.User.Identity as ClaimsIdentity;
-                var roles = i.Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
-
-                //if (roles.Where(c => c.Value == ""))
-
-            }
-
-            await Task.Yield();
-
-            return true;
-
-        }
-
+               
 
         /// <summary>
         /// Configures the specified application.

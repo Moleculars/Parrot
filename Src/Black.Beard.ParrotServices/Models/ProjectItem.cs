@@ -12,8 +12,6 @@
 
         }
 
-
-
         /// <summary>
         /// Gets or sets the contract name.
         /// </summary>

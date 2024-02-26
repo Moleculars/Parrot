@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.Contracts;
-
+﻿
 namespace Bb.Services.ProcessHosting
 {
     public class ServiceReferentialTemplate

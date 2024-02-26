@@ -3,14 +3,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using NLog;
 using NLog.Web;
-using Bb.Services;
 using System.Collections;
 using System.Diagnostics;
 using Bb.OpenApiServices;
-using System.Text;
-using Flurl;
-using Microsoft.AspNetCore.Hosting;
-using Bb.Flurl;
 
 namespace Bb
 {
@@ -295,12 +290,14 @@ namespace Bb
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Configuration.CurrentDirectoryToWriteProjects = Path.Combine("c:\\", "tmp", "parrot", "projects");
+                Configuration.CurrentDirectoryToWriteGenerators = Path.Combine("c:\\", "tmp", "parrot", "generators");
                 Configuration.TraceLogToWrite = Path.Combine("c:\\", "tmp", "parrot", "logs");
             }
 
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 Configuration.CurrentDirectoryToWriteProjects = Path.Combine("tmp", "parrot", "projects");
+                Configuration.CurrentDirectoryToWriteGenerators = Path.Combine("tmp", "parrot", "generators");
                 Configuration.TraceLogToWrite = Path.Combine("tmp", "parrot", "logs");
             }
 
@@ -309,6 +306,9 @@ namespace Bb
 
             if (!Directory.Exists(Configuration.CurrentDirectoryToWriteProjects))
                 Directory.CreateDirectory(Configuration.CurrentDirectoryToWriteProjects);
+
+            if (!Directory.Exists(Configuration.CurrentDirectoryToWriteGenerators))
+                Directory.CreateDirectory(Configuration.CurrentDirectoryToWriteGenerators);
 
             if (!Directory.Exists(Configuration.TraceLogToWrite))
                 Directory.CreateDirectory(Configuration.TraceLogToWrite);

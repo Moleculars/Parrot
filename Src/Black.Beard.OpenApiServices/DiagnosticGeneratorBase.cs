@@ -1,29 +1,18 @@
 ﻿using Bb.Analysis;
+using Bb.OpenApi;
 using System.Diagnostics;
 
 namespace Bb.OpenApiServices
 {
-    public class DiagnosticGeneratorBase
+
+    public abstract class DiagnosticGeneratorBase<T> : OpenApiGenericVisitor<T>
     {
+
 
         protected virtual void Initialize(ContextGenerator ctx)
         {
             _ctx = ctx;
             _diag = ctx.Diagnostics;
-        }
-
-        [System.Diagnostics.DebuggerStepThrough]
-        [System.Diagnostics.DebuggerNonUserCode]
-        protected void Stop()
-        {
-
-            var st = new StackTrace();
-            var f = st.GetFrame(1);
-            Debug.WriteLine($"{f.ToString().Trim()} try to stop");
-
-            if (Debugger.IsAttached)
-                Debugger.Break();
-
         }
 
 
