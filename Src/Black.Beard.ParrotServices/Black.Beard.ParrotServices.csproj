@@ -53,13 +53,13 @@
 
 		<PackageReference Include="Black.Beard.Http" Version="1.0.12" />
 
-		<PackageReference Include="Black.Beard.Jslt" Version="1.0.296" />
+		<PackageReference Include="Black.Beard.Jslt" Version="1.0.300" />
 
-		<PackageReference Include="Black.Beard.Process" Version="1.0.94" />
+		<PackageReference Include="Black.Beard.Process" Version="1.0.99" />
 
-		<PackageReference Include="Black.Beard.Projects.Models" Version="1.0.94" />
+		<PackageReference Include="Black.Beard.Projects.Models" Version="1.0.99" />
 
-		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.94" />
+		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.99" />
 
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />

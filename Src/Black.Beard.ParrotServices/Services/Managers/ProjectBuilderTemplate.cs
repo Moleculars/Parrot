@@ -20,6 +20,7 @@ namespace Bb.Services.Managers
     public class ProjectBuilderTemplate
     {
 
+
         /// <summary>
         /// Initializes the <see cref="ProjectBuilderTemplate"/> class.
         /// </summary>
@@ -32,6 +33,7 @@ namespace Bb.Services.Managers
             };
 
         }
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProjectBuilderTemplate"/> class.
@@ -66,6 +68,7 @@ namespace Bb.Services.Managers
 
         }
 
+
         /// <summary>
         /// Gets a path for specified name.
         /// </summary>
@@ -76,6 +79,7 @@ namespace Bb.Services.Managers
             var filepath = Path.Combine(Root, filename);
             return filepath;
         }
+
 
         #region Config
 
@@ -135,6 +139,7 @@ namespace Bb.Services.Managers
 
         #endregion Config
 
+
         /// <summary>
         /// Gets the template configuration file path.
         /// </summary>
@@ -143,6 +148,7 @@ namespace Bb.Services.Managers
         /// </value>
         public string TemplateConfigFilename => _templateConfigFilename;
 
+
         /// <summary>
         /// Gets the template filename.
         /// </summary>
@@ -150,6 +156,7 @@ namespace Bb.Services.Managers
         /// The template filename.
         /// </value>
         public string TemplateFilename => _templateFilename;
+
 
         /// <summary>
         /// Removes the template if exists.
@@ -161,6 +168,7 @@ namespace Bb.Services.Managers
                 f.Delete();
         }
 
+
         /// <summary>
         /// Writes the document on disk.
         /// </summary>
@@ -169,6 +177,7 @@ namespace Bb.Services.Managers
         {
             WriteOnDisk(upfile, _templateFilename);
         }
+
 
         /// <summary>
         /// Writes the document on disk.
@@ -189,6 +198,7 @@ namespace Bb.Services.Managers
             _templateFilename = filePath;
 
         }
+
 
         /// <summary>
         /// Generate project
@@ -219,6 +229,7 @@ namespace Bb.Services.Managers
 
         }
 
+
         /// <summary>
         /// test if the template was generated for the current template.
         /// </summary>
@@ -230,10 +241,11 @@ namespace Bb.Services.Managers
             return dir.Exists;
         }
 
+
         /// <summary>
         /// Build the project for the specified contract
         /// </summary>
-        public async Task<(int, string?)> Build()
+        public async Task<Compilers.AssemblyResult> Build()
         {
 
             FileInfo? projectFile = GetFileProject();
@@ -244,32 +256,21 @@ namespace Bb.Services.Managers
                 _logger.LogInformation("starting build {project}", projectFile.FullName);
 
                 var build = ProjectRoslynBuilderHelper.CreateCsharpBuild(projectFile, true)                    
-                    .ResetSdk();
+                    .ResetSdk()
+                    .SetOutputKind(OutputKind.WindowsApplication, "Program")
+                    ;
 
-                build.SetOutputKind(OutputKind.WindowsApplication, "Program");
+                Compilers.AssemblyResult buildResult = build.Build();
 
-                var buildResult = build.Build();
-
-                var errors = buildResult.Errors.ToList();
-
-
-                var cmd = _host.RunAndGet(new DotnetCommand(), c =>
-                          {
-                              c.Arguments($"build \"{projectFile.FullName}\" -c release /p:Version=1.0.0.0")
-                               .Intercept(InterceptTraces);
-                          });
-                cmd.Wait();
-                exitResult = cmd.ExitCode.HasValue ? cmd.ExitCode.Value : 1;
-
-                _logger.LogInformation("ended {project} with exit code {exitResult}", projectFile.FullName, exitResult);
-                return (exitResult, cmd.Trace);
+                return buildResult;
 
             }
 
             _logger.LogError($"Failed to locate a project to build in {Root}");
-            return (exitResult, $"Failed to locate a project to build in {Root}");
+            return null;
 
         }
+
 
         /// <summary>
         /// Run the contract
@@ -432,6 +433,7 @@ namespace Bb.Services.Managers
 
         }
 
+
         private FileInfo? GetFileProject()
         {
 
@@ -447,6 +449,7 @@ namespace Bb.Services.Managers
 
         }
 
+
         internal string GetDirectoryProject(params string[] path)
         {
 
@@ -459,6 +462,7 @@ namespace Bb.Services.Managers
 
         }
 
+
         internal FileInfo[] GetFiles(string path, string pattern)
         {
 
@@ -470,6 +474,7 @@ namespace Bb.Services.Managers
             return files;
 
         }
+
 
         /// <summary>
         /// return the list of document in the project.
@@ -507,6 +512,7 @@ namespace Bb.Services.Managers
             return result;
 
         }
+
 
         /// <summary>
         /// return runnings status
@@ -569,6 +575,7 @@ namespace Bb.Services.Managers
 
         }
 
+
         /// <summary>
         /// The template name
         /// </summary>
@@ -586,6 +593,7 @@ namespace Bb.Services.Managers
         /// The root path of the template
         /// </summary>
         public readonly string Root;
+
 
         private ServiceGenerator? GetGenerator() => (ServiceGenerator)Activator.CreateInstance(_generatorType);
         private readonly ILogger<ProjectBuilderProvider> _logger;

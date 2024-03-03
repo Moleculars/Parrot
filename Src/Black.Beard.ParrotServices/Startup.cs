@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using System.Reflection;
 using Bb.Swashbuckle;
 using Bb.ComponentModel;
+using Microsoft.Extensions.Logging;
 
 namespace Bb.ParrotServices
 {
@@ -86,6 +87,8 @@ namespace Bb.ParrotServices
                 });
             }
 
+            if (Configuration.UseTelemetry)
+                RegisterTelemetry(services, _configuration);
 
         }
                
@@ -106,6 +109,8 @@ namespace Bb.ParrotServices
                    .UseSwaggerUI();
             }
 
+            if (Configuration.UseTelemetry)
+                ConfigureTelemetry(app, env, loggerFactory);
             
             if (Configuration.TraceAll)
                 app.UseMiddleware<RequestResponseLoggerMiddleware>();
@@ -113,7 +118,7 @@ namespace Bb.ParrotServices
 
             if (!env.IsDevelopment())
             {
-                app.UseForwardedHeaders();
+                app.UseForwardedHeaders(); 
                 app.UseHsts();
             }
             else

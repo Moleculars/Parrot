@@ -5,9 +5,8 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Authorization;
 using Bb.Services.Managers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Bb.Analysis;
 using Bb.Extensions;
-using Bb.Analysis.Traces;
+using Bb.Analysis.DiagTraces;
 
 namespace Bb.ParrotServices.Controllers
 {
@@ -159,8 +158,15 @@ namespace Bb.ParrotServices.Controllers
             _logger.LogDebug("build target template : {root}", templateObject.Root);
             var result = await templateObject.Build();
 
-            if (result.Item1 > 0)
-                return BadRequest(result.Item2);
+            if (!result.Success)
+            {
+
+                foreach (ScriptDiagnostic item in result.Diagnostics.Errors)
+                    _logger.LogError(item.ToString());
+
+                return BadRequest(result.Errors);
+
+            }
 
             return Ok(result.ToString());
 
@@ -195,21 +201,25 @@ namespace Bb.ParrotServices.Controllers
                 return NotFound(e.Message);
             }
 
-            var buildResult = await templateObject.Build();
+            var result = await templateObject.Build();
 
-            if (buildResult.Item1 == 0)
+            if (!result.Success)
             {
 
-                var ports = await templateObject.Run(host, GetHttpPort(), GetHttpsPort()); // todo : comment retrouver le hostname
+                foreach (ScriptDiagnostic item in result.Diagnostics.Errors)
+                    _logger.LogError(item.ToString());
 
-                if (ports == null)
-                    return BadRequest("failed to run the path {template}/{contract}");
-
-                return Ok(ports);
+                return BadRequest(result.Errors);
 
             }
 
-            return BadRequest(buildResult.Item2);
+            var ports = await templateObject.Run(host, GetHttpPort(), GetHttpsPort()); // todo : comment retrouver le hostname
+
+            if (ports == null)
+                return BadRequest("failed to run the path {template}/{contract}");
+
+            return Ok(ports);
+
 
         }
 

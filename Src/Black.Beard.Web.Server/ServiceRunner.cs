@@ -360,12 +360,11 @@ namespace Bb
         /// </value>
         public List<Uri> Addresses { get; private set; }
 
+
         internal IHostBuilder CreateHostBuilder(NLog.Logger logger, string[] args) =>
                Host.CreateDefaultBuilder(args)
                    .ConfigureWebHostDefaults(webBuilder =>
                    {
-
-                       webBuilder.UseStartup<TStartup>();
 
                        if (_urls != null)
                            webBuilder.UseUrls(_urls.ConcatUrl().ToString());
@@ -381,6 +380,10 @@ namespace Bb
                            Configuration.TraceAll = "trace_all".EnvironmentVariableExists()
                                ? "trace_all".EnvironmentVariableIsTrue()
                                : Configuration.TraceAll = hostingContext.HostingEnvironment.IsDevelopment();
+
+                           Configuration.UseTelemetry = "use_telemetry".EnvironmentVariableExists()
+                                ? "use_telemetry".EnvironmentVariableIsTrue()
+                                : Configuration.UseTelemetry = hostingContext.HostingEnvironment.IsDevelopment();
 
                            // Load configurations files
                            new ConfigurationLoader(logger, hostingContext, config)
@@ -401,7 +404,60 @@ namespace Bb
                            IncludeScopes = true,
                            IncludeActivityIdsWithBeginScope = true,
                        });
+
+                       webBuilder.UseStartup<TStartup>();
+
                    });
+
+
+        //internal WebApplicationBuilder CreateWebHostBuilder(NLog.Logger logger, string[] args)
+        //{
+
+        //    WebApplicationBuilder web = WebApplication.CreateBuilder(args);
+
+        //    var hostBuilder = web.WebHost;
+
+        //    if (_urls != null)
+        //        hostBuilder.UseUrls(_urls.ConcatUrl().ToString());
+
+        //    hostBuilder.ConfigureLogging(l =>
+        //    {
+        //        l.ClearProviders()
+        //        ;
+        //    })
+        //      .UseNLog(new NLogAspNetCoreOptions()
+        //      {
+        //          IncludeScopes = true,
+        //          IncludeActivityIdsWithBeginScope = true,
+        //      });
+
+        //    hostBuilder.ConfigureAppConfiguration((webBuilder, config) =>
+        //    {
+
+        //        Configuration.UseSwagger = "use_swagger".EnvironmentVariableExists()
+        //                          ? "use_swagger".EnvironmentVariableIsTrue()
+        //                          : webBuilder.HostingEnvironment.IsDevelopment();
+
+        //        Configuration.TraceAll = "trace_all".EnvironmentVariableExists()
+        //            ? "trace_all".EnvironmentVariableIsTrue()
+        //            : Configuration.TraceAll = webBuilder.HostingEnvironment.IsDevelopment();
+
+        //        Configuration.UseTelemetry = "use_telemetry".EnvironmentVariableExists()
+        //            ? "use_telemetry".EnvironmentVariableIsTrue()
+        //            : Configuration.UseTelemetry = webBuilder.HostingEnvironment.IsDevelopment();
+
+        //        // Load configurations files
+        //        new ConfigurationLoader(logger, webBuilder, config)
+        //         .TryToLoadConfigurationFile("appsettings.json", false, false)
+        //         .TryToLoadConfigurationFile("apikeysettings.json", false, false)
+        //         .TryToLoadConfigurationFile("policiessettings.json", false, false)
+        //         ;
+
+        //    });
+
+        //    return web;
+
+        //}
 
         /// <summary>
         /// Cancels the running instance.

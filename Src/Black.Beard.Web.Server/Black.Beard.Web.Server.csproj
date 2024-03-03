@@ -14,14 +14,20 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Black.Beard.ComponentModel" Version="1.0.48" />
-	  <PackageReference Include="Black.Beard.ComponentModel.Attributes" Version="1.0.48" />
+	  <PackageReference Include="Black.Beard.ComponentModel" Version="1.0.52" />
+	  <PackageReference Include="Black.Beard.ComponentModel.Attributes" Version="1.0.52" />
 	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders" Version="2.0.26" />
 	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders.Files" Version="2.0.26" />
 	  <PackageReference Include="Black.Beard.Http" Version="1.0.12" />
 	  <PackageReference Include="NLog" Version="5.2.8" />
 	  <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.8" />
+	  <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.7.0" />
+	  <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.7.0" />
+	  <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.7.1" />
+	  <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.7.1" />
+	  <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.7.0" />
 	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+	  <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

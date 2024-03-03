@@ -7,10 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Black.Beard.Analysis" Version="1.0.94" />
+    <PackageReference Include="Black.Beard.Analysis" Version="1.0.99" />
     <PackageReference Include="Black.Beard.Helpers.ContentLoaders" Version="2.0.26" />
     <PackageReference Include="Black.Beard.Helpers.ContentLoaders.Files" Version="2.0.26" />
-    <PackageReference Include="Black.Beard.Jslt" Version="1.0.296" />
+    <PackageReference Include="Black.Beard.Jslt" Version="1.0.300" />
   </ItemGroup>
 
   <ItemGroup>

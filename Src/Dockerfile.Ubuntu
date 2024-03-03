@@ -30,13 +30,13 @@ RUN dotnet publish --use-current-runtime -r linux-x64 --no-restore -c Release -o
 WORKDIR /app
 
 # final stage/image
-# FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy
-FROM mcr.microsoft.com/dotnet/sdk:6.0-jammy
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy
 WORKDIR /app
 COPY --from=build /app .
 
 ENV use_swagger=true
 ENV trace_all=true
+ENV use_telemetry=true
 
 # EXPOSE 80	# with "mcr.microsoft.com/dotnet/aspnet:6.0"
 EXPOSE 5000

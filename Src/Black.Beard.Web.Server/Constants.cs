@@ -21,6 +21,9 @@
         /// </value>
         public static bool UseSwagger { get; set; }
 
+
+        public static bool UseTelemetry { get; set; }
+
         /// <summary>
         /// Gets or sets the current directory to write projects.
         /// </summary>
