@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>d6db51a2-9287-431c-93bd-2c255dedbc2a</UserSecretsId>
@@ -12,6 +12,7 @@
 		<Company>Black beard</Company>
 		<AssemblyTitle>Parrot APIs service</AssemblyTitle>
 		<Description>A set of REST APIs used by Parrot for manage service generator</Description>
+		<OutputType>Exe</OutputType>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -48,33 +49,22 @@
 	</ItemGroup>
 
 	<ItemGroup>
-
-		<PackageReference Include="Black.Beard.Helpers.ContentLoaders.Compress" Version="2.0.26" />
-
+		<PackageReference Include="Black.Beard.Helpers.ContentLoaders.Compress" Version="2.0.27" />
 		<PackageReference Include="Black.Beard.Http" Version="1.0.12" />
-
-		<PackageReference Include="Black.Beard.Jslt" Version="1.0.300" />
-
-		<PackageReference Include="Black.Beard.Process" Version="1.0.99" />
-
-		<PackageReference Include="Black.Beard.Projects.Models" Version="1.0.99" />
-
-		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.99" />
-
+		<PackageReference Include="Black.Beard.Process" Version="1.0.107" />
+		<PackageReference Include="Black.Beard.Projects.Models" Version="1.0.107" />
+		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.107" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.NewtonsoftJson" Version="5.0.1" />
 		<PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
-
-		<PackageReference Include="Microsoft.OpenApi" Version="1.6.13" />
+		<PackageReference Include="Microsoft.OpenApi" Version="1.6.14" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
-
 		<PackageReference Include="NLog" Version="5.2.8" />
 		<PackageReference Include="NLog.DiagnosticSource" Version="5.2.1" />
 		<PackageReference Include="NLog.Extensions.Logging" Version="5.3.8" />
 		<PackageReference Include="NLog.Web.AspNetCore" Version="5.3.8" />
-
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 	</ItemGroup>
 
@@ -99,6 +89,15 @@
 		<None Update="Properties\launchSettings.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Using Include="Microsoft.AspNetCore.Builder" />
+	  <Using Include="Microsoft.AspNetCore.Http" />
+	  <Using Include="Microsoft.AspNetCore.Mvc" />
+	  <Using Include="Microsoft.Extensions.Configuration" />
+	  <Using Include="Microsoft.Extensions.DependencyInjection" />
+	  <Using Include="Microsoft.Extensions.Logging" />
 	</ItemGroup>
 
 </Project>

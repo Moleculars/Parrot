@@ -109,41 +109,44 @@ namespace Bb.OpenApiServices
                      .GenerateDocumentationFile(true)
                     ;
                 })
-                .Packages(p =>
-                {
-                    p.PackageReference("Black.Beard.Jslt", "1.0.214")
-                     .PackageReference("Black.Beard.Helpers.ContentLoaders", "2.0.1")
-                     .PackageReference("Black.Beard.Helpers.ContentLoaders.Files", "2.0.1")
-                     .PackageReference("Black.Beard.Helpers.ContentLoaders.Newtonsoft", "2.0.1")
-                     .PackageReference("DataAnnotationsExtensions", "5.0.1.27")
-                     .PackageReference("log4net", "2.0.15")
-                     .PackageReference("Microsoft.Extensions.Configuration.Binder", "7.0.4")
-                     .PackageReference("Microsoft.Extensions.Configuration.Json", "7.0.0")
-                     .PackageReference("Microsoft.Extensions.Logging.Log4Net.AspNetCore", "6.1.0")
-                     .PackageReference("Microsoft.OpenApi", "1.6.4")
-                     .PackageReference("Microsoft.VisualStudio.Azure.Containers.Tools.Targets", "1.18.1")
-                     .PackageReference("Swashbuckle.AspNetCore", "6.5.0")
-                    ;
-                });
+                //.Packages(p =>
+                //{
+                //    p.PackageReference("Black.Beard.Jslt", "1.0.300")
+                //     .PackageReference("Black.Beard.Roslyn", "1.0.99")
+                //     .PackageReference("Black.Beard.Helpers.ContentLoaders", "2.0.26")
+                //     .PackageReference("Black.Beard.Helpers.ContentLoaders.Compress", "2.0.26")
+                //     .PackageReference("Black.Beard.Helpers.ContentLoaders.Files", "2.0.26")
+                //     .PackageReference("Black.Beard.Helpers.ContentLoaders.Newtonsoft", "2.0.26")
+                //     .PackageReference("DataAnnotationsExtensions", "5.0.1.27")
+                //     .PackageReference("Microsoft.Extensions.Configuration.Binder", "8.0.1")
+                //     .PackageReference("Microsoft.Extensions.Configuration.Json", "8.0.0")
+                //     .PackageReference("Microsoft.Extensions.Hosting", "8.0.0")
+                //     .PackageReference("Microsoft.Extensions.Configuration.NewtonsoftJson", "5.0.1")
+                //     .PackageReference("Microsoft.Extensions.PlatformAbstractions", "1.1.0")
+                //     .PackageReference("Swashbuckle.AspNetCore", "6.5.0")
+                //     .PackageReference("NLog", "5.2.8")
+                //     .PackageReference("NLog.DiagnosticSource", "5.2.1")
+                //     .PackageReference("NLog.Extensions.Logging", "5.3.8")
+                //     .PackageReference("NLog.Web.AspNetCore", "5.3.8")
+                //    ;
+                //})
+                ;
 
             // appends documents in the folder.
             project.AppendDocument("Program.cs", Load("Embedded", "Program.cs"))
-                   .AppendDocument("SwaggerExtension.cs", Load("Embedded", "SwaggerExtension.cs"))
-                   .AppendDocument("Setup.cs", Load("Embedded", "Setup.cs"))
+                   .AppendDocument("Startup.cs", Load("Embedded", "Startup.cs"))
                    .AppendDocument("ServiceProcessor.cs", Load("Embedded", "ServiceProcessor.cs"))
-                   .AppendDocument("ServiceTrace.cs", Load("Embedded", "ServiceTrace.cs"))
                    .AppendDocument("HttpExceptionModel.cs", Load("Embedded", "HttpExceptionModel.cs"))
-                   .AppendDocument("log4net.config", Load("Embedded", "log4net.config"))
 
-                   .ItemGroup(i =>
-                   {
-                       i.Content(c =>
-                       {
-                           c.Update("log4net.config")
-                            .CopyToOutputDirectory(StrategyCopyEnum.Always)
-                            ;
-                       });
-                   })
+                   //.ItemGroup(i =>
+                   //{
+                   //    i.Content(c =>
+                   //    {
+                   //        //c.Update("log4net.config")
+                   //        // .CopyToOutputDirectory(StrategyCopyEnum.Always)
+                   //        // ;
+                   //    });
+                   //})
 
                    ;
 

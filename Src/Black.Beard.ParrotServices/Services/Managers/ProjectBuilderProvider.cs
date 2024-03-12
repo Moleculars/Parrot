@@ -31,8 +31,7 @@ namespace Bb.Services.Managers
             _referential = referential;
             _host = host;
             _items = new Dictionary<string, ProjectBuilderContract>();
-
-            _manager = new PluginManager<ServiceGenerator>();
+            _manager = new PluginManager<ServiceGenerator>("Microsoft.", "System.", "Antlr4.", "NLog.", "OpenTelemetry", "Swashbuckle.AspNetCore.");
 
         }
 
@@ -208,7 +207,7 @@ namespace Bb.Services.Managers
         public void AddGeneratorAssembly(IFormFile upfile)
         {
 
-            DirectoryInfo directoryPath = _manager.GetPluginDirectory(Path.GetFileNameWithoutExtension(upfile.FileName));
+            DirectoryInfo directoryPath = _manager.GetPlugInDirectory(Path.GetFileNameWithoutExtension(upfile.FileName));
 
             string filePath = Path.Combine(directoryPath.FullName, upfile.FileName);
             var f = upfile.Save();
@@ -241,7 +240,7 @@ namespace Bb.Services.Managers
         {
 
             var generators = new Dictionary<string, Type>();
-            var list = _manager.DiscoverPluginList().ToList();
+            var list = _manager.DiscoverPlugInList().ToList();
             foreach (var type in list)
             {
 

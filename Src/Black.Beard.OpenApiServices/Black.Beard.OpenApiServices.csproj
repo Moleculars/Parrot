@@ -17,10 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Embedded\log4net.config" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="Embedded\HttpExceptionModel.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -32,23 +28,16 @@
     <Content Include="Embedded\Program.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Embedded\ServiceTrace.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Embedded\SwaggerExtension.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Embedded\ServiceProcessor.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Embedded\Setup.cs">
+    <Content Include="Embedded\Startup.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Black.Beard.Analysis" Version="1.0.72" />
-    <PackageReference Include="Black.Beard.Jslt" Version="1.0.285" />
     <PackageReference Include="Black.Beard.Process" Version="1.0.72" />
     <PackageReference Include="Black.Beard.Projects.Models" Version="1.0.72" />
     <PackageReference Include="DataAnnotationsExtensions" Version="5.0.1.27" />

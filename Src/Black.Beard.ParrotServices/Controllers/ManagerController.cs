@@ -1,5 +1,4 @@
 using Bb.ParrotServices.Exceptions;
-using Microsoft.AspNetCore.Mvc;
 using Bb.Models;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Authorization;
@@ -47,7 +46,7 @@ namespace Bb.ParrotServices.Controllers
         /// </summary>
         /// <param name="template">template name of generation. If you don"t know. use 'mock'</param>
         /// <param name="contract">The unique contract name.</param>
-        /// <param name="upfile">The upfile that contains the contract in open api 3.*.</param>
+        /// <param name="upfile">The file to upload that contains the contract in open api 3.*.</param>
         /// <returns>Return the list of template.</returns>
         /// <exception cref="Bb.ParrotServices.Exceptions.BadRequestException">No file received.</exception>
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProjectDocument))]
@@ -144,6 +143,9 @@ namespace Bb.ParrotServices.Controllers
 
             var project = _builder.Contract(contract);
 
+            if (project == null)
+                return NotFound(contract + " not found");
+
             ProjectBuilderTemplate templateObject;
             try
             {
@@ -164,7 +166,7 @@ namespace Bb.ParrotServices.Controllers
                 foreach (ScriptDiagnostic item in result.Diagnostics.Errors)
                     _logger.LogError(item.ToString());
 
-                return BadRequest(result.Errors);
+                return BadRequest(result.Diagnostics.Errors);
 
             }
 
@@ -209,7 +211,7 @@ namespace Bb.ParrotServices.Controllers
                 foreach (ScriptDiagnostic item in result.Diagnostics.Errors)
                     _logger.LogError(item.ToString());
 
-                return BadRequest(result.Errors);
+                return BadRequest(result.Diagnostics.Errors);
 
             }
 

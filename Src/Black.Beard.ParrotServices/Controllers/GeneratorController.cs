@@ -68,24 +68,6 @@ namespace Bb.ParrotServices.Controllers
             _builder.AddGeneratorAssembly(upfile);
 
 
-            //ProjectBuilderTemplate templateObject;
-            //var project = _builder.Contract(contract);
-            //try
-            //{
-            //    templateObject = project.Template(template);
-            //}
-            //catch (MockHttpException e)
-            //{
-            //    _logger.LogError(e, e.Message);
-            //    return NotFound(e.Message);
-            //}
-
-            // Save contract
-            //templateObject.WriteOnDisk(upfile);
-
-            // Generate project
-
-
             var diag = new ScriptDiagnostics();
             diag.AddError(TextLocation.Empty, "Project generation failed", "Project generation failed");
 

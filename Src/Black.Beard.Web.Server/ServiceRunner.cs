@@ -6,6 +6,8 @@ using NLog.Web;
 using System.Collections;
 using System.Diagnostics;
 using Bb.OpenApiServices;
+using System.ComponentModel.Design;
+using Bb.ComponentModel;
 
 namespace Bb
 {
@@ -25,7 +27,6 @@ namespace Bb
         /// <param name="args">The arguments.</param>
         public ServiceRunner(params string[] args)
         {
-
             _args = args;
             _tokenSource = new CancellationTokenSource();
             _token = _tokenSource.Token;
@@ -33,7 +34,7 @@ namespace Bb
 
             InitializeByOs();
 
-            Logger = InitializeLogger();             
+            Logger = InitializeLogger();
 
         }
 
@@ -209,7 +210,7 @@ namespace Bb
             }
         }
 
-        private static Logger InitializeLogger()
+        protected virtual Logger InitializeLogger()
         {
 
             // target folder where write
@@ -314,17 +315,13 @@ namespace Bb
                 Directory.CreateDirectory(Configuration.TraceLogToWrite);
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
                 Configuration.TraceLogToWrite += "\\";
-            }
 
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
                 Configuration.TraceLogToWrite += "/";
-            }
 
-            Console.WriteLine("setting directory to generate projects in : " + Configuration.CurrentDirectoryToWriteProjects);
-            Console.WriteLine("setting directory to output logs : " + Configuration.TraceLogToWrite);
+            Trace.TraceInformation("setting directory to generate projects in : " + Configuration.CurrentDirectoryToWriteProjects);
+            Trace.TraceInformation("setting directory to output logs : " + Configuration.TraceLogToWrite);
 
         }
 
@@ -358,7 +355,7 @@ namespace Bb
         /// <value>
         /// The addresses.
         /// </value>
-        public List<Uri> Addresses { get; private set; }
+        public List<Uri> Addresses { get; protected set; }
 
 
         internal IHostBuilder CreateHostBuilder(NLog.Logger logger, string[] args) =>
@@ -369,95 +366,54 @@ namespace Bb
                        if (_urls != null)
                            webBuilder.UseUrls(_urls.ConcatUrl().ToString());
 
-                       // 
-                       webBuilder.ConfigureAppConfiguration((hostingContext, config) =>
-                       {
+                       webBuilder.ConfigureAppConfiguration((hostingContext, config) => SetConfiguration(logger, hostingContext, config));
 
-                           Configuration.UseSwagger = "use_swagger".EnvironmentVariableExists()
-                               ? "use_swagger".EnvironmentVariableIsTrue()
-                               : hostingContext.HostingEnvironment.IsDevelopment();
+                       webBuilder.ConfigureLogging(l => ConfigureLogging(l))
 
-                           Configuration.TraceAll = "trace_all".EnvironmentVariableExists()
-                               ? "trace_all".EnvironmentVariableIsTrue()
-                               : Configuration.TraceAll = hostingContext.HostingEnvironment.IsDevelopment();
-
-                           Configuration.UseTelemetry = "use_telemetry".EnvironmentVariableExists()
-                                ? "use_telemetry".EnvironmentVariableIsTrue()
-                                : Configuration.UseTelemetry = hostingContext.HostingEnvironment.IsDevelopment();
-
-                           // Load configurations files
-                           new ConfigurationLoader(logger, hostingContext, config)
-                            .TryToLoadConfigurationFile("appsettings.json", false, false)
-                            .TryToLoadConfigurationFile("apikeysettings.json", false, false)
-                            .TryToLoadConfigurationFile("policiessettings.json", false, false)
-                            ;
-
-                       });
-
-                       webBuilder.ConfigureLogging(l =>
-                       {
-                           l.ClearProviders()
-                           ;
-                       })
-                       .UseNLog(new NLogAspNetCoreOptions()
-                       {
-                           IncludeScopes = true,
-                           IncludeActivityIdsWithBeginScope = true,
-                       });
+                       .UseNLog(ConfigureNlog());
 
                        webBuilder.UseStartup<TStartup>();
 
                    });
 
+        protected virtual NLogAspNetCoreOptions ConfigureNlog()
+        {
+            return new NLogAspNetCoreOptions()
+            {
+                IncludeScopes = true,
+                IncludeActivityIdsWithBeginScope = true,
+            };
+        }
 
-        //internal WebApplicationBuilder CreateWebHostBuilder(NLog.Logger logger, string[] args)
-        //{
+        protected virtual void ConfigureLogging(ILoggingBuilder builder)
+        {
+            builder.ClearProviders()
+           ;
+        }
 
-        //    WebApplicationBuilder web = WebApplication.CreateBuilder(args);
+        protected virtual void SetConfiguration(Logger logger, WebHostBuilderContext hostingContext, IConfigurationBuilder config)
+        {
+            Configuration.UseSwagger = "use_swagger".EnvironmentVariableExists()
+                                           ? "use_swagger".EnvironmentVariableIsTrue()
+                                           : hostingContext.HostingEnvironment.IsDevelopment();
 
-        //    var hostBuilder = web.WebHost;
+            Configuration.TraceAll = "trace_all".EnvironmentVariableExists()
+                ? "trace_all".EnvironmentVariableIsTrue()
+                : Configuration.TraceAll = hostingContext.HostingEnvironment.IsDevelopment();
 
-        //    if (_urls != null)
-        //        hostBuilder.UseUrls(_urls.ConcatUrl().ToString());
+            Configuration.UseTelemetry = "use_telemetry".EnvironmentVariableExists()
+                 ? "use_telemetry".EnvironmentVariableIsTrue()
+                 : Configuration.UseTelemetry = hostingContext.HostingEnvironment.IsDevelopment();
 
-        //    hostBuilder.ConfigureLogging(l =>
-        //    {
-        //        l.ClearProviders()
-        //        ;
-        //    })
-        //      .UseNLog(new NLogAspNetCoreOptions()
-        //      {
-        //          IncludeScopes = true,
-        //          IncludeActivityIdsWithBeginScope = true,
-        //      });
+            // Load configurations files
+            new ConfigurationLoader(logger, hostingContext, config)
+             .TryToLoadConfigurationFile("appsettings.json", false, false)
+             .TryToLoadConfigurationFile("apikeysettings.json", false, false)
+             .TryToLoadConfigurationFile("policiessettings.json", false, false)
+             ;
 
-        //    hostBuilder.ConfigureAppConfiguration((webBuilder, config) =>
-        //    {
+        }
 
-        //        Configuration.UseSwagger = "use_swagger".EnvironmentVariableExists()
-        //                          ? "use_swagger".EnvironmentVariableIsTrue()
-        //                          : webBuilder.HostingEnvironment.IsDevelopment();
-
-        //        Configuration.TraceAll = "trace_all".EnvironmentVariableExists()
-        //            ? "trace_all".EnvironmentVariableIsTrue()
-        //            : Configuration.TraceAll = webBuilder.HostingEnvironment.IsDevelopment();
-
-        //        Configuration.UseTelemetry = "use_telemetry".EnvironmentVariableExists()
-        //            ? "use_telemetry".EnvironmentVariableIsTrue()
-        //            : Configuration.UseTelemetry = webBuilder.HostingEnvironment.IsDevelopment();
-
-        //        // Load configurations files
-        //        new ConfigurationLoader(logger, webBuilder, config)
-        //         .TryToLoadConfigurationFile("appsettings.json", false, false)
-        //         .TryToLoadConfigurationFile("apikeysettings.json", false, false)
-        //         .TryToLoadConfigurationFile("policiessettings.json", false, false)
-        //         ;
-
-        //    });
-
-        //    return web;
-
-        //}
 
         /// <summary>
         /// Cancels the running instance.

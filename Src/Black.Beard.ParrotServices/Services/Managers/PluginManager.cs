@@ -1,5 +1,7 @@
 ﻿using Bb.ComponentModel;
 using Bb.ComponentModel.Attributes;
+using Microsoft.OpenApi.Validations;
+using System.Reflection;
 
 namespace Bb.Services.Managers
 {
@@ -7,6 +9,13 @@ namespace Bb.Services.Managers
 
     public static class TypeDiscoveryExtension
     {
+
+        static TypeDiscoveryExtension()
+        {
+
+            TypeDiscoveryExtension._AspNetDirectory = new FileInfo(typeof(Microsoft.AspNetCore.Antiforgery.AntiforgeryTokenSet).Assembly.Location).Directory;
+
+        }
 
         /// <summary>
         /// return the list of type contains in the folders registered.
@@ -92,7 +101,7 @@ namespace Bb.Services.Managers
                     {
 
                         var typeToKeep = func(item, currentType);
-                     
+
                         if (typeToKeep != null && typeToKeep != currentType)
                             items[name] = typeToKeep;
 
@@ -106,6 +115,7 @@ namespace Bb.Services.Managers
 
         }
 
+        internal static readonly DirectoryInfo? _AspNetDirectory;
 
     }
 
@@ -116,9 +126,10 @@ namespace Bb.Services.Managers
     {
 
 
-        public PluginManager()
+        public PluginManager(params string[] itemToExcludes)
         {
             _typeDiscovery = TypeDiscovery.Instance;
+            _names = new HashSet<string>(itemToExcludes);
         }
 
         /// <summary>
@@ -131,7 +142,7 @@ namespace Bb.Services.Managers
             if (!Directory.Exists(pathRoot))
                 Directory.CreateDirectory(pathRoot);
 
-            _root = new DirectoryInfo( pathRoot);
+            _root = new DirectoryInfo(pathRoot);
 
         }
 
@@ -141,8 +152,8 @@ namespace Bb.Services.Managers
             var dirs = _root.GetDirectories()?.ToArray();
             _typeDiscovery.AddDirectories(dirs);
         }
-         
-        public DirectoryInfo GetPluginDirectory(string pluginName)
+
+        public DirectoryInfo GetPlugInDirectory(string pluginName)
         {
 
             string directoryPath = Path.Combine(_root.FullName, pluginName);
@@ -155,31 +166,52 @@ namespace Bb.Services.Managers
 
             return directoryTarget;
 
-        }               
+        }
 
         /// <summary>
-        /// Discovers the plugin list.
+        /// Discovers the plugIn's list.
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<Type> DiscoverPluginList()
+        public IEnumerable<Type> DiscoverPlugInList()
         {
 
+            var instance = AssemblyDirectoryResolver.Instance;
+
             var typeReference = typeof(T);
-            _typeDiscovery.LoadAssembliesFromFolders();
+            var dir = TypeDiscoveryExtension._AspNetDirectory.FullName;
+            var dir2 = AssemblyDirectoryResolver.SystemDirectory.FullName;
+            var dirs = AssemblyDirectoryResolver.Instance.GetDirectories().Where(c => c.FullName != dir && c.FullName != dir2).ToList();
 
-            var types = _typeDiscovery.GetTypesWithAttributes<ExposeClassAttribute>(typeReference, c => c.Context == Constants.Models.Plugin)
-                .Where(c => !c.IsAbstract)
-                .InFolder(_typeDiscovery.Paths)
-                .GetLastVersion()
-                ;
+            HashSet<Assembly> assemblies = new HashSet<Assembly>();
+            foreach (var folder in dirs)
+                foreach (var item in folder.GetAssembliesFromFolder(c => Evaluate(c)).Where(c => c != null).ToList())
+                    assemblies.Add(item);
 
-            return types;
+            foreach (var assembly in assemblies)
+                foreach (var typeitem in assembly.GetTypes().GetTypesWithAttributes<ExposeClassAttribute>(null, c => c.Context == Constants.Models.Plugin))
+                    yield return typeitem;
 
         }
 
+        bool Evaluate(FileInfo file)
+        {
+
+            foreach (var item in _names)
+                if (file.Name.StartsWith(item))
+                    return false;
+
+            return true;
+
+        }
+
+
         private readonly TypeDiscovery _typeDiscovery;
+        private readonly HashSet<string> _names;
         private DirectoryInfo _root;
 
     }
+
+
+
 
 }
