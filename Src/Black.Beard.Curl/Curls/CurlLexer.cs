@@ -3,7 +3,7 @@
 namespace Bb.Curls
 {
     /// <summary>
-    /// Lexer that tokonize curl command line
+    /// Lexer that tokenize curl command line
     /// </summary>
     public class CurlLexer
     {
