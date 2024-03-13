@@ -20,7 +20,7 @@ namespace Bb.Services.Managers
             _logger = parent._logger;
             _host = host;
             Contract = contract;
-            Root = Path.Combine(parent.Root, contract);
+            Root = parent.Root.Combine(contract);
             _templates = new Dictionary<string, ProjectBuilderTemplate>();
         }
 
@@ -31,7 +31,7 @@ namespace Bb.Services.Managers
         /// <returns></returns>
         public bool TemplateExistsOnDisk(string templateName)
         {
-            return Directory.Exists(Path.Combine(Root, templateName));
+            return Directory.Exists(Root.Combine(templateName));
         }
 
         /// <summary>

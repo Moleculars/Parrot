@@ -224,7 +224,7 @@ namespace Bb
                     NLog.GlobalDiagnosticsContext.Set(item.Key.ToString(), item.Value?.ToString());
 
             // load the configuration file
-            var configLogPath = Path.Combine(Directory.GetCurrentDirectory(), "nlog.config");
+            var configLogPath = Directory.GetCurrentDirectory().Combine("nlog.config");
             NLog.LogManager.Configuration = new NLog.Config.XmlLoggingConfiguration(configLogPath);
 
             // Initialize log
@@ -290,16 +290,16 @@ namespace Bb
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Configuration.CurrentDirectoryToWriteProjects = Path.Combine("c:\\", "tmp", "parrot", "projects");
-                Configuration.CurrentDirectoryToWriteGenerators = Path.Combine("c:\\", "tmp", "parrot", "generators");
-                Configuration.TraceLogToWrite = Path.Combine("c:\\", "tmp", "parrot", "logs");
+                Configuration.CurrentDirectoryToWriteProjects = "c:\\".Combine("tmp", "parrot", "projects");
+                Configuration.CurrentDirectoryToWriteGenerators = "c:\\".Combine("tmp", "parrot", "generators");
+                Configuration.TraceLogToWrite = "c:\\".Combine("tmp", "parrot", "logs");
             }
 
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                Configuration.CurrentDirectoryToWriteProjects = Path.Combine("tmp", "parrot", "projects");
-                Configuration.CurrentDirectoryToWriteGenerators = Path.Combine("tmp", "parrot", "generators");
-                Configuration.TraceLogToWrite = Path.Combine("tmp", "parrot", "logs");
+                Configuration.CurrentDirectoryToWriteProjects = "tmp".Combine("parrot", "projects");
+                Configuration.CurrentDirectoryToWriteGenerators = "tmp".Combine("parrot", "generators");
+                Configuration.TraceLogToWrite = "tmp".Combine("parrot", "logs");
             }
 
             else

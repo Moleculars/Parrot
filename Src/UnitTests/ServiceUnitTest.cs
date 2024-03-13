@@ -15,7 +15,7 @@ namespace UnitTests
 
         public ServiceUnitTest()
         {
-            _file = Path.Combine(AppContext.BaseDirectory, "swagger.json");
+            _file = AppContext.BaseDirectory.Combine("swagger.json");
             var file = typeof(UnitTest1).Assembly.Location;
             this._baseDirectory = new FileInfo(file).Directory;
         }
@@ -41,7 +41,7 @@ namespace UnitTests
                 var adr = new Url(service.Addresses.First(c => c.Scheme == "http" && c.Host == "127.0.0.1"), "Watchdog/isupandrunning");
                 CurlInterpreter command = $"curl -X 'GET' '{adr}' -H 'accept: application/json'";
                 var a = command.ResultToString();
-                
+
             }
 
         }

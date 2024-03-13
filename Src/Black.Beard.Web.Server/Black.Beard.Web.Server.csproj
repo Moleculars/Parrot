@@ -16,8 +16,9 @@
 	<ItemGroup>
 	  <PackageReference Include="Black.Beard.ComponentModel" Version="1.0.57" />
 	  <PackageReference Include="Black.Beard.ComponentModel.Attributes" Version="1.0.57" />
-	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders" Version="2.0.27" />
-	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders.Files" Version="2.0.27" />
+	  <PackageReference Include="Black.Beard.Helpers" Version="2.0.30" />
+	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders" Version="2.0.30" />
+	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders.Files" Version="2.0.30" />
 	  <PackageReference Include="Black.Beard.Http" Version="1.0.12" />
 		
 	  <PackageReference Include="NLog" Version="5.2.8" />

@@ -29,7 +29,7 @@ namespace Bb.Extensions
         public static void SaveInFolder(this List<PolicyModel> self, string path)
         {
 
-            string filename = Path.Combine(path, "policies.config.json");
+            string filename = path.Combine("policies.config.json");
 
             PolicyProfilList
                 .New(self)

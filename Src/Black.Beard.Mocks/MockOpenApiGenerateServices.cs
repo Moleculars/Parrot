@@ -33,7 +33,7 @@ namespace Bb.OpenApiServices
         protected override void GenerateMethod(KeyValuePair<OperationType, OpenApiOperation> self, CodeBlock code, string typeReturn, CsMethodDeclaration method)
         {
 
-            var templateName = _ctx.GetDataFor(self).GetData<string>("templateName");
+            var templateName = Context.GetDataFor(self).GetData<string>("templateName");
 
             if (string.IsNullOrEmpty(templateName))
             {
@@ -43,7 +43,7 @@ namespace Bb.OpenApiServices
             else
             {
 
-                string diff = _ctx.GetRelativePath(templateName);
+                string diff = Context.GetRelativePath(templateName);
 
                 // var service = new ServiceProcessor<ParcelTrackingList>();
                 var type = CodeHelper.AsType("ServiceProcessor", typeReturn);

@@ -67,7 +67,9 @@ namespace Bb.OpenApiServices
                 .Generate(_document);
 
             if (ctx.Diagnostics.Success)
+            {
                 GenerateWatchdog.Generate(ctx, this.Contract, this.Configuration.Namespace);
+            }
 
             return ctx;
 
@@ -160,6 +162,5 @@ namespace Bb.OpenApiServices
         private string Description;
 
     }
-
 
 }

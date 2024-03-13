@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using NLog;
 using System;
+using Bb;
 
 namespace Bb.Extensions
 {
@@ -46,12 +47,12 @@ namespace Bb.Extensions
             var file = Path.GetFileNameWithoutExtension(filename);
             var extension = Path.GetExtension(filename);
 
-            var path = Path.Combine(_env.ContentRootPath, $"{file}.{_env.EnvironmentName}{extension}");
+            var path = _env.ContentRootPath.Combine( $"{file}.{_env.EnvironmentName}{extension}");
 
             if (!File.Exists(path))
             {
                 _logger.Debug($"Configuration file '{Path.GetFileName(path)}' not found.");
-                path = Path.Combine(_env.ContentRootPath, $"{file}{extension}");
+                path = _env.ContentRootPath.Combine( $"{file}{extension}");
             }
 
             if (File.Exists(path))

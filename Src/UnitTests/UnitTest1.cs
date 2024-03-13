@@ -1,6 +1,6 @@
 using Bb.Process;
 using Bb.OpenApiServices;
-
+using Bb;
 namespace UnitTests
 {
 
@@ -9,7 +9,7 @@ namespace UnitTests
 
         public UnitTest1()
         {
-            _file = Path.Combine(AppContext.BaseDirectory, "swagger.json");
+            _file = AppContext.BaseDirectory.Combine( "swagger.json");
             var file = typeof(UnitTest1).Assembly.Location;
             this._baseDirectory = new FileInfo(file).Directory;
         }
@@ -30,7 +30,7 @@ namespace UnitTests
             .Generate()
             ;
 
-            var dir = Path.Combine(generator.Directory, name + ".csproj");
+            var dir = generator.Directory.Combine( name + ".csproj");
                         
             using (var cmd = new ProcessCommand()
                      .Command($"dotnet.exe" , $"build \"{dir}\" -c release /p:Version=1.0.0.0")

@@ -1,4 +1,4 @@
-using Bb;
+﻿using Bb;
 using Bb.ParrotServices;
 
 /// <summary>
@@ -11,7 +11,7 @@ public class Program
     /// Main entry point of the application.
     /// </summary>
     /// <param name="args"></param>
-    public static void Main(string[] args)
+    static void Main(string[] args)
     {
         var service = new ServiceRunner<Startup>(args);
         service.Run();

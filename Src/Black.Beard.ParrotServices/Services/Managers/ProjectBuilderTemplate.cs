@@ -16,6 +16,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using System.ComponentModel.DataAnnotations;
+using System.Reflection;
+using Bb.ComponentModel;
 
 namespace Bb.Services.Managers
 {
@@ -57,15 +59,15 @@ namespace Bb.Services.Managers
             _host = host;
 
             Contract = _parent.Contract;
-            Root = Path.Combine(parent.Root, template);
+            Root = parent.Root.Combine(template);
 
             Template = template;
             _generatorType = _rootParent.ResolveGenerator(Template);
             if (_generatorType == null)
                 throw new MockHttpException($"template {template} not found");
 
-            _templateFilename = Path.Combine(Root, template + ".json");
-            _templateConfigFilename = Path.Combine(Root, template + ".config.json");
+            _templateFilename = Root.Combine(template + ".json");
+            _templateConfigFilename = Root.Combine(template + ".config.json");
             var instance = GetGenerator();
             if (instance == null)
                 throw new MockHttpException($"instance {template} can not be created");
@@ -83,7 +85,7 @@ namespace Bb.Services.Managers
         /// <returns></returns>
         public string GetPath(string filename)
         {
-            var filepath = Path.Combine(Root, filename);
+            var filepath = Root.Combine(filename);
             return filepath;
         }
 
@@ -230,6 +232,15 @@ namespace Bb.Services.Managers
 
                 result = List(ctx);
 
+
+
+                var file = ctx.TargetPath.Combine("assemblies.txt").AsFile();
+                if (file.Exists)
+                    file.Delete();
+
+                file.FullName.Save(string.Join(Environment.NewLine, ctx.AssemblyNames));
+
+
             }
 
             return result;
@@ -262,12 +273,13 @@ namespace Bb.Services.Managers
 
             _logger.LogInformation("starting build {project}", Root);
 
-            var directory = new DirectoryInfo(Root);
+            var directoryRoot = Root.AsDirectory();
 
-            var path1 = Path.Combine(directory.FullName, "service", "obj");
-            var path2 = Path.Combine(directory.FullName, "service", "bin");
+            var directoryService = Root.Combine("service");
+            var path1 = directoryService.Combine("service", "obj");
+            var path2 = directoryService.Combine("service", "bin");
 
-            var documents = directory.GetFiles("*.cs", SearchOption.AllDirectories);
+            var documents = directoryRoot.GetFiles("*.cs", SearchOption.AllDirectories);
             var files = documents.Where(c =>
                                        {
                                            if (c.FullName.StartsWith(path1) || c.FullName.StartsWith(path2))
@@ -277,7 +289,20 @@ namespace Bb.Services.Managers
                                        .Select(c => c.FullName).ToArray();
 
 
-            //var dir = Path.Combine(Environment.CurrentDirectory, Path.GetRandomFileName());
+            List<Assembly> references = new List<Assembly>();
+            var file = directoryService.Combine("assemblies.txt").AsFile();
+            if (file.Exists)
+            {
+                var items = file.LoadFromFile().Split(Environment.NewLine);
+                foreach (var item in items)
+                {
+                    var assembly = AssemblyLoader.Instance.LoadAssemblyName(item);
+                    references.Add(assembly);
+                }
+            }
+
+
+            //var dir = Environment.CurrentDirectory.Combine( Path.GetRandomFileName());
             var nuget = new NugetController()
                 //.AddFolderIf(NugetController.IsWindowsPlatform, dir, NugetController.HostNugetOrg)
                 .AddDefaultWindowsFolder()
@@ -292,10 +317,11 @@ namespace Bb.Services.Managers
             BuildCSharp build = new BuildCSharp()
                 .SetSdk(FrameworkKey.Net80, FrameworkType.AspNetCore)
                 .EnableImplicitUsings()
-                .Using("System.Net.Http.Json", c => c.IsGlobal = true )
+                .Using("System.Net.Http.Json", c => c.IsGlobal = true)
                 .SetOutputKind(OutputKind.WindowsApplication, "Program")
                 .SetNugetController(nuget)
                 .AddSource(files)
+                .AddReferences(references.ToArray())
 
                 .AddReferences(typeof(TextLocation).Assembly)
                 .AddReferences(typeof(BuildCSharp).Assembly)
@@ -305,11 +331,9 @@ namespace Bb.Services.Managers
                 .AddReferences(typeof(StartupBase).Assembly)
                 .AddReferences(typeof(Bb.ContentHelper).Assembly)
                 .AddReferences(typeof(Bb.ContentHelperFiles).Assembly)
-                .AddReferences(typeof(ControllerBase).Assembly)
                 .AddReferences(typeof(IServiceCollection).Assembly)
                 .AddReferences(typeof(WebApplication).Assembly)
                 .AddReferences(typeof(Newtonsoft.Json.JsonReader).Assembly)
-                .AddReferences(typeof(MaxLengthAttribute).Assembly)
                 .AddReferences(typeof(ILogger<>).Assembly)
                 .AddReferences(typeof(IConfiguration).Assembly)
                 .AddReferences(typeof(Microsoft.AspNetCore.Mvc.Abstractions.ActionDescriptor).Assembly)
@@ -318,57 +342,28 @@ namespace Bb.Services.Managers
                 // microsoft references
                 .AddReferences(typeof(BinderOptions).Assembly)
                 .AddReferences(typeof(Microsoft.Extensions.Configuration.Json.JsonConfigurationSource).Assembly)
-                
+
                 .AddReferences(typeof(ILoggerFactory).Assembly)
                 .AddReferences(typeof(System.Net.Http.Json.HttpClientJsonExtensions).Assembly)
-                // .AddPackage("Black.Beard.Jslt", "1.0.300")
-
-                //.AddPackage("Black.Beard.Helpers.ContentLoaders.Compress", "2.0.26")
-                //.AddPackage("Black.Beard.Helpers.ContentLoaders.Newtonsoft", "2.0.26")
-
-                //.AddPackage("DataAnnotationsExtensions", "5.0.1.27")
-
-                //.AddPackage("Microsoft.Extensions.Configuration.Binder", "8.0.1")
-                //.AddPackage("Microsoft.Extensions.Configuration.Json", "8.0.0")
-
-                //.AddPackage("Microsoft.Extensions.Hosting", "8.0.0")
-                //.AddPackage("Microsoft.Extensions.Configuration.NewtonsoftJson", "5.0.1")
-                //.AddPackage("Microsoft.Extensions.PlatformAbstractions", "1.1.0")
-
-                //.AddPackage("Swashbuckle.AspNetCore", "6.5.0")
-
+             
                 .AddPackage("NLog", "5.2.8")
                 .AddPackage("NLog.DiagnosticSource", "5.2.1")
                 .AddPackage("NLog.Extensions.Logging", "5.3.8")
                 .AddPackage("NLog.Web.AspNetCore", "5.3.8")
 
                 ;
-                       
+
 
             Compilers.AssemblyResult buildResult = build.Build();
 
             if (buildResult.Success)
-            {
                 _logger.LogInformation("build success {project}", Root);
-            }
+
             else
-            {
-
-                foreach (var item in buildResult.Diagnostics.Errors)
-                {
-
-                }
-
                 _logger.LogError("build failed {project}", Root);
 
-            }
 
             return buildResult;
-
-            //}
-
-            _logger.LogError($"Failed to locate a project to build in {Root}");
-            return null;
 
         }
 
@@ -554,10 +549,10 @@ namespace Bb.Services.Managers
         internal string GetDirectoryProject(params string[] path)
         {
 
-            var dir = Path.Combine(Root, "service");
+            var dir = Root.Combine("service");
 
             foreach (var item in path)
-                dir = Path.Combine(dir, item);
+                dir = dir.Combine(item);
 
             return dir;
 
@@ -594,7 +589,7 @@ namespace Bb.Services.Managers
 
             };
 
-            var dirRoot = new DirectoryInfo(Path.Combine(rootPath, "Templates"));
+            var dirRoot = rootPath.Combine("Templates").AsDirectory();
             _logger.LogDebug($"ProjectBuilderTemplate.List : dirRoot = {dirRoot}");
             _logger.LogDebug($"ProjectBuilderTemplate.List : Root = {Root}");
             if (dirRoot.Exists)

@@ -181,7 +181,7 @@ namespace Bb.Services.Managers
             get
             {
                 return Directory.Exists(_root)
-                    && File.Exists(Path.Combine(_root, "contract.json"))
+                    && File.Exists(_root.Combine( "contract.json"))
                     ;
             }
         }
@@ -209,11 +209,11 @@ namespace Bb.Services.Managers
 
             DirectoryInfo directoryPath = _manager.GetPlugInDirectory(Path.GetFileNameWithoutExtension(upfile.FileName));
 
-            string filePath = Path.Combine(directoryPath.FullName, upfile.FileName);
+            string filePath = directoryPath.Combine(upfile.FileName);
             var f = upfile.Save();
             var md5 = f.Md5();
 
-            var directoryPath2 = Path.Combine(directoryPath.FullName, md5);
+            var directoryPath2 = directoryPath.Combine( md5);
             var targetDirectory = new DirectoryInfo(directoryPath2);
             targetDirectory.Refresh();
             if (!targetDirectory.Exists)

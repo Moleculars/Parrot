@@ -13,7 +13,7 @@ namespace Bb.Models.Security
         {
             var currentAssembly = Assembly.GetEntryAssembly();
             var d = Path.GetDirectoryName(currentAssembly.Location);
-            _file = Path.Combine(d, "apikeysettings.json");
+            _file = d.Combine("apikeysettings.json");
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Bb.Models.Security
             var items = ApiKeyList.Items.Count;
 
             var pages = 0;
-            if (items > 0) 
+            if (items > 0)
                 pages = (int)(items / count);
 
             if (items % count > 0)

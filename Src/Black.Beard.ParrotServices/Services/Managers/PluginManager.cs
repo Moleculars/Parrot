@@ -156,7 +156,7 @@ namespace Bb.Services.Managers
         public DirectoryInfo GetPlugInDirectory(string pluginName)
         {
 
-            string directoryPath = Path.Combine(_root.FullName, pluginName);
+            string directoryPath = _root.Combine(pluginName);
 
             var directoryTarget = new DirectoryInfo(directoryPath);
             directoryTarget.Refresh();
