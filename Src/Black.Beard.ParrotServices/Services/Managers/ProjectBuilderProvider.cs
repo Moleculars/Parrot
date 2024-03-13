@@ -267,7 +267,7 @@ namespace Bb.Services.Managers
         #endregion generators
 
         /// <summary>
-        /// Gets the root path for access to the ressource.
+        /// Gets the root path for access to the resource.
         /// </summary>
         /// <value>
         /// The root.
