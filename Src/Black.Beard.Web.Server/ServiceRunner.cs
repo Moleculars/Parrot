@@ -245,7 +245,7 @@ namespace Bb
             var addresses = Build.GetServerAcceptedAddresses();
             foreach (var address in addresses)
             {
-                Trace.WriteLine($"address : {address}");
+                Trace.TraceInformation($"address : {address}");
                 Logger.Info($"address : {address}");
             }
 

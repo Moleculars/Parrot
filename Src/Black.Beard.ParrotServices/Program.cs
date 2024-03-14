@@ -15,6 +15,7 @@ public class Program
     {
         var service = new ServiceRunner<Startup>(args);
         service.Run();
+    
     }
 
 

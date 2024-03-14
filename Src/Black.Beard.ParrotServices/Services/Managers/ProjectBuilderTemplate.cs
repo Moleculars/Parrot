@@ -18,6 +18,7 @@ using Microsoft.Extensions.Configuration;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using Bb.ComponentModel;
+using Bb.Projects;
 
 namespace Bb.Services.Managers
 {
@@ -281,26 +282,15 @@ namespace Bb.Services.Managers
 
             var documents = directoryRoot.GetFiles("*.cs", SearchOption.AllDirectories);
             var files = documents.Where(c =>
-                                       {
-                                           if (c.FullName.StartsWith(path1) || c.FullName.StartsWith(path2))
-                                               return false;
-                                           return true;
-                                       })
-                                       .Select(c => c.FullName).ToArray();
-
-
-            List<Assembly> references = new List<Assembly>();
-            var file = directoryService.Combine("assemblies.txt").AsFile();
-            if (file.Exists)
             {
-                var items = file.LoadFromFile().Split(Environment.NewLine);
-                foreach (var item in items)
-                {
-                    var assembly = AssemblyLoader.Instance.LoadAssemblyName(item);
-                    references.Add(assembly);
-                }
-            }
+                if (c.FullName.StartsWith(path1) || c.FullName.StartsWith(path2))
+                    return false;
+                return true;
+            })
+            .Select(c => c.FullName).ToArray();
 
+
+            HashSet<string> assemblies = ResolveAssemblies(directoryService);
 
             //var dir = Environment.CurrentDirectory.Combine( Path.GetRandomFileName());
             var nuget = new NugetController()
@@ -321,39 +311,8 @@ namespace Bb.Services.Managers
                 .SetOutputKind(OutputKind.WindowsApplication, "Program")
                 .SetNugetController(nuget)
                 .AddSource(files)
-                .AddReferences(references.ToArray())
-
-                .AddReferences(typeof(TextLocation).Assembly)
-                .AddReferences(typeof(BuildCSharp).Assembly)
-                .AddReferences(typeof(Bb.Json.Jslt.Parser.JsltParser).Assembly)
-
-                // Local references
-                .AddReferences(typeof(StartupBase).Assembly)
-                .AddReferences(typeof(Bb.ContentHelper).Assembly)
-                .AddReferences(typeof(Bb.ContentHelperFiles).Assembly)
-                .AddReferences(typeof(IServiceCollection).Assembly)
-                .AddReferences(typeof(WebApplication).Assembly)
-                .AddReferences(typeof(Newtonsoft.Json.JsonReader).Assembly)
-                .AddReferences(typeof(ILogger<>).Assembly)
-                .AddReferences(typeof(IConfiguration).Assembly)
-                .AddReferences(typeof(Microsoft.AspNetCore.Mvc.Abstractions.ActionDescriptor).Assembly)
-                .AddReferences(typeof(ILoggerFactory).Assembly)
-
-                // microsoft references
-                .AddReferences(typeof(BinderOptions).Assembly)
-                .AddReferences(typeof(Microsoft.Extensions.Configuration.Json.JsonConfigurationSource).Assembly)
-
-                .AddReferences(typeof(ILoggerFactory).Assembly)
-                .AddReferences(typeof(System.Net.Http.Json.HttpClientJsonExtensions).Assembly)
-             
-                .AddPackage("NLog", "5.2.8")
-                .AddPackage("NLog.DiagnosticSource", "5.2.1")
-                .AddPackage("NLog.Extensions.Logging", "5.3.8")
-                .AddPackage("NLog.Web.AspNetCore", "5.3.8")
-
+                .AddReferences(ResolveAssemblies(assemblies))
                 ;
-
-
             Compilers.AssemblyResult buildResult = build.Build();
 
             if (buildResult.Success)
@@ -362,8 +321,37 @@ namespace Bb.Services.Managers
             else
                 _logger.LogError("build failed {project}", Root);
 
-
             return buildResult;
+
+        }
+
+        private static HashSet<string> ResolveAssemblies(string directoryService)
+        {
+
+            var assemblies = new HashSet<string>();
+
+            var file = directoryService.Combine("assemblies.txt").AsFile();
+            if (file.Exists)
+            {
+                var items = new HashSet<string>(file.LoadFromFile().Split(Environment.NewLine));
+                foreach (var item in items)
+                    assemblies.Add(item);
+            }
+
+            return assemblies;
+        
+        }
+
+        private static Assembly[] ResolveAssemblies(HashSet<string> namespaces)
+        {
+            var references = new List<Assembly>();  
+            foreach (var item in namespaces)
+            {
+                var assembly = AssemblyLoader.Instance.LoadAssemblyName(item);
+                references.Add(assembly);
+            }
+
+            return references.ToArray();
 
         }
 

@@ -14,6 +14,36 @@ namespace Bb.OpenApiServices
     {
 
 
+        static MockServiceGenerator()
+        {
+
+            _assemblies = new string[]
+            {
+                "Black.Beard.Helpers.ContentLoaders",
+                "Black.Beard.Helpers.ContentLoaders.Files",
+                "Black.Beard.Analysis",
+                "Black.Beard.Roslyn",
+                "Black.Beard.Jslt",
+                "Black.Beard.Web.Server",
+                "Microsoft.AspNetCore",
+                "Microsoft.AspNetCore.Mvc.Abstractions",
+                "Microsoft.Extensions.DependencyInjection.Abstractions",
+                "Microsoft.Extensions.Logging.Abstractions",
+                "Microsoft.Extensions.Configuration.Abstractions",
+                "Microsoft.Extensions.Logging.Abstractions",
+                "Microsoft.Extensions.Configuration.Binder",
+                "Microsoft.Extensions.Configuration.Json",
+                "Microsoft.Extensions.Logging.Abstractions",
+                "System.Net.Http.Json",
+                "Newtonsoft.Json",
+                "NLog",
+                "NLog.Web.AspNetCore",
+                "NLog.Extensions.Logging",
+                "NLog.DiagnosticSource",
+            };
+        }
+
+
         public override void InitializeDatas(string openApiDocumentPath)
         {
 
@@ -54,6 +84,9 @@ namespace Bb.OpenApiServices
             {
                 ContractDocumentFilename = Path.GetFileName(this._file),
             };
+
+            foreach (var item in _assemblies)
+                ctx.AddAssemblyName(item);
 
             new ServiceGeneratorProcess<OpenApiDocument>(ctx)
 
@@ -160,7 +193,7 @@ namespace Bb.OpenApiServices
         private string _file;
         private OpenApiDocument _document;
         private string Description;
-
+        private static readonly string[] _assemblies;
     }
 
 }
