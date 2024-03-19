@@ -1,24 +1,15 @@
-﻿using Bb.Process;
-using Bb.OpenApiServices;
+﻿using Bb.OpenApiServices;
 using Bb.Models;
 using Bb.Http;
 using Bb.Mock;
-using Bb.Services.ProcessHosting;
 using Bb.ParrotServices.Exceptions;
-using System.Text;
 using System.Text.Json;
 using Bb.Builds;
 using Microsoft.CodeAnalysis;
-using Bb.Analysis.DiagTraces;
 using Bb.Nugets;
 using Bb.Analysis;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using Bb.ComponentModel;
-using Bb.Projects;
 
 namespace Bb.Services.Managers
 {
@@ -51,13 +42,12 @@ namespace Bb.Services.Managers
         /// <param name="parent">The parent.</param>
         /// <param name="template">The template.</param>
         /// <exception cref="Bb.ParrotServices.Exceptions.MockHttpException">template {template} not found</exception>
-        public ProjectBuilderTemplate(ProjectBuilderContract parent, string template, LocalProcessCommandService host)
+        public ProjectBuilderTemplate(ProjectBuilderContract parent, string template)
         {
 
             _parent = parent;
             _rootParent = parent.Parent;
             _logger = _rootParent._logger;
-            _host = host;
 
             Contract = _parent.Contract;
             Root = parent.Root.Combine(template);
@@ -233,14 +223,11 @@ namespace Bb.Services.Managers
 
                 result = List(ctx);
 
-
-
                 var file = ctx.TargetPath.Combine("assemblies.txt").AsFile();
                 if (file.Exists)
                     file.Delete();
 
                 file.FullName.Save(string.Join(Environment.NewLine, ctx.AssemblyNames));
-
 
             }
 
@@ -325,150 +312,75 @@ namespace Bb.Services.Managers
 
         }
 
-        private static HashSet<string> ResolveAssemblies(string directoryService)
-        {
-
-            var assemblies = new HashSet<string>();
-
-            var file = directoryService.Combine("assemblies.txt").AsFile();
-            if (file.Exists)
-            {
-                var items = new HashSet<string>(file.LoadFromFile().Split(Environment.NewLine));
-                foreach (var item in items)
-                    assemblies.Add(item);
-            }
-
-            return assemblies;
-        
-        }
-
-        private static Assembly[] ResolveAssemblies(HashSet<string> namespaces)
-        {
-            var references = new List<Assembly>();  
-            foreach (var item in namespaces)
-            {
-                var assembly = AssemblyLoader.Instance.LoadAssemblyName(item);
-                references.Add(assembly);
-            }
-
-            return references.ToArray();
-
-        }
-
 
         /// <summary>
         /// Run the contract
         /// </summary>
-        public async Task<ProjectItem?> Run(string publicHost, int? httpCurrentPort, int? httpsCurrentPort)
+        public async Task<ServiceHost?> Run(Compilers.AssemblyResult result, string publicHost, int? httpCurrentPort, int? httpsCurrentPort)
         {
 
-            var projectFile = GetFileProject();
+            var Running = Prepare(result, publicHost, httpCurrentPort, httpsCurrentPort);
 
-            if (projectFile == null)
+            var instance = Running.Start();
+
+            string status = string.Empty;
+            if (instance != null)
+                status = instance.Status.ToString();
+
+            if (status == ServiceRunnerStatus.Running.ToString())
             {
-                _logger.LogError($"Failed to locate a project to run in {Root}");
-                return null;
+                try
+                {
+                    if (Running.IsUpAndRunningServices != null)
+                    {
+                        var url = Running.IsUpAndRunningServices.Http.InternalUrl;
+                        var serviceResult = await url.GetObjectAsync<WatchdogResult>();
+                        if (serviceResult != null)
+                        {
+                            Running.Listen = true;
+                            var instance1 = _rootParent._referential.Register(Running);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, ex.Message);
+                }
+
             }
+            else
+                _logger.LogError($"service failed to start service {Template} {Contract}");
+
+
+            return Running;
+
+        }
+
+
+        private ServiceHost Prepare(Compilers.AssemblyResult result, string publicHost, int? httpCurrentPort, int? httpsCurrentPort)
+        {
+
+
+            List<(string, string, int)> listeners = new List<(string, string, int)>(); // ("http", "localhost", 5000), { "https", "localhost", 5001 } };
 
             string internalHost = "localhost";
 
-            Uri? uriHttp = null;
-            Uri? uriHttps = null;
 
             if (httpCurrentPort.HasValue)
-                uriHttp = HttpHelper.GetUri(false, internalHost, HttpHelper.GetAvailablePort(httpCurrentPort.Value));
+                listeners.Add(("http", internalHost, httpCurrentPort.Value));
 
             if (httpsCurrentPort.HasValue)
-                uriHttps = HttpHelper.GetUri(true, internalHost, HttpHelper.GetAvailablePort(httpsCurrentPort.Value));
+                listeners.Add(("https", internalHost, httpsCurrentPort.Value));
 
-            StringBuilder urls = new StringBuilder();
-
-            urls.Append("\"");
-            if (uriHttp != null)
-                urls.Append(uriHttp.ToString().Trim('/'));
-
-            if (uriHttps != null)
-            {
-                if (urls.Length > 1)
-                    urls.Append(";");
-                urls.Append(uriHttps.ToString().Trim('/'));
-            }
-            urls.Append("\"");
-
-            var workingDirectory = projectFile.Directory?.FullName;
-
-            if (workingDirectory == null)
-            {
-
-                return null;
-            }
-
-            _id = Guid.NewGuid();
-
-            var instance = _rootParent._referential.Register(Template, _parent.Contract, uriHttp, uriHttps);
-
-            DotnetCommand cmd = _host.RunAndGet(new DotnetCommand(_id.Value, instance), c =>
-            {
-                c.SetWorkingDirectory(workingDirectory)
-                 .Arguments($"run \"{projectFile.Name}\" --urls {urls.ToString()}") // -c Development 
-                 .Intercept(InterceptTraces)
-                 ;
-            });
-
-            cmd.Wait(1500);
-
-            if (cmd.ExitCode > 0)
-                throw new Exception("Service can't start");
-
-            Running = new ProjectItem()
+            var running = new ServiceHost(result.FullAssemblyFile, result.References, publicHost, listeners.ToArray())
             {
                 Contract = _parent.Contract,
                 Template = Template,
-            };
-
-            if (httpCurrentPort.HasValue)
-            {
-                Running.Services.Http.ExposedReverseProxyUrl = new Url("http", publicHost, httpCurrentPort.Value, "proxy", Template, _parent.Contract);
-                Running.Swagger.Http.ExposedReverseProxyUrl = new Url("http", publicHost, httpCurrentPort.Value, "proxy", Template, _parent.Contract, "swagger");
-                Running.IsUpAndRunningServices.Http.ExposedReverseProxyUrl = new Url("http", publicHost, httpCurrentPort.Value, "proxy", Template, _parent.Contract, "Watchdog", "isupandrunning");
             }
+            //.AddListener(publicHost, httpCurrentPort, httpsCurrentPort, uriHttp, uriHttps)
+            ;
 
-            if (httpsCurrentPort.HasValue)
-            {
-                Running.Services.Https.ExposedReverseProxyUrl = new Url("https", publicHost, httpsCurrentPort.Value, "proxy", Template, _parent.Contract, "swagger");
-                Running.Swagger.Https.ExposedReverseProxyUrl = new Url("https", publicHost, httpsCurrentPort.Value, "proxy", Template, _parent.Contract, "swagger");
-                Running.IsUpAndRunningServices.Https.ExposedReverseProxyUrl = new Url("https", publicHost, httpsCurrentPort.Value, "proxy", Template, _parent.Contract, "Watchdog", "isupandrunning");
-            }
-
-            if (uriHttp != null)
-                Running.Services.Http.HostedInternalServiceUrl = new Url(uriHttp).AppendPathSegments("proxy", Template, _parent.Contract);
-            if (uriHttps != null)
-                Running.Services.Https.HostedInternalServiceUrl = new Url(uriHttps).AppendPathSegments("proxy", Template, _parent.Contract, "swagger");
-
-
-            if (uriHttp != null)
-                Running.Swagger.Http.HostedInternalServiceUrl = new Url(uriHttp).AppendPathSegments("proxy", Template, _parent.Contract, "swagger");
-            if (uriHttps != null)
-                Running.Swagger.Https.HostedInternalServiceUrl = new Url(uriHttps).AppendPathSegments("proxy", Template, _parent.Contract, "swagger");
-
-
-            if (uriHttp != null)
-                Running.IsUpAndRunningServices.Http.HostedInternalServiceUrl = new Url(uriHttp).AppendPathSegments("proxy", Template, _parent.Contract, "Watchdog", "isupandrunning");
-            if (uriHttps != null)
-                Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl = new Url(uriHttps).AppendPathSegments("proxy", Template, _parent.Contract, "Watchdog", "isupandrunning");
-
-            try
-            {
-                var serviceResult = await Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl.GetJsonAsync<WatchdogResult>();
-                if (serviceResult != null)
-                    Running.Started = true;
-            }
-            catch (Exception)
-            {
-
-            }
-
-            return Running;
+            return running;
 
         }
 
@@ -485,77 +397,13 @@ namespace Bb.Services.Managers
             var instance = _rootParent._referential.Resolve(Template, _parent.Contract);
             if (instance != null)
             {
-
-                var task = _rootParent._host.GetTaskByTag(instance).FirstOrDefault();
-                if (task != null)
-                {
-
-                    task.Intercept((c, args) =>
-                    {
-
-                        if (args.Status == TaskEventEnum.Completed)
-                            result = true;
-
-                        if (args.Status == TaskEventEnum.RanWithException)
-                            result = true;
-
-                    });
-
-                    task.Cancel();
-
-                    task.Wait(200);
-
-                }
-
+                instance.Service.Stop();
                 result = true;
-
             }
             else
                 result = true;
 
             return result;
-
-        }
-
-
-        private FileInfo? GetFileProject()
-        {
-
-            var directory = new DirectoryInfo(Root);
-            if (directory.Exists)
-            {
-                var files = directory.GetFiles("*.csproj", SearchOption.AllDirectories);
-                var _projectFile = files.FirstOrDefault();
-                return _projectFile;
-            }
-
-            return null;
-
-        }
-
-
-        internal string GetDirectoryProject(params string[] path)
-        {
-
-            var dir = Root.Combine("service");
-
-            foreach (var item in path)
-                dir = dir.Combine(item);
-
-            return dir;
-
-        }
-
-
-        internal FileInfo[] GetFiles(string path, string pattern)
-        {
-
-            var dir = new DirectoryInfo(path);
-            dir.Refresh();
-
-            FileInfo[] files = dir.GetFiles(pattern);
-
-            return files;
 
         }
 
@@ -598,72 +446,27 @@ namespace Bb.Services.Managers
         }
 
 
-        /// <summary>
-        /// return runnings status
-        /// </summary>
-        /// <returns></returns>
-        public async Task<ProjectRunning> IsRunnings()
-        {
+        ///// <summary>
+        ///// return runnings status
+        ///// </summary>
+        ///// <returns></returns>
+        //public async Task<ProjectRunning> IsRunnings()
+        //{
 
-            ProjectRunning result = new ProjectRunning(Running)
-            {
-                Contract = _parent.Contract,
-                Template = Template,
-            };
+        //    if (Running != null)
+        //    {
+        //        // curl -X GET "url" -H "accept: application/json"
+        //        var serviceResult = await Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl.GetJsonAsync<WatchdogResult>();
+        //        //result.UpAndRunningResult = serviceResult;
 
-            if (Running != null)
-            {
-                // curl -X GET "url" -H "accept: application/json"
-                var serviceResult = await Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl.GetJsonAsync<WatchdogResult>();
-                result.UpAndRunningResult = serviceResult;
+        //    }
 
-            }
+        //    await Task.Delay(1);
 
-            return result;
+        //    return null;
 
-        }
+        //}
 
-
-        private void InterceptTraces(object sender, TaskEventArgs args)
-        {
-
-            var id = args.Process.Id;
-
-            switch (args.Status)
-            {
-
-                case TaskEventEnum.Completed:
-                    var instance = args.Process.Tag as ServiceReferentialContract;
-                    if (instance != null)
-                    {
-                        _rootParent._referential.Remove(instance);
-                    }
-                    Running = null;
-                    _id = null;
-                    break;
-
-                case TaskEventEnum.RanWithException:
-                    var instance1 = args.Process.Tag as ServiceReferentialContract;
-                    if (instance1 != null)
-                    {
-                        _rootParent._referential.Remove(instance1);
-                    }
-                    Running = null;
-                    _id = null;
-                    break;
-
-                default:
-                    break;
-
-            }
-
-        }
-
-
-        /// <summary>
-        /// The template name
-        /// </summary>
-        public readonly string Template;
 
         /// <summary>
         /// Gets the contract name.
@@ -673,15 +476,101 @@ namespace Bb.Services.Managers
         /// </value>
         public string Contract { get; }
 
+
+        /// <summary>
+        /// Gets the running description.
+        /// if the service don't run. the instance is null.
+        /// </summary>
+        /// <value>
+        /// The running.
+        /// </value>
+        public ServiceHost? Running { get; private set; }
+
+
         /// <summary>
         /// The root path of the template
         /// </summary>
         public readonly string Root;
 
 
+        /// <summary>
+        /// The template name
+        /// </summary>
+        public readonly string Template;
+
+
+
+        internal string GetDirectoryProject(params string[] path)
+        {
+
+            var dir = Root.Combine("service");
+
+            foreach (var item in path)
+                dir = dir.Combine(item);
+
+            return dir;
+
+        }
+
+        internal FileInfo[] GetFiles(string path, string pattern)
+        {
+
+            var dir = new DirectoryInfo(path);
+            dir.Refresh();
+
+            FileInfo[] files = dir.GetFiles(pattern);
+
+            return files;
+
+        }
+
+        private static HashSet<string> ResolveAssemblies(string directoryService)
+        {
+
+            var assemblies = new HashSet<string>();
+
+            var file = directoryService.Combine("assemblies.txt").AsFile();
+            if (file.Exists)
+            {
+                var items = new HashSet<string>(file.LoadFromFile().Split(Environment.NewLine));
+                foreach (var item in items)
+                    assemblies.Add(item);
+            }
+
+            return assemblies;
+
+        }
+
+        private static Assembly[] ResolveAssemblies(HashSet<string> namespaces)
+        {
+            var references = new List<Assembly>();
+            foreach (var item in namespaces)
+            {
+                var assembly = AssemblyLoader.Instance.LoadAssemblyName(item);
+                references.Add(assembly);
+            }
+
+            return references.ToArray();
+
+        }
+
+        private FileInfo? GetFileProject()
+        {
+
+            var directory = new DirectoryInfo(Root);
+            if (directory.Exists)
+            {
+                var files = directory.GetFiles("*.csproj", SearchOption.AllDirectories);
+                var _projectFile = files.FirstOrDefault();
+                return _projectFile;
+            }
+
+            return null;
+
+        }
+
         private ServiceGenerator? GetGenerator() => (ServiceGenerator)Activator.CreateInstance(_generatorType);
         private readonly ILogger<ProjectBuilderProvider> _logger;
-        private readonly LocalProcessCommandService _host;
         private readonly ProjectBuilderProvider _rootParent;
         private readonly ProjectBuilderContract _parent;
         private readonly Type _generatorType;
@@ -692,16 +581,9 @@ namespace Bb.Services.Managers
         private string _templateFilename;
         private string _templateConfigFilename;
 
-        private Guid? _id;
-
-        /// <summary>
-        /// Gets the running description.
-        /// if the service don't run. the instance is null.
-        /// </summary>
-        /// <value>
-        /// The running.
-        /// </value>
-        public ProjectItem? Running { get; private set; }
     }
+
+
+
 
 }

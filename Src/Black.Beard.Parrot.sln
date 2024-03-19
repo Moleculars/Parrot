@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Black.Beard.ParrotServices"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{110520CB-50A5-4CEF-8A05-3865535B6325}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Black.Beard.Curl", "Black.Beard.Curl\Black.Beard.Curl.csproj", "{1C392956-5057-4EE7-8187-61A189BA685A}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "Éléments de solution", "{9F0821F8-0106-4C19-9FD0-E010F8DBCACA}"
 	ProjectSection(SolutionItems) = preProject
 		..\appveyor.yml = ..\appveyor.yml
@@ -37,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Black.Beard.Mocks", "Black.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{01E9F556-7EEF-4E19-9141-B87B362032E8}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Black.Beard.Http", "D:\srcs\sdk.net\src\Black.Beard.Http\Black.Beard.Http.csproj", "{92BAC095-94B1-4E0D-B7E2-D12767A5A11E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,10 +51,6 @@ Global
 		{110520CB-50A5-4CEF-8A05-3865535B6325}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{110520CB-50A5-4CEF-8A05-3865535B6325}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{110520CB-50A5-4CEF-8A05-3865535B6325}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1C392956-5057-4EE7-8187-61A189BA685A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1C392956-5057-4EE7-8187-61A189BA685A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1C392956-5057-4EE7-8187-61A189BA685A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1C392956-5057-4EE7-8187-61A189BA685A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A95824D3-60E4-49E5-95C0-D1E411600C0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A95824D3-60E4-49E5-95C0-D1E411600C0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A95824D3-60E4-49E5-95C0-D1E411600C0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -63,6 +59,10 @@ Global
 		{1B3B1CFE-7A39-4CF7-8C41-CEF8D35616F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B3B1CFE-7A39-4CF7-8C41-CEF8D35616F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B3B1CFE-7A39-4CF7-8C41-CEF8D35616F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92BAC095-94B1-4E0D-B7E2-D12767A5A11E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92BAC095-94B1-4E0D-B7E2-D12767A5A11E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92BAC095-94B1-4E0D-B7E2-D12767A5A11E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92BAC095-94B1-4E0D-B7E2-D12767A5A11E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,6 +1,7 @@
 ﻿namespace Bb.OpenApiServices
 {
-    public class MockServiceGeneratorConfig
+
+    public class ServiceConfig
     {
 
         public string Namespace { get; set; } = "Bb.Mock";

@@ -4,18 +4,23 @@ using Bb.ComponentModel.Attributes;
 using Bb.Extensions;
 using Bb.Projects;
 using Microsoft.OpenApi.Models;
+using RandomDataGenerator.FieldOptions;
 
 namespace Bb.OpenApiServices
 {
 
 
     [ExposeClass(Context = Constants.Models.Plugin, ExposedType = typeof(ServiceGenerator))]
-    public class MockServiceGenerator : ServiceGenerator<MockServiceGeneratorConfig>
+    public class MockGenerator : ServiceGenerator<ServiceConfig>
     {
 
-
-        static MockServiceGenerator()
+        /// <summary>
+        /// initialize the generator
+        /// </summary>
+        static MockGenerator()
         {
+
+            _directorySource = typeof(MockGenerator).Assembly.Location.AsFile().Directory;
 
             _assemblies = new string[]
             {
@@ -41,9 +46,14 @@ namespace Bb.OpenApiServices
                 "NLog.Extensions.Logging",
                 "NLog.DiagnosticSource",
             };
+
         }
 
-
+        /// <summary>
+        /// Initialize the generator with the openApiDocumentPath
+        /// </summary>
+        /// <param name="openApiDocumentPath"></param>
+        /// <exception cref="Exception"></exception>
         public override void InitializeDatas(string openApiDocumentPath)
         {
 
@@ -75,6 +85,10 @@ namespace Bb.OpenApiServices
 
         public MsProject Project => _project;
 
+        /// <summary>
+        /// Generate the project
+        /// </summary>
+        /// <returns></returns>
         public override ContextGenerator Generate()
         {
 
@@ -94,7 +108,8 @@ namespace Bb.OpenApiServices
                     new OpenApiValidator(),
                     new OpenApiGenerateDataTemplate(),
                     new OpenApiGenerateModel("models", this.Configuration.Namespace),
-                    new OpenApiGenerateServices(this.Contract, "services", this.Configuration.Namespace)
+                    // new OpenApiGenerateServices(this.Contract, "services", this.Configuration.Namespace)
+                    new GenerateServices(this.Contract, "services", this.Configuration.Namespace)
                 )
 
                 .Generate(_document);
@@ -107,6 +122,7 @@ namespace Bb.OpenApiServices
             return ctx;
 
         }
+
 
         private MsProject GenerateProject()
         {
@@ -136,36 +152,41 @@ namespace Bb.OpenApiServices
                 .Sdk(ProjectSdk.MicrosoftNETSdkWeb)
                 .SetPropertyGroup(c =>
                 {
-                    c.TargetFramework(TargetFramework.Net6)
+                    c.TargetFramework(new TargetFramework("net8.0"))
                      .Nullable(true)
                      .ImplicitUsings(true)
-                     //.UserSecretsId("d6db51a2-9287-431c-93bd-2c255dedbc2a")
+                     .UserSecretsId(Guid.NewGuid())
                      .DockerDefaultTargetOS(DockerDefaultTargetOS.Linux)
                      .GenerateDocumentationFile(true)
                     ;
                 })
-                //.Packages(p =>
-                //{
-                //    p.PackageReference("Black.Beard.Jslt", "1.0.300")
-                //     .PackageReference("Black.Beard.Roslyn", "1.0.99")
-                //     .PackageReference("Black.Beard.Helpers.ContentLoaders", "2.0.26")
-                //     .PackageReference("Black.Beard.Helpers.ContentLoaders.Compress", "2.0.26")
-                //     .PackageReference("Black.Beard.Helpers.ContentLoaders.Files", "2.0.26")
-                //     .PackageReference("Black.Beard.Helpers.ContentLoaders.Newtonsoft", "2.0.26")
-                //     .PackageReference("DataAnnotationsExtensions", "5.0.1.27")
-                //     .PackageReference("Microsoft.Extensions.Configuration.Binder", "8.0.1")
-                //     .PackageReference("Microsoft.Extensions.Configuration.Json", "8.0.0")
-                //     .PackageReference("Microsoft.Extensions.Hosting", "8.0.0")
-                //     .PackageReference("Microsoft.Extensions.Configuration.NewtonsoftJson", "5.0.1")
-                //     .PackageReference("Microsoft.Extensions.PlatformAbstractions", "1.1.0")
-                //     .PackageReference("Swashbuckle.AspNetCore", "6.5.0")
-                //     .PackageReference("NLog", "5.2.8")
-                //     .PackageReference("NLog.DiagnosticSource", "5.2.1")
-                //     .PackageReference("NLog.Extensions.Logging", "5.3.8")
-                //     .PackageReference("NLog.Web.AspNetCore", "5.3.8")
-                //    ;
-                //})
+                .Packages(p =>
+                {
+                    p.PackageReference("Newtonsoft.Json", "13.0.3")
+
+                    //    p.PackageReference("Black.Beard.Jslt", "1.0.300")
+                    //     .PackageReference("Black.Beard.Roslyn", "1.0.99")
+                    //     .PackageReference("Black.Beard.Helpers.ContentLoaders", "2.0.26")
+                    //     .PackageReference("Black.Beard.Helpers.ContentLoaders.Compress", "2.0.26")
+                    //     .PackageReference("Black.Beard.Helpers.ContentLoaders.Files", "2.0.26")
+                    //     .PackageReference("Black.Beard.Helpers.ContentLoaders.Newtonsoft", "2.0.26")
+                    //     .PackageReference("DataAnnotationsExtensions", "5.0.1.27")
+                    //     .PackageReference("Microsoft.Extensions.Configuration.Binder", "8.0.1")
+                    //     .PackageReference("Microsoft.Extensions.Configuration.Json", "8.0.0")
+                    //     .PackageReference("Microsoft.Extensions.Hosting", "8.0.0")
+                    //     .PackageReference("Microsoft.Extensions.Configuration.NewtonsoftJson", "5.0.1")
+                    //     .PackageReference("Microsoft.Extensions.PlatformAbstractions", "1.1.0")
+                    //     .PackageReference("Swashbuckle.AspNetCore", "6.5.0")
+                    //     .PackageReference("NLog", "5.2.8")
+                    //     .PackageReference("NLog.DiagnosticSource", "5.2.1")
+                    //     .PackageReference("NLog.Extensions.Logging", "5.3.8")
+                    //     .PackageReference("NLog.Web.AspNetCore", "5.3.8")
+                    ;
+
+                })
                 ;
+
+            _directorySource.AsFile("nlog.config").CopyToDirectory(this.Directory, true);
 
             // appends documents in the folder.
             project.AppendDocument("Program.cs", Load("Embedded", "Program.cs"))
@@ -173,15 +194,15 @@ namespace Bb.OpenApiServices
                    .AppendDocument("ServiceProcessor.cs", Load("Embedded", "ServiceProcessor.cs"))
                    .AppendDocument("HttpExceptionModel.cs", Load("Embedded", "HttpExceptionModel.cs"))
 
-                   //.ItemGroup(i =>
-                   //{
-                   //    i.Content(c =>
-                   //    {
-                   //        //c.Update("log4net.config")
-                   //        // .CopyToOutputDirectory(StrategyCopyEnum.Always)
-                   //        // ;
-                   //    });
-                   //})
+                   .ItemGroup(i =>
+                   {
+                       i.Content(c =>
+                       {
+                           c.Update("nlog.config")
+                            .CopyToOutputDirectory(StrategyCopyEnum.Always)
+                            ;
+                       });
+                   })
 
                    ;
 
@@ -193,7 +214,10 @@ namespace Bb.OpenApiServices
         private string _file;
         private OpenApiDocument _document;
         private string Description;
+        private static readonly DirectoryInfo? _directorySource;
         private static readonly string[] _assemblies;
+
     }
 
+  
 }

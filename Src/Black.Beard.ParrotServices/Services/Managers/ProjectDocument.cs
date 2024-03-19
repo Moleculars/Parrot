@@ -5,19 +5,6 @@ using System.Text.Json.Serialization;
 namespace Bb.Services.Managers
 {
 
-
-    /// <summary>
-    /// List of project
-    /// </summary>
-    public class ProjectDocuments : List<ProjectDocument>
-    {
-        /// <summary>
-        /// Root of the projects
-        /// </summary>
-        public string Root { get; set; }
-
-    }
-
     /// <summary>
     /// describes a file of the project
     /// </summary>

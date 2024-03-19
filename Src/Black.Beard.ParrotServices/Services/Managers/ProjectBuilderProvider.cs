@@ -4,6 +4,7 @@ using Bb.ComponentModel.Attributes;
 using Bb.ComponentModel.Factories;
 using Bb.Services.ProcessHosting;
 using Bb.ComponentModel;
+using System.Diagnostics.Contracts;
 
 namespace Bb.Services.Managers
 {
@@ -22,14 +23,13 @@ namespace Bb.Services.Managers
         /// <param name="referential">The referential.</param>
         /// <param name="logger">The logger.</param>
         public ProjectBuilderProvider(
-              LocalProcessCommandService host
-            , ServiceReferential referential
+             //LocalProcessCommandService host
+             ServiceReferential referential
             , ILogger<ProjectBuilderProvider> logger)
         {
 
             _logger = logger;
             _referential = referential;
-            _host = host;
             _items = new Dictionary<string, ProjectBuilderContract>();
             _manager = new PluginManager<ServiceGenerator>("Microsoft.", "System.", "Antlr4.", "NLog.", "OpenTelemetry", "Swashbuckle.AspNetCore.");
 
@@ -53,11 +53,11 @@ namespace Bb.Services.Managers
         public virtual void Initialize(string pathRoot)
         {
             _root = pathRoot;
-            _manager.Initialize(pathRoot);           
+            _manager.Initialize(pathRoot);
             BuildGeneratorList();
         }
 
-    
+
 
         /// <summary>
         /// return the contract for specified contract name.
@@ -68,13 +68,17 @@ namespace Bb.Services.Managers
         public ProjectBuilderContract Contract(string contractName, bool createIfNotExists = false)
         {
 
+            var r = Root.Combine(contractName).AsDirectory();
+            if (r.Exists)
+                createIfNotExists = true;
+
             contractName = contractName.ToLower();
 
             if (!_items.TryGetValue(contractName, out var builder))
                 lock (_lock)
                     if (!_items.TryGetValue(contractName, out builder))
                         if (createIfNotExists)
-                            _items.Add(contractName, builder = new ProjectBuilderContract(this, contractName, _host));
+                            _items.Add(contractName, builder = new ProjectBuilderContract(this, contractName));
 
             return builder;
 
@@ -142,32 +146,32 @@ namespace Bb.Services.Managers
         }
 
 
-        /// <summary>
-        /// return the list of template services runnings. every service runs is tested
-        /// </summary>
-        /// <param name="templateName">Name of the template.</param>
-        /// <returns></returns>
-        public async Task<List<ProjectRunning>> ListRunningsByTemplate(string templateName)
-        {
+        ///// <summary>
+        ///// return the list of template services runnings. every service runs is tested
+        ///// </summary>
+        ///// <param name="templateName">Name of the template.</param>
+        ///// <returns></returns>
+        //public async Task<List<ProjectRunning>> ListRunningsByTemplate(string templateName)
+        //{
 
-            var result = new List<ProjectRunning>();
+        //    var result = new List<ProjectRunning>();
 
-            var dirRoot = new DirectoryInfo(_root);
-            var dirs = dirRoot.GetDirectories();
-            foreach (var dir in dirs)
-            {
-                var contract = Contract(dir.Name);
-                if (contract.TemplateExistsOnDisk(templateName))
-                {
-                    var template = contract.Template(templateName);
-                    var item = await template.IsRunnings();
-                    result.Add(item);
-                }
-            }
+        //    var dirRoot = new DirectoryInfo(_root);
+        //    var dirs = dirRoot.GetDirectories();
+        //    foreach (var dir in dirs)
+        //    {
+        //        var contract = Contract(dir.Name);
+        //        if (contract.TemplateExistsOnDisk(templateName))
+        //        {
+        //            var template = contract.Template(templateName);
+        //            var item = await template.IsRunnings();
+        //            result.Add(item);
+        //        }
+        //    }
 
-            return result;
+        //    return result;
 
-        }
+        //}
 
 
         /// <summary>
@@ -181,7 +185,7 @@ namespace Bb.Services.Managers
             get
             {
                 return Directory.Exists(_root)
-                    && File.Exists(_root.Combine( "contract.json"))
+                    && File.Exists(_root.Combine("contract.json"))
                     ;
             }
         }
@@ -213,7 +217,7 @@ namespace Bb.Services.Managers
             var f = upfile.Save();
             var md5 = f.Md5();
 
-            var directoryPath2 = directoryPath.Combine( md5);
+            var directoryPath2 = directoryPath.Combine(md5);
             var targetDirectory = new DirectoryInfo(directoryPath2);
             targetDirectory.Refresh();
             if (!targetDirectory.Exists)
@@ -262,7 +266,7 @@ namespace Bb.Services.Managers
                 _generators = generators;
 
         }
-            
+
 
         #endregion generators
 
@@ -276,7 +280,6 @@ namespace Bb.Services.Managers
 
         internal readonly ILogger<ProjectBuilderProvider> _logger;
         internal readonly ServiceReferential _referential;
-        internal readonly LocalProcessCommandService _host;
         private readonly Dictionary<string, ProjectBuilderContract> _items;
         private readonly PluginManager<ServiceGenerator> _manager;
         private string _root;

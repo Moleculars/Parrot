@@ -31,16 +31,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Remove="Middlewares\HtmlPackExtension.cs" />
-		<Compile Remove="Middlewares\HtmlVisitor.cs" />
-		<Compile Remove="Middlewares\IHtmlVisitor.cs" />
-		<Compile Remove="Models\ConfigurationBase.cs" />
-		<Compile Remove="Models\WatchdogResultException.cs" />
-		<Compile Remove="Services\ApiKeyReferential.cs" />
-		<Compile Remove="Services\IPipelineBehavior.cs" />
 		<Compile Remove="Services\LoggingBehavior.cs" />
-		<Compile Remove="Setup.cs" />
-		<Compile Remove="Tracking.cs" />
+		<Compile Remove="Services\ProcessHosting\LocalProcessCommandService.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -49,14 +41,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Black.Beard.Helpers" Version="2.0.30" />
-		<PackageReference Include="Black.Beard.Helpers.ContentLoaders.Compress" Version="2.0.30" />
-		<PackageReference Include="Black.Beard.Http" Version="1.0.12" />
-		<PackageReference Include="Black.Beard.OpenApi" Version="1.0.5" />
-		<PackageReference Include="Black.Beard.OpenApiServices" Version="1.0.5" />
-		<PackageReference Include="Black.Beard.Process" Version="1.0.108" />
-		<PackageReference Include="Black.Beard.Projects.Models" Version="1.0.108" />
-		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.108" />
+		<PackageReference Include="Black.Beard.Helpers" Version="2.0.31" />
+		<PackageReference Include="Black.Beard.Helpers.ContentLoaders.Compress" Version="2.0.31" />
+		<PackageReference Include="Black.Beard.OpenApi" Version="1.0.6" />
+		<PackageReference Include="Black.Beard.OpenApiServices" Version="1.0.6" />
+		<PackageReference Include="Black.Beard.Process" Version="1.0.112" />
+		<PackageReference Include="Black.Beard.Projects.Models" Version="1.0.112" />
+		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.112" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
@@ -72,9 +63,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Black.Beard.Curl\Black.Beard.Curl.csproj" />
 		<ProjectReference Include="..\Black.Beard.Mocks\Black.Beard.Mocks.csproj" />
 		<ProjectReference Include="..\Black.Beard.Web.Server\Black.Beard.Web.Server.csproj" />
+		<ProjectReference Include="D:\srcs\sdk.net\src\Black.Beard.Http\Black.Beard.Http.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -27,6 +27,9 @@ namespace Bb.Middlewares.ReversProxy
 
         public ReverseProxyMiddleware(RequestDelegate nextMiddleware)
         {
+
+            _suffix = "/" + ServiceReferentialContract.LabelProxy;
+
             _nextMiddleware = nextMiddleware;
             _transformers = new ProxyTransformResponseMatcher()
                 .Register<ProxyTransformHtmlResponse>("text/html");
@@ -37,7 +40,7 @@ namespace Bb.Middlewares.ReversProxy
 
             var path = context.Request.Path;
 
-            if (path.StartsWithSegments("/proxy"))
+            if (path.StartsWithSegments(_suffix))
             {
 
 
@@ -122,6 +125,7 @@ namespace Bb.Middlewares.ReversProxy
 
 
         private static readonly HttpClient _httpClient = new HttpClient();
+        private readonly string _suffix;
         private readonly RequestDelegate _nextMiddleware;
         private readonly ProxyTransformResponseMatcher _transformers;
         private ServiceReferential _services;

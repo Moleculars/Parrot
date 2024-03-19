@@ -67,12 +67,13 @@ namespace Bb.Middlewares.ReversProxy
                         var _current = new Url(req.Scheme, req.Host.Host, req.Host.Port.HasValue ? req.Host.Port.Value : 80)
                             .AppendPathSegments(translator.QuerySource);
 
-                        message = message
-                            .Replace($"\"url\":\"{translator.QuerySource}/swagger/",
-                                     $"\"url\":\"{_current}/swagger/"
-                                     )
-                            ;
+                        //var stringToFind = $"\"url\":\"{translator.QuerySource}/swagger/";
+                        var stringToFind = $"\"url\":\"v1/swagger.json\"";
+                        var stringToReplace = $"\"url\":\"{_current}/swagger/v1/swagger.json\"";
+                        message = message.Replace(stringToFind, stringToReplace);
 
+
+                        // "url":"https://localhost:7033/proxy/mock/parcel/swagger/swagger.json"
                         await context.Response.WriteAsync(message, Encoding.UTF8);
 
                     }

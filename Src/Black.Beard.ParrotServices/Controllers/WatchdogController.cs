@@ -32,17 +32,17 @@ namespace Bb.ParrotServices.Controllers
 
             var list = await _builder.List();
 
-            foreach (var item in list)
-            {
-                string value = "Stopped";
-                Models.ProjectRunning r = await item.IsRunnings();
-                if (r != null)
-                    if (r.Started)
-                        value = "Started";
+            //foreach (var item in list)
+            //{
+            //    string value = "Stopped";
+            //    Models.ProjectRunning r = await item.IsRunnings();
+            //    if (r != null)
+            //        if (r.Started)
+            //            value = "Started";
 
-                result.Items.Add(new WatchdogResultItem($"{item.Template}/{item.Contract}", value));
+            //    result.Items.Add(new WatchdogResultItem($"{item.Template}/{item.Contract}", value));
 
-            }
+            //}
 
             return this.Ok(result);
 

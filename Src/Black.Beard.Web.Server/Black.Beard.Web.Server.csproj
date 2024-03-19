@@ -16,10 +16,9 @@
 	<ItemGroup>
 	  <PackageReference Include="Black.Beard.ComponentModel" Version="1.0.57" />
 	  <PackageReference Include="Black.Beard.ComponentModel.Attributes" Version="1.0.57" />
-	  <PackageReference Include="Black.Beard.Helpers" Version="2.0.30" />
-	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders" Version="2.0.30" />
-	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders.Files" Version="2.0.30" />
-	  <PackageReference Include="Black.Beard.Http" Version="1.0.12" />
+	  <PackageReference Include="Black.Beard.Helpers" Version="2.0.31" />
+	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders" Version="2.0.31" />
+	  <PackageReference Include="Black.Beard.Helpers.ContentLoaders.Files" Version="2.0.31" />
 		
 	  <PackageReference Include="NLog" Version="5.2.8" />
 	  <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.8" />
@@ -32,6 +31,10 @@
 		
 	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 	  <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="D:\srcs\sdk.net\src\Black.Beard.Http\Black.Beard.Http.csproj" />
 	</ItemGroup>
 
 </Project>

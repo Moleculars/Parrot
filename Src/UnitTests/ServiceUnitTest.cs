@@ -1,11 +1,6 @@
-using Bb.Process;
-using Bb.OpenApiServices;
-using Bb.ParrotServices;
 using Bb;
-using Bb.Http;
-using System;
 using Bb.Curls;
-using Bb;
+using Bb.ParrotServices;
 
 namespace UnitTests
 {
@@ -16,7 +11,7 @@ namespace UnitTests
         public ServiceUnitTest()
         {
             _file = AppContext.BaseDirectory.Combine("swagger.json");
-            var file = typeof(UnitTest1).Assembly.Location;
+            var file = typeof(ServiceUnitTest).Assembly.Location;
             this._baseDirectory = new FileInfo(file).Directory;
         }
 
@@ -32,15 +27,22 @@ namespace UnitTests
 
             int port = 5000;
             using (var service = new Bb.ServiceRunner<Startup>()
-                .AddLocalhostUrlWithDynamicPort("http", ref port)
+                .AddLocalhostUrlWithDynamicPort("http", null, ref port)
                 //.AddLocalhostUrlWithDynamicPort("https", ref port) // Créer un certificat pour utilisation
                 )
             {
-
                 var t1 = service.RunAsync();
-                var adr = new Url(service.Addresses.First(c => c.Scheme == "http" && c.Host == "127.0.0.1"), "Watchdog/isupandrunning");
-                CurlInterpreter command = $"curl -X 'GET' '{adr}' -H 'accept: application/json'";
-                var a = command.ResultToString();
+                var uri = service.Addresses.First(c => c.Scheme == "http" && c.Host == "127.0.0.1");
+
+
+                var adr1 = new Url(uri, "Watchdog", "isupandrunning");
+                CurlInterpreter command1 = $"curl -X 'GET' '{adr1}' -H 'accept: application/json'";
+                var a = command1.ResultToJson();
+
+                var adr2 = new Url(uri, "Generator", "mock", "parcel", "run"); // 'https://localhost:7033/Generator/mock/parcel/run'
+                CurlInterpreter command2 = $"curl -X 'PUT' '{adr2}' -H 'accept: */*'";
+                var tt= command2.ResultToJson();
+
 
             }
 

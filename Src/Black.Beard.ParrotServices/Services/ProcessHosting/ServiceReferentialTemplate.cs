@@ -1,4 +1,5 @@
 ﻿using Bb;
+using Bb.Models;
 
 namespace Bb.Services.ProcessHosting
 {
@@ -6,6 +7,8 @@ namespace Bb.Services.ProcessHosting
 
     public class ServiceReferentialContract
     {
+
+        public const string LabelProxy = "proxy";
 
         public ServiceReferentialContract(ServiceReferentialTemplate parent, string name)
         {
@@ -19,36 +22,57 @@ namespace Bb.Services.ProcessHosting
 
         public AddressTranslator Http { get; private set; }
 
+        internal ServiceReferentialContract Register(ServiceHost host)
+        {
+            return Register(host.Services);
+        }
 
-        internal void Register(params Uri[] uris)
+        internal ServiceReferentialContract Register(Listener listener)
         {
 
-            foreach (var redirect in uris)
-                if (redirect != null)
+            var request = $"/{ServiceReferentialContract.LabelProxy}/{_template}/{Contract}";
+
+            if (listener.Http != null)
+            {
+                Http = new AddressTranslator()
                 {
+                    QuerySource = request,
+                    TargetPort = listener.Http.InternalUrl.Port.Value,
+                    TargetUri = listener.Http.InternalUrl.ToUri(),
+                    TargetUrl = listener.Http.InternalUrl,
+                };
+            }
 
-                    var request = $"/proxy/{_template}/{Contract}";
+            if (listener.Https != null)
+            {
+                Https = new AddressTranslator()
+                {
+                    QuerySource = request,
+                    TargetPort = listener.Https.InternalUrl.Port.Value,
+                    TargetUri = listener.Https.InternalUrl.ToUri(),
+                    TargetUrl = listener.Https.InternalUrl,
+                };
+            }
 
-                    var u = new AddressTranslator()
-                    {
-                        QuerySource = request,
-                        TargetPort = redirect.Port,
-                        TargetUri = redirect,
-                        TargetUrl = new Url(redirect).AppendPathSegment(request),
-                    };
-
-                    if (redirect.Scheme == "http")
-                        Http = u;
-
-                    else
-                        Https = u;
-                }
+            return this;
 
         }
 
+        /// <summary>
+        /// Contract name
+        /// </summary>
         public string Contract { get; }
 
+        /// <summary>
+        /// get the parent template
+        /// </summary>
         public ServiceReferentialTemplate Parent { get; }
+
+        /// <summary>
+        /// hosted Service
+        /// </summary>
+        public ServiceHost Service { get; private set; }
+
 
         private readonly string _template;
 
@@ -59,8 +83,11 @@ namespace Bb.Services.ProcessHosting
     {
         public string QuerySource { get; internal set; }
         public int TargetPort { get; internal set; }
+
         public Uri TargetUri { get; internal set; }
+
         public Url TargetUrl { get; internal set; }
+
     }
 
 }

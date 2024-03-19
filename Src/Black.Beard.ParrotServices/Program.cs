@@ -13,9 +13,13 @@ public class Program
     /// <param name="args"></param>
     public static void Main(string[] args)
     {
-        var service = new ServiceRunner<Startup>(args);
+        var service = GetService(args);
         service.Run();
-    
+    }
+
+    public static ServiceRunnerBase GetService(string[] args)
+    {
+        return new ServiceRunner<Startup>(args);
     }
 
 

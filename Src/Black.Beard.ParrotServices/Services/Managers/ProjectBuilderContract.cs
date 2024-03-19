@@ -14,11 +14,10 @@ namespace Bb.Services.Managers
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <param name="contract">The contract.</param>
-        public ProjectBuilderContract(ProjectBuilderProvider parent, string contract, LocalProcessCommandService host)
+        public ProjectBuilderContract(ProjectBuilderProvider parent, string contract)
         {
             Parent = parent;
             _logger = parent._logger;
-            _host = host;
             Contract = contract;
             Root = parent.Root.Combine(contract);
             _templates = new Dictionary<string, ProjectBuilderTemplate>();
@@ -43,11 +42,15 @@ namespace Bb.Services.Managers
         public ProjectBuilderTemplate Template(string templateName, bool createIfNotExists = false)
         {
 
+            var r = Root.Combine(templateName).AsDirectory();
+            if (r.Exists)
+                createIfNotExists = true;
+
             if (!_templates.TryGetValue(templateName, out var template1))
                 lock (_lock)
                     if (!_templates.TryGetValue(templateName, out template1))
                         if (createIfNotExists)
-                            _templates.Add(templateName, template1 = new ProjectBuilderTemplate(this, templateName, _host));
+                            _templates.Add(templateName, template1 = new ProjectBuilderTemplate(this, templateName));
 
             return template1;
 
@@ -92,7 +95,6 @@ namespace Bb.Services.Managers
         public ProjectBuilderProvider Parent { get; }
 
         internal readonly ILogger<ProjectBuilderProvider> _logger;
-        private readonly LocalProcessCommandService _host;
         private Dictionary<string, ProjectBuilderTemplate> _templates;
         private volatile object _lock = new object();
 

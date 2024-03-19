@@ -22,13 +22,13 @@
 
         public static bool UseTelemetry { get; set; }
 
-        /// <summary>
-        /// Gets or sets the current directory to write projects.
-        /// </summary>
-        /// <value>
-        /// The current directory to write projects.
-        /// </value>
-        public static string? CurrentDirectoryToWriteProjects { get; set; }
+        ///// <summary>
+        ///// Gets or sets the current directory to write projects.
+        ///// </summary>
+        ///// <value>
+        ///// The current directory to write projects.
+        ///// </value>
+        //public static string? CurrentDirectoryToWriteProjects { get; set; }
 
 
         /// <summary>

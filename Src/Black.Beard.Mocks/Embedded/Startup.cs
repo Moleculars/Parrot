@@ -28,6 +28,20 @@ namespace Bb.ParrotServices
         }
 
 
+        protected override void ConfigureSwagger(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+        {
+            app.UseDeveloperExceptionPage()
+            .UseSwagger(c =>
+            {
+                c.RouteTemplate = "Proxy/Mock/Parcel/" + c.RouteTemplate;
+            })
+            .UseSwaggerUI(c =>
+            {
+                c.RoutePrefix = "Proxy/Mock/Parcel/" + c.RoutePrefix;
+            });
+        }
+
+
         /// <summary>
         /// Configures the custom services.
         /// </summary>
@@ -51,11 +65,9 @@ namespace Bb.ParrotServices
             base.ConfigureApplication(app, env, loggerFactory);
 
             app
-                .UseHttpsRedirection()
+                // .UseHttpsRedirection()
                 .UseRouting()
-
-                //.UseReverseProxy()                // Redirect all call start with /proxy/mock/{contractname} on the hosted service
-                //.UseApiKey()                      // Intercept apiKey and create identityPrincipal associated
+                // .UseApiKey()                      // Intercept apiKey and create identityPrincipal associated
                 .UseAuthorization()               // Apply authorization for identityPrincipal
                 ;
 

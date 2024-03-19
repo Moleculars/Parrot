@@ -2,20 +2,12 @@
 
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/aspnetapp/Dockerfile.ubuntu
 # Learn about building .NET container images:
-FROM mcr.microsoft.com/dotnet/sdk:6.0-jammy AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS build
 LABEL maintainer="gaelgael5@gmail.com" github="https://github.com/Moleculars/Parrot"
 
 
-WORKDIR /src/Black.Beard.Curl
-COPY Black.Beard.Curl/ /src/Black.Beard.Curl
-RUN dotnet restore --use-current-runtime
-
-WORKDIR /src/Black.Beard.OpenApi
-COPY Black.Beard.OpenApi/ /src/Black.Beard.OpenApi
-RUN dotnet restore --use-current-runtime
-
-WORKDIR /src/Black.Beard.OpenApiServices
-COPY Black.Beard.OpenApiServices/ /src/Black.Beard.OpenApiServices
+WORKDIR /src/Black.Beard.Mocks
+COPY Black.Beard.Mocks/ /src/Black.Beard.Mocks
 RUN dotnet restore --use-current-runtime
 
 WORKDIR /src/Black.Beard.Web.Server
@@ -30,7 +22,7 @@ RUN dotnet publish --use-current-runtime -r linux-x64 --no-restore -c Release -o
 WORKDIR /app
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy
 WORKDIR /app
 COPY --from=build /app .
 
@@ -38,8 +30,7 @@ ENV use_swagger=true
 ENV trace_all=true
 ENV use_telemetry=true
 
-# EXPOSE 80	# with "mcr.microsoft.com/dotnet/aspnet:6.0"
-EXPOSE 5000
+EXPOSE 80
 
 ENTRYPOINT ["dotnet", "Black.Beard.ParrotServices.dll"]
 

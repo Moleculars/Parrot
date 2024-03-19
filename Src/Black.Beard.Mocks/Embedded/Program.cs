@@ -13,8 +13,24 @@ public class Program
     /// <param name="args"></param>
     static void Main(string[] args)
     {
-        var service = new ServiceRunner<Startup>(args);
+
+        if (args.Contains("--debug"))
+        {
+
+            if (!System.Diagnostics.Debugger.IsAttached)
+                System.Diagnostics.Debugger.Launch();
+        
+        }
+
+        var service = GetService(args);
         service.Run();
+    
+    }
+
+
+    public static ServiceRunnerBase GetService(string[] args)
+    {
+        return new ServiceRunner<Startup>(args);
     }
 
 

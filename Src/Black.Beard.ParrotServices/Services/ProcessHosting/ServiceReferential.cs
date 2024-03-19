@@ -1,4 +1,5 @@
 ﻿using Bb.ComponentModel.Attributes;
+using Bb.Models;
 
 namespace Bb.Services.ProcessHosting
 {
@@ -23,12 +24,12 @@ namespace Bb.Services.ProcessHosting
 
         }
 
-        public ServiceReferentialContract Register(string templateName, string contractName, params Uri[] uris)
+        public ServiceReferentialContract Register(ServiceHost host)
         {
             lock (_lock)
             {
-                var instance = Get(templateName).Get(contractName);
-                instance.Register(uris);
+                var instance = Get(host.Template).Get(host.Contract);
+                instance.Register(host);
                 return instance;
             }
         }

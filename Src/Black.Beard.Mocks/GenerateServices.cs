@@ -9,10 +9,10 @@ namespace Bb.OpenApiServices
 {
 
 
-    public class MockOpenApiGenerateServices : OpenApiGenerateServices
+    public class GenerateServices : OpenApiGenerateServices
     {
 
-        public MockOpenApiGenerateServices(string contract, string artifactName, string @namespace)
+        public GenerateServices(string contract, string artifactName, string @namespace)
             : base(contract, artifactName, @namespace,
                   "Bb.Json.Jslt.Services",
                     "Bb.ParrotServices"

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Black.Beard.Helpers" Version="2.0.30" />
+    <PackageReference Include="Black.Beard.Helpers" Version="2.0.31" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <PackageReference Include="xunit" Version="2.7.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7">
@@ -24,9 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Black.Beard.Curl\Black.Beard.Curl.csproj" />
     <ProjectReference Include="..\Black.Beard.Mocks\Black.Beard.Mocks.csproj" />
     <ProjectReference Include="..\Black.Beard.ParrotServices\Black.Beard.ParrotServices.csproj" />
+    <ProjectReference Include="D:\srcs\sdk.net\src\Black.Beard.Http\Black.Beard.Http.csproj" />
   </ItemGroup>
 
 </Project>

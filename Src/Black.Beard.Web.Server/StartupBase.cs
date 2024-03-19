@@ -106,8 +106,16 @@ namespace Bb
         protected virtual void ConfigureSwagger(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             app.UseDeveloperExceptionPage()
-                               .UseSwagger()
-                               .UseSwaggerUI();
+            .UseSwagger(c =>
+            {
+               
+
+            })
+            .UseSwaggerUI(c =>
+            {
+
+
+            });
         }
 
         /// <summary>
@@ -169,6 +177,7 @@ namespace Bb
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(c =>
             {
+                
                 c.DescribeAllParametersInCamelCase();
                 c.IgnoreObsoleteActions();
                 c.AddDocumentation(i =>

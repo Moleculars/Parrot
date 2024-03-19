@@ -44,7 +44,7 @@ namespace Bb.OpenApiServices
                                where n.LocalEndPoint.Port >= startingPort
                                select n.LocalEndPoint.Port);
 
-            // Ignore active tcp listners
+            // Ignore active tcp listeners
             var endPoints = properties.GetActiveTcpListeners();
             portArrayList.AddRange(from n in endPoints
                                where n.Port >= startingPort
