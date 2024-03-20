@@ -13,6 +13,7 @@ using Bb.Models;
 using Microsoft.AspNetCore.Diagnostics;
 using Bb.Middlewares.EntryFullLogger;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Options;
 
 namespace Bb
 {
@@ -34,22 +35,11 @@ namespace Bb
         {
 
 
-            // Auto discover all types with attribute [ExposeClass] for register  in ioc.
+            // Auto discover all types with attribute [ExposeClass] for register in ioc.
             RegisterTypes(services);
 
             // see : https://learn.microsoft.com/fr-fr/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-7.0#fhmo
-            services.Configure<ForwardedHeadersOptions>(options =>
-            {
-                options.ForwardedHeaders =
-                    ForwardedHeaders.XForwardedFor
-                  | ForwardedHeaders.XForwardedProto;
-
-                //options.ForwardLimit = 2;
-                //options.KnownProxies.Add(IPAddress.Parse("127.0.10.1"));
-                //options.ForwardedForHeaderName = "X-Forwarded-For-My-Custom-Header-Name";
-
-            });
-
+            services.Configure<ForwardedHeadersOptions>(options => ConfigureForwardedHeadersOptions(options));
 
             if (Configuration.UseSwagger) // Swagger OpenAPI 
                 RegisterServicesSwagger(services);
@@ -60,6 +50,20 @@ namespace Bb
             AppendServices(services);
 
             services.AddControllers();
+
+        }
+
+
+        protected virtual void ConfigureForwardedHeadersOptions(ForwardedHeadersOptions options)
+        {
+
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor
+              | ForwardedHeaders.XForwardedProto;
+
+            //options.ForwardLimit = 2;
+            //options.KnownProxies.Add(IPAddress.Parse("127.0.10.1"));
+            //options.ForwardedForHeaderName = "X-Forwarded-For-My-Custom-Header-Name";
 
         }
 
@@ -93,29 +97,20 @@ namespace Bb
 
         protected virtual void ConfigureEnvironmentProduction(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            //app.UseDeveloperExceptionPage();
             app.UseForwardedHeaders();
         }
 
         protected virtual void ConfigureEnvironmentDevelopment(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            app.UseForwardedHeaders();
             app.UseHsts();
+            app.UseDeveloperExceptionPage();
         }
 
         protected virtual void ConfigureSwagger(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            app.UseDeveloperExceptionPage()
-            .UseSwagger(c =>
-            {
-               
-
-            })
-            .UseSwaggerUI(c =>
-            {
-
-
-            });
+            app.UseSwagger(c => { })
+               .UseSwaggerUI(c => { })
+            ;
         }
 
         /// <summary>
@@ -177,7 +172,7 @@ namespace Bb
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(c =>
             {
-                
+
                 c.DescribeAllParametersInCamelCase();
                 c.IgnoreObsoleteActions();
                 c.AddDocumentation(i =>

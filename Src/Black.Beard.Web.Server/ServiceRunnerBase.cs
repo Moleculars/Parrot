@@ -9,6 +9,7 @@ using Bb.OpenApiServices;
 using System.ComponentModel.Design;
 using Bb.ComponentModel;
 using Microsoft.AspNetCore.Hosting;
+using System.Xml.Linq;
 
 namespace Bb
 {
@@ -126,24 +127,29 @@ namespace Bb
         /// <summary>
         /// Cancels the running instance.
         /// </summary>
-        public void Cancel()
+        public bool CancelAsync()
         {
 
-            Build.StopAsync().Wait(_token);
+            var task = Build.StopAsync();
 
             try
             {
-                if (_task != null
-                && _tokenSource != null
-                && _tokenSource.Token.CanBeCanceled)
+
+                if (_task != null && _tokenSource != null && _tokenSource.Token.CanBeCanceled)
                     _tokenSource.Cancel();
+
+                //task.Wait(_token);
+
+                var timeOut = DateTime.Now.AddMinutes(1);
+                while (Status != ServiceRunnerStatus.Stopped && timeOut > DateTime.Now) Task.Yield();
+
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                Trace.TraceError(ex.Message);
             }
 
+            return Status == ServiceRunnerStatus.Stopped;
 
         }
 
@@ -152,7 +158,7 @@ namespace Bb
         /// </summary>
         public void Dispose()
         {
-            Cancel();
+            CancelAsync();
             Console.CancelKeyPress -= Console_CancelKeyPress;
             _tokenSource?.Dispose();
         }
@@ -201,10 +207,7 @@ namespace Bb
 
             Status = ServiceRunnerStatus.Launching;
 
-            var r = Task.Run(() =>
-            {
-                Run();
-            }, _token);
+            var r = Task.Run(() => { Run(); }, _token);
 
             while (Status != ServiceRunnerStatus.Running)
             {
@@ -221,7 +224,7 @@ namespace Bb
         public void Run()
         {
 
-            Status = ServiceRunnerStatus.Preparing;            
+            Status = ServiceRunnerStatus.Preparing;
 
             this.Build
                 = CreateHostBuilder(Logger, _args)
@@ -237,7 +240,7 @@ namespace Bb
                     throw this._exception;
 
                 EnumerateListeners();
-                
+
                 Status = ServiceRunnerStatus.Running;
 
                 _task?.Wait();
@@ -290,7 +293,7 @@ namespace Bb
 
         protected virtual void TuneHostBuilder(IWebHostBuilder webBuilder)
         {
-            
+
         }
 
         protected virtual Logger InitializeLogger()
@@ -411,7 +414,7 @@ namespace Bb
 
         private void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
         {
-            Cancel();
+            CancelAsync();
         }
 
 

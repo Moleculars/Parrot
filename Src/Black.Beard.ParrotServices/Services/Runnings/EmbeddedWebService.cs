@@ -81,7 +81,7 @@ namespace Bb.Services.Runnings
 
             if (instance != null)
             {
-
+                
                 // wait the service running or fail.
                 var timeOut = DateTime.Now.AddMinutes(1);
                 while (_names.Contains(instance.Status.ToString()) && timeOut > DateTime.Now) Task.Yield();

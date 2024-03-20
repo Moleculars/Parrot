@@ -161,6 +161,7 @@ namespace Bb.ParrotServices.Controllers
             Compilers.AssemblyResult? result = default;
             try
             {
+
                 _logger.LogDebug("build target template : {root}", templateObject.Root);
                 result = await templateObject.Build();
 
@@ -212,6 +213,11 @@ namespace Bb.ParrotServices.Controllers
                 _logger.LogError(e, e.Message);
                 return NotFound(e.Message);
             }
+
+
+            if (templateObject.IsRunnings())
+                return BadRequest("the service is already running");
+
 
             Compilers.AssemblyResult result = await templateObject.Build();
 

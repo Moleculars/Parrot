@@ -11,7 +11,7 @@ namespace Bb.ParrotServices
 {
 
     /// <summary>
-    /// Startup class par parameter
+    /// Startup class for parameter web service
     /// </summary>
     public class Startup : StartupBase
     {
@@ -30,14 +30,13 @@ namespace Bb.ParrotServices
 
         protected override void ConfigureSwagger(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            app.UseDeveloperExceptionPage()
-            .UseSwagger(c =>
+            app.UseSwagger(c =>
             {
-                c.RouteTemplate = "Proxy/Mock/Parcel/" + c.RouteTemplate;
+                c.RouteTemplate = _rootSwagger + c.RouteTemplate;
             })
             .UseSwaggerUI(c =>
             {
-                c.RoutePrefix = "Proxy/Mock/Parcel/" + c.RoutePrefix;
+                c.RoutePrefix = _rootSwagger + c.RoutePrefix;
             });
         }
 
@@ -48,8 +47,6 @@ namespace Bb.ParrotServices
         /// <param name="services"></param>
         public override void AppendServices(IServiceCollection services)
         {
-
-            // RegisterServicesPolicies(services);
 
         }
 
@@ -65,13 +62,12 @@ namespace Bb.ParrotServices
             base.ConfigureApplication(app, env, loggerFactory);
 
             app
-                // .UseHttpsRedirection()
                 .UseRouting()
-                // .UseApiKey()                      // Intercept apiKey and create identityPrincipal associated
-                .UseAuthorization()               // Apply authorization for identityPrincipal
                 ;
 
         }
+
+        private const string _rootSwagger = "proxy/{{template}}/{{contract}}/";
 
     }
 

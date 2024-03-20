@@ -17,10 +17,11 @@
         /// </summary>
         /// <param name="externalUrl"></param>
         /// <param name="internalUrl"></param>
-        public void Add(Url externalUrl, Url internalUrl)
+        public void Add(string name, Url externalUrl, Url internalUrl)
         {
             Add(new Endpoint()
             {
+                Name = name,
                 ProxyUrl = externalUrl,
                 InternalUrl = internalUrl
             });

@@ -7,6 +7,13 @@ namespace Bb.Models
     public class Endpoint
     {
 
+        public Endpoint()
+        {
+
+        }
+
+        public string Name { get; set; }
+
         /// <summary>
         /// Real internal listener address
         /// </summary>

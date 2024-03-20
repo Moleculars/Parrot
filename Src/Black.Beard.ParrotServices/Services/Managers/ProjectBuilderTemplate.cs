@@ -306,7 +306,10 @@ namespace Bb.Services.Managers
                 _logger.LogInformation("build success {project}", Root);
 
             else
+            {
                 _logger.LogError("build failed {project}", Root);
+                LocalDebug.Stop();
+            }
 
             return buildResult;
 
@@ -369,8 +372,11 @@ namespace Bb.Services.Managers
             var running = _rootParent._referential.Resolve(Template, _parent.ContractName);
             if (running != null)
             {
-                running.Service.Stop();
-                result = true;
+                result = running.Service.Stop();
+                if (result)
+                {
+                    _rootParent._referential.Remove(running);
+                }
             }
             else
                 result = true;
@@ -385,7 +391,7 @@ namespace Bb.Services.Managers
         /// </summary>
         /// <param name="ctx">The CTX.</param>
         /// <returns></returns>
-        public ProjectDocument List(ContextGenerator ctx = null)
+        public ProjectDocument List(ContextGenerator? ctx = null)
         {
             
             ProjectDocument result = new ProjectDocument()
@@ -412,6 +418,21 @@ namespace Bb.Services.Managers
             }
 
             return result;
+
+        }
+
+        /// <summary>
+        /// test running service
+        /// </summary>
+        /// <param name="result"> out result watch dog</param>
+        /// <returns>return true if hosted</returns>
+        public bool IsRunnings()
+        {
+            var running = _rootParent._referential.Resolve(Template, _parent.ContractName);
+            if (running != null && running.Service != null && running.Service.IsUpAndRunningServices != null)
+                return true;
+
+            return false;
 
         }
 

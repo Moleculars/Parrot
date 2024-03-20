@@ -46,14 +46,16 @@ namespace Bb.Models
             if (!_listeners.TryGetValue(LabelServices, out listener)) _listeners.Add(LabelServices, listener = new Listener());
             listener.Add
             (
+                "Root",
                 new Url(scheme, _publicHost, originalPort, ServiceReferentialContract.LabelProxy, Template, Contract),
                 new Url(scheme, host, dynamicPort, ServiceReferentialContract.LabelProxy, Template, Contract)
-            );
+            ); ;
 
 
             if (!_listeners.TryGetValue(LabelSwagger, out listener)) _listeners.Add(LabelSwagger, listener = new Listener());
             listener.Add
             (
+                "Swagger",
                 new Url(scheme, _publicHost, originalPort, ServiceReferentialContract.LabelProxy, Template, Contract, "swagger"),
                 new Url(scheme, host, dynamicPort, ServiceReferentialContract.LabelProxy, Template, Contract, "swagger")
             );
@@ -62,6 +64,7 @@ namespace Bb.Models
             if (!_listeners.TryGetValue(LabelIsUpAndRunningServices, out listener)) _listeners.Add(LabelIsUpAndRunningServices, listener = new Listener());
             listener.Add
             (
+                "WatchDog",
                 new Url(scheme, _publicHost, originalPort, ServiceReferentialContract.LabelProxy, Template, Contract, "Watchdog", "isupandrunning"),
                 new Url(scheme, host, dynamicPort, ServiceReferentialContract.LabelProxy, Template, Contract, "Watchdog", "isupandrunning")
             );
@@ -121,7 +124,10 @@ namespace Bb.Models
             }
         }
 
-
+        /// <summary>
+        /// List of listeners
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, Listener>> Listeners { get => _listeners; }
 
         /// <summary>
         /// Start the service
@@ -149,9 +155,9 @@ namespace Bb.Models
         /// <summary>
         /// Stop the service
         /// </summary>
-        public void Stop()
+        public bool Stop()
         {
-            _service.Stop();
+            return _service.StopService();
         }
 
 

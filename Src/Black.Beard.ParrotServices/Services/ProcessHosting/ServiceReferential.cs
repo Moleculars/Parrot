@@ -34,17 +34,24 @@ namespace Bb.Services.ProcessHosting
             }
         }
 
+        public ServiceReferentialContract UnRegister(ServiceHost host)
+        {
+            lock (_lock)
+            {
+                var instance = Get(host.Template).Get(host.Contract);
+                instance.UnRegister();
+                return instance;
+            }
+        }
+
         internal void Remove(ServiceReferentialContract? contract)
         {
             if (contract != null)
-            {
                 lock (_lock)
                 {
-
                     contract.Parent.Remove(contract);
-
+                    contract.UnRegister();
                 }
-            }
         }
 
 

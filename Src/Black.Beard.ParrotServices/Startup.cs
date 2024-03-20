@@ -42,7 +42,7 @@ namespace Bb.ParrotServices
         {
 
             base.ConfigureApplication(app, env, loggerFactory);
-
+                        
             app
                 .UseHttpsRedirection()
                 .UseRouting()

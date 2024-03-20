@@ -52,12 +52,12 @@ namespace Bb.Services.Runnings
                 _typeWeakRef = type;
                 _alcWeakRef = assemblyWeakRef;
 
-                var result = Execute(_startingMethod, [new string[] { }]);
+                _instance = Execute(_startingMethod, [new string[] { }]);
 
-                if (action != null && result != null)
-                    action(result);
+                if (action != null && _instance != null)
+                    action(_instance);
 
-                return result;
+                return _instance;
 
             }
 
@@ -69,28 +69,42 @@ namespace Bb.Services.Runnings
         /// <summary>
         /// Stop the service
         /// </summary>
-        public virtual void Stop()
+        public virtual bool StopService()
         {
 
+            bool result = false;
+
             if (_instance != null)
-                _instance.Cancel();
-
-            _typeWeakRef = null;
-            _instance = null;
-
-            if (_alc != null)
             {
-                _alc.Unload();
-                _alc = null;
+
+                result = _instance.CancelAsync();
+
+                if (result)
+                {
+
+                    _instance = null;
+                    _typeWeakRef = null;
+
+                    if (_alc != null)
+                    {
+                        _alc.Unload();
+                        _alc = null;
+                    }
+
+                }
+
+                return result;
+
             }
+
+            return true;
+
         }
 
 
         void IDisposable.Dispose()
         {
-
-            Stop();
-
+            StopService();
         }
 
 

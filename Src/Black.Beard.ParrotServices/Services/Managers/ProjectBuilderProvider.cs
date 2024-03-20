@@ -114,6 +114,7 @@ namespace Bb.Services.Managers
                     if (template != null)
                     {
                         var project = template.List(null);
+
                         result.Add(project);
                     }
 
@@ -172,6 +173,7 @@ namespace Bb.Services.Managers
                         var running = _referential.Resolve(templateName, contract.ContractName);
                         if (running != null)
                         {
+
                             template.IsRunnings(out WatchdogResult? infos);
                             var prj = new ProjectInfo()
                             {
@@ -179,17 +181,24 @@ namespace Bb.Services.Managers
                                 Template = templateName,
                                 Hosted = true,
                                 Running = infos != null,
-
-                                Http = running.Http.TargetUrl.ToString(),
-                                Https = running.Https.TargetUrl.ToString(),
-
                             };
 
+                            foreach (var item in running.Service.Listeners)
+                            {
+
+                                if (item.Value.Https != null)
+                                    prj.Listeners.Add(item.Value.Https);
+
+                                if (item.Value.Http != null)
+                                    prj.Listeners.Add(item.Value.Http);
+
+                            }
 
 
                         if (infos != null)
                             foreach (var item1 in infos.Infos)
                                 prj.Infos.Add(item1);
+
                         result.Add(prj);
                     }
                 }

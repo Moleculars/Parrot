@@ -28,6 +28,14 @@ namespace Bb.Services.ProcessHosting
             return Register(host.Services);
         }
 
+        internal ServiceReferentialContract UnRegister()
+        {
+            this.Service = null;
+            Http = null;
+            Https = null;
+            return this;
+        }
+
         internal ServiceReferentialContract Register(Listener listener)
         {
 
