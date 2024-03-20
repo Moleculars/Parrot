@@ -70,6 +70,10 @@ namespace Bb.Models
 
         }
 
+
+        /// <summary>
+        /// Swagger listener
+        /// </summary>
         public Listener? Swagger
         {
             get
@@ -79,6 +83,9 @@ namespace Bb.Models
             }
         }
 
+        /// <summary>
+        /// Watchdog listener
+        /// </summary>
         public Listener? IsUpAndRunningServices
         {
             get
@@ -88,6 +95,9 @@ namespace Bb.Models
             }
         }
 
+        /// <summary>
+        /// Hosted services
+        /// </summary>
         public Listener? Services
         {
             get
@@ -97,6 +107,11 @@ namespace Bb.Models
             }
         }
 
+        /// <summary>
+        /// Get a listener by name
+        /// </summary>
+        /// <param name="listernName"></param>
+        /// <returns></returns>
         public Listener? this[string listernName]
         {
             get

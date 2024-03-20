@@ -24,6 +24,7 @@ namespace Bb.Services.ProcessHosting
 
         internal ServiceReferentialContract Register(ServiceHost host)
         {
+            this.Service = host;
             return Register(host.Services);
         }
 
@@ -79,6 +80,9 @@ namespace Bb.Services.ProcessHosting
 
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class AddressTranslator
     {
         public string QuerySource { get; internal set; }

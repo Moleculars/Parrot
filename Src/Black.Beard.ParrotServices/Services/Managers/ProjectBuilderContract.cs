@@ -18,7 +18,7 @@ namespace Bb.Services.Managers
         {
             Parent = parent;
             _logger = parent._logger;
-            Contract = contract;
+            ContractName = contract;
             Root = parent.Root.Combine(contract);
             _templates = new Dictionary<string, ProjectBuilderTemplate>();
         }
@@ -39,7 +39,7 @@ namespace Bb.Services.Managers
         /// <param name="templateName">Name of the template.</param>
         /// <param name="createIfNotExists">if set to <c>true</c> [create if not exists].</param>
         /// <returns></returns>
-        public ProjectBuilderTemplate Template(string templateName, bool createIfNotExists = false)
+        public ProjectBuilderTemplate? Template(string templateName, bool createIfNotExists = false)
         {
 
             var r = Root.Combine(templateName).AsDirectory();
@@ -79,7 +79,7 @@ namespace Bb.Services.Managers
         /// <summary>
         /// The contract name
         /// </summary>
-        public readonly string Contract;
+        public readonly string ContractName;
 
         /// <summary>
         /// The path root

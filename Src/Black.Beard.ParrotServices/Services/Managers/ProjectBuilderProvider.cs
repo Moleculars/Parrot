@@ -5,6 +5,9 @@ using Bb.ComponentModel.Factories;
 using Bb.Services.ProcessHosting;
 using Bb.ComponentModel;
 using System.Diagnostics.Contracts;
+using System.Collections.Generic;
+using SharpCompress;
+using Bb.Mock;
 
 namespace Bb.Services.Managers
 {
@@ -107,13 +110,13 @@ namespace Bb.Services.Managers
                 var contract = Contract(dir.Name);
                 if (contract.TemplateExistsOnDisk(templateName))
                 {
-
                     var template = contract.Template(templateName);
+                    if (template != null)
+                    {
+                        var project = template.List(null);
+                        result.Add(project);
+                    }
 
-                    ContextGenerator ctx = new ContextGenerator(template.Root);
-
-                    var item = template.List(ctx);
-                    result.Add(item);
                 }
             }
 
@@ -146,146 +149,173 @@ namespace Bb.Services.Managers
         }
 
 
-        ///// <summary>
-        ///// return the list of template services runnings. every service runs is tested
-        ///// </summary>
-        ///// <param name="templateName">Name of the template.</param>
-        ///// <returns></returns>
-        //public async Task<List<ProjectRunning>> ListRunningsByTemplate(string templateName)
-        //{
-
-        //    var result = new List<ProjectRunning>();
-
-        //    var dirRoot = new DirectoryInfo(_root);
-        //    var dirs = dirRoot.GetDirectories();
-        //    foreach (var dir in dirs)
-        //    {
-        //        var contract = Contract(dir.Name);
-        //        if (contract.TemplateExistsOnDisk(templateName))
-        //        {
-        //            var template = contract.Template(templateName);
-        //            var item = await template.IsRunnings();
-        //            result.Add(item);
-        //        }
-        //    }
-
-        //    return result;
-
-        //}
-
-
         /// <summary>
-        /// Gets a value indicating whether contract exists in the referential.
+        /// return the list of template services runnings. every service runs is tested
         /// </summary>
-        /// <value>
-        ///   <c>true</c> if [contract exists]; otherwise, <c>false</c>.
-        /// </value>
-        public bool ContractExists
+        /// <param name="templateName">Name of the template.</param>
+        /// <returns></returns>
+        public async Task<List<ProjectInfo>> ListRunningsByTemplate(string templateName)
         {
-            get
+
+            var result = new List<ProjectInfo>();
+
+            var dirRoot = new DirectoryInfo(_root);
+            var dirs = dirRoot.GetDirectories();
+            foreach (var dir in dirs.AsParallel())
             {
-                return Directory.Exists(_root)
-                    && File.Exists(_root.Combine("contract.json"))
-                    ;
+                var contract = Contract(dir.Name);
+                if (contract != null)
+                {
+                    var template = contract.Template(templateName);
+                    if (template != null)
+                    {
+                        var running = _referential.Resolve(templateName, contract.ContractName);
+                        if (running != null)
+                        {
+                            template.IsRunnings(out WatchdogResult? infos);
+                            var prj = new ProjectInfo()
+                            {
+                                Contract = contract.ContractName,
+                                Template = templateName,
+                                Hosted = true,
+                                Running = infos != null,
+
+                                Http = running.Http.TargetUrl.ToString(),
+                                Https = running.Https.TargetUrl.ToString(),
+
+                            };
+
+
+
+                        if (infos != null)
+                            foreach (var item1 in infos.Infos)
+                                prj.Infos.Add(item1);
+                        result.Add(prj);
+                    }
+                }
             }
         }
 
+        await Task.Yield();
 
-        #region generators
-
-        internal Type ResolveGenerator(string template)
-        {
-
-            if (_generators.TryGetValue(template, out var generator))
-                return generator;
-
-            return null;
+            return result;
 
         }
 
 
-        /// <summary>
-        /// Writes the document on disk and register the new plugin.
-        /// </summary>
-        /// <param name="upfile">The upload document.</param>
-        public void AddGeneratorAssembly(IFormFile upfile)
+
+    /// <summary>
+    /// Gets a value indicating whether contract exists in the referential.
+    /// </summary>
+    /// <value>
+    ///   <c>true</c> if [contract exists]; otherwise, <c>false</c>.
+    /// </value>
+    public bool ContractExists
+    {
+        get
         {
-
-            DirectoryInfo directoryPath = _manager.GetPlugInDirectory(Path.GetFileNameWithoutExtension(upfile.FileName));
-
-            string filePath = directoryPath.Combine(upfile.FileName);
-            var f = upfile.Save();
-            var md5 = f.Md5();
-
-            var directoryPath2 = directoryPath.Combine(md5);
-            var targetDirectory = new DirectoryInfo(directoryPath2);
-            targetDirectory.Refresh();
-            if (!targetDirectory.Exists)
-            {
-
-                targetDirectory.Create();
-                f.Uncompress(targetDirectory);
-
-                TypeDiscovery.Instance.AddDirectories(targetDirectory.FullName);
-                BuildGeneratorList();
-
-            }
-            else
-            {
-
-            }
-
+            return Directory.Exists(_root)
+                && File.Exists(_root.Combine("contract.json"))
+                ;
         }
-
-        /// <summary>
-        /// Builds or rebuild the list of generator.
-        /// </summary>
-        public void BuildGeneratorList()
-        {
-
-            var generators = new Dictionary<string, Type>();
-            var list = _manager.DiscoverPlugInList().ToList();
-            foreach (var type in list)
-            {
-
-                var name = type.Name;
-                if (name.EndsWith("Generator"))
-                    name = name.Substring(0, name.Length - "Generator".Length);
-
-                if (name.EndsWith("Service"))
-                    name = name.Substring(0, name.Length - "Service".Length);
-
-                generators.Add(name.ToLower(), type);
-
-            }
-
-            if (generators.Count == 0)
-                this._logger.LogWarning("No generator found");
-
-            else
-                _generators = generators;
-
-        }
+    }
 
 
-        #endregion generators
+    #region generators
 
-        /// <summary>
-        /// Gets the root path for access to the resource.
-        /// </summary>
-        /// <value>
-        /// The root.
-        /// </value>
-        public string Root => _root;
+    internal Type ResolveGenerator(string template)
+    {
 
-        internal readonly ILogger<ProjectBuilderProvider> _logger;
-        internal readonly ServiceReferential _referential;
-        private readonly Dictionary<string, ProjectBuilderContract> _items;
-        private readonly PluginManager<ServiceGenerator> _manager;
-        private string _root;
-        private static Dictionary<string, Type> _generators;
-        private volatile object _lock = new object();
+        if (_generators.TryGetValue(template, out var generator))
+            return generator;
+
+        return null;
 
     }
+
+
+    /// <summary>
+    /// Writes the document on disk and register the new plugin.
+    /// </summary>
+    /// <param name="upfile">The upload document.</param>
+    public void AddGeneratorAssembly(IFormFile upfile)
+    {
+
+        DirectoryInfo directoryPath = _manager.GetPlugInDirectory(Path.GetFileNameWithoutExtension(upfile.FileName));
+
+        string filePath = directoryPath.Combine(upfile.FileName);
+        var f = upfile.Save();
+        var md5 = f.Md5();
+
+        var directoryPath2 = directoryPath.Combine(md5);
+        var targetDirectory = new DirectoryInfo(directoryPath2);
+        targetDirectory.Refresh();
+        if (!targetDirectory.Exists)
+        {
+
+            targetDirectory.Create();
+            f.Uncompress(targetDirectory);
+
+            TypeDiscovery.Instance.AddDirectories(targetDirectory.FullName);
+            BuildGeneratorList();
+
+        }
+        else
+        {
+
+        }
+
+    }
+
+    /// <summary>
+    /// Builds or rebuild the list of generator.
+    /// </summary>
+    public void BuildGeneratorList()
+    {
+
+        var generators = new Dictionary<string, Type>();
+        var list = _manager.DiscoverPlugInList().ToList();
+        foreach (var type in list)
+        {
+
+            var name = type.Name;
+            if (name.EndsWith("Generator"))
+                name = name.Substring(0, name.Length - "Generator".Length);
+
+            if (name.EndsWith("Service"))
+                name = name.Substring(0, name.Length - "Service".Length);
+
+            generators.Add(name.ToLower(), type);
+
+        }
+
+        if (generators.Count == 0)
+            this._logger.LogWarning("No generator found");
+
+        else
+            _generators = generators;
+
+    }
+
+
+    #endregion generators
+
+    /// <summary>
+    /// Gets the root path for access to the resource.
+    /// </summary>
+    /// <value>
+    /// The root.
+    /// </value>
+    public string Root => _root;
+
+    internal readonly ILogger<ProjectBuilderProvider> _logger;
+    internal readonly ServiceReferential _referential;
+    private readonly Dictionary<string, ProjectBuilderContract> _items;
+    private readonly PluginManager<ServiceGenerator> _manager;
+    private string _root;
+    private static Dictionary<string, Type> _generators;
+    private volatile object _lock = new object();
+
+}
 
 }

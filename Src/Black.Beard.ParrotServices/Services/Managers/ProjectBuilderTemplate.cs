@@ -49,8 +49,10 @@ namespace Bb.Services.Managers
             _rootParent = parent.Parent;
             _logger = _rootParent._logger;
 
-            Contract = _parent.Contract;
+            Contract = _parent.ContractName;
             Root = parent.Root.Combine(template);
+            DirectoryService = Root.Combine("service");
+
 
             Template = template;
             _generatorType = _rootParent.ResolveGenerator(Template);
@@ -261,13 +263,11 @@ namespace Bb.Services.Managers
 
             _logger.LogInformation("starting build {project}", Root);
 
-            var directoryRoot = Root.AsDirectory();
+            var directoryService = DirectoryService.AsDirectory();
+            var path1 = DirectoryService.Combine("service", "obj");
+            var path2 = DirectoryService.Combine("service", "bin");
 
-            var directoryService = Root.Combine("service");
-            var path1 = directoryService.Combine("service", "obj");
-            var path2 = directoryService.Combine("service", "bin");
-
-            var documents = directoryRoot.GetFiles("*.cs", SearchOption.AllDirectories);
+            var documents = directoryService.GetFiles("*.cs", SearchOption.AllDirectories);
             var files = documents.Where(c =>
             {
                 if (c.FullName.StartsWith(path1) || c.FullName.StartsWith(path2))
@@ -277,7 +277,7 @@ namespace Bb.Services.Managers
             .Select(c => c.FullName).ToArray();
 
 
-            HashSet<string> assemblies = ResolveAssemblies(directoryService);
+            HashSet<string> assemblies = ResolveAssemblies(DirectoryService);
 
             //var dir = Environment.CurrentDirectory.Combine( Path.GetRandomFileName());
             var nuget = new NugetController()
@@ -319,9 +319,9 @@ namespace Bb.Services.Managers
         public async Task<ServiceHost?> Run(Compilers.AssemblyResult result, string publicHost, int? httpCurrentPort, int? httpsCurrentPort)
         {
 
-            var Running = Prepare(result, publicHost, httpCurrentPort, httpsCurrentPort);
+            var running = Prepare(result, publicHost, httpCurrentPort, httpsCurrentPort);
 
-            var instance = Running.Start();
+            var instance = running.Start();
 
             string status = string.Empty;
             if (instance != null)
@@ -331,14 +331,14 @@ namespace Bb.Services.Managers
             {
                 try
                 {
-                    if (Running.IsUpAndRunningServices != null)
+                    if (running.IsUpAndRunningServices != null)
                     {
-                        var url = Running.IsUpAndRunningServices.Http.InternalUrl;
+                        var url = running.IsUpAndRunningServices.Http.InternalUrl;
                         var serviceResult = await url.GetObjectAsync<WatchdogResult>();
                         if (serviceResult != null)
                         {
-                            Running.Listen = true;
-                            var instance1 = _rootParent._referential.Register(Running);
+                            running.Listen = true;
+                            var instance1 = _rootParent._referential.Register(running);
                         }
                     }
                 }
@@ -351,34 +351,6 @@ namespace Bb.Services.Managers
             else
                 _logger.LogError($"service failed to start service {Template} {Contract}");
 
-
-            return Running;
-
-        }
-
-
-        private ServiceHost Prepare(Compilers.AssemblyResult result, string publicHost, int? httpCurrentPort, int? httpsCurrentPort)
-        {
-
-
-            List<(string, string, int)> listeners = new List<(string, string, int)>(); // ("http", "localhost", 5000), { "https", "localhost", 5001 } };
-
-            string internalHost = "localhost";
-
-
-            if (httpCurrentPort.HasValue)
-                listeners.Add(("http", internalHost, httpCurrentPort.Value));
-
-            if (httpsCurrentPort.HasValue)
-                listeners.Add(("https", internalHost, httpsCurrentPort.Value));
-
-            var running = new ServiceHost(result.FullAssemblyFile, result.References, publicHost, listeners.ToArray())
-            {
-                Contract = _parent.Contract,
-                Template = Template,
-            }
-            //.AddListener(publicHost, httpCurrentPort, httpsCurrentPort, uriHttp, uriHttps)
-            ;
 
             return running;
 
@@ -394,10 +366,10 @@ namespace Bb.Services.Managers
 
             bool result = false;
 
-            var instance = _rootParent._referential.Resolve(Template, _parent.Contract);
-            if (instance != null)
+            var running = _rootParent._referential.Resolve(Template, _parent.ContractName);
+            if (running != null)
             {
-                instance.Service.Stop();
+                running.Service.Stop();
                 result = true;
             }
             else
@@ -413,19 +385,17 @@ namespace Bb.Services.Managers
         /// </summary>
         /// <param name="ctx">The CTX.</param>
         /// <returns></returns>
-        public ProjectDocument List(ContextGenerator ctx)
+        public ProjectDocument List(ContextGenerator ctx = null)
         {
-
-            string rootPath = ctx.TargetPath;
+            
             ProjectDocument result = new ProjectDocument()
             {
-                Contract = _parent.Contract,
+                Contract = _parent.ContractName,
                 Template = Template,
                 Context = ctx
-
             };
 
-            var dirRoot = rootPath.Combine("Templates").AsDirectory();
+            var dirRoot = DirectoryService.Combine("Templates").AsDirectory();
             _logger.LogDebug($"ProjectBuilderTemplate.List : dirRoot = {dirRoot}");
             _logger.LogDebug($"ProjectBuilderTemplate.List : Root = {Root}");
             if (dirRoot.Exists)
@@ -435,7 +405,7 @@ namespace Bb.Services.Managers
                 {
                     _logger.LogDebug($"ProjectBuilderTemplate.List : file = {item.FullName}");
                     var target = new Uri(item.FullName);
-                    var relative = new Uri(rootPath);
+                    var relative = new Uri(DirectoryService);
                     relative = relative.MakeRelativeUri(target);
                     result.Documents.Add(new Models.Document() { Kind = "jslt", File = relative.ToString() });
                 }
@@ -446,26 +416,35 @@ namespace Bb.Services.Managers
         }
 
 
-        ///// <summary>
-        ///// return runnings status
-        ///// </summary>
-        ///// <returns></returns>
-        //public async Task<ProjectRunning> IsRunnings()
-        //{
+        /// <summary>
+        /// test running service
+        /// </summary>
+        /// <param name="result"> out result watch dog</param>
+        /// <returns>return true if hosted</returns>
+        public bool IsRunnings(out WatchdogResult? result)
+        {
 
-        //    if (Running != null)
-        //    {
-        //        // curl -X GET "url" -H "accept: application/json"
-        //        var serviceResult = await Running.IsUpAndRunningServices.Https.HostedInternalServiceUrl.GetJsonAsync<WatchdogResult>();
-        //        //result.UpAndRunningResult = serviceResult;
+            result = default;
+            var running = _rootParent._referential.Resolve(Template, _parent.ContractName);
+            if (running != null && running.Service != null && running.Service.IsUpAndRunningServices != null)
+            {
+                var url = running.Service.IsUpAndRunningServices.Http.InternalUrl;
+                try
+                {
+                    var serviceResult = url.GetObjectAsync<WatchdogResult>();
+                    serviceResult.Wait();
+                    result = serviceResult.Result;
+                }
+                catch (Exception)
+                {
+                    
+                }
+                return true;
+            }
 
-        //    }
+            return false;
 
-        //    await Task.Delay(1);
-
-        //    return null;
-
-        //}
+        }
 
 
         /// <summary>
@@ -476,21 +455,12 @@ namespace Bb.Services.Managers
         /// </value>
         public string Contract { get; }
 
-
-        /// <summary>
-        /// Gets the running description.
-        /// if the service don't run. the instance is null.
-        /// </summary>
-        /// <value>
-        /// The running.
-        /// </value>
-        public ServiceHost? Running { get; private set; }
-
-
         /// <summary>
         /// The root path of the template
         /// </summary>
         public readonly string Root;
+
+        public string DirectoryService { get; }
 
 
         /// <summary>
@@ -499,6 +469,31 @@ namespace Bb.Services.Managers
         public readonly string Template;
 
 
+
+
+        private ServiceHost Prepare(Compilers.AssemblyResult result, string publicHost, int? httpCurrentPort, int? httpsCurrentPort)
+        {
+
+            List<(string, string, int)> listeners = new List<(string, string, int)>(); // ("http", "localhost", 5000), { "https", "localhost", 5001 } };
+            string internalHost = "localhost";
+
+            if (httpCurrentPort.HasValue)
+                listeners.Add(("http", internalHost, httpCurrentPort.Value));
+
+            if (httpsCurrentPort.HasValue)
+                listeners.Add(("https", internalHost, httpsCurrentPort.Value));
+
+            var running = new ServiceHost(result.FullAssemblyFile, result.References, publicHost, listeners.ToArray())
+            {
+                Contract = _parent.ContractName,
+                Template = Template,
+            }
+            //.AddListener(publicHost, httpCurrentPort, httpsCurrentPort, uriHttp, uriHttps)
+            ;
+
+            return running;
+
+        }
 
         internal string GetDirectoryProject(params string[] path)
         {

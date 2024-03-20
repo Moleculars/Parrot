@@ -280,19 +280,19 @@ namespace Bb.ParrotServices.Controllers
         }
 
 
-        ///// <summary>
-        ///// return the services runnings. every service runs is tested
-        ///// </summary>
-        ///// <param name="template">template name of generation. If you don"t know. use 'mock'</param>
-        ///// <returns></returns>
-        //[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ProjectRunning>))]
-        //[HttpGet("runnings")]
-        //[Produces("application/json")]
-        //public async Task<IActionResult> Runnings([FromRoute] string template)
-        //{
-        //    var items = await _builder.ListRunningsByTemplate(template);
-        //    return Ok(items);
-        //}
+        /// <summary>
+        /// return the services runnings. every service runs is tested
+        /// </summary>
+        /// <param name="template">template name of generation. If you don"t know. use 'mock'</param>
+        /// <returns></returns>
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ProjectInfo>))]
+        [HttpGet("runnings")]
+        [Produces("application/json")]
+        public async Task<IActionResult> Runnings([FromRoute] string template)
+        {
+            var items = await _builder.ListRunningsByTemplate(template);
+            return Ok(items);
+        }
 
         /// <summary>
         /// Download the specified data template.
