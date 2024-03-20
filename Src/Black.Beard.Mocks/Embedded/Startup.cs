@@ -1,8 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Extensions.DependencyInjection;
 
 #pragma warning disable CS0162
 #pragma warning disable CS1591

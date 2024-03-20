@@ -76,17 +76,13 @@ namespace Bb.ParrotServices.Controllers
                 return BadRequest("file stream is not selected or empty");
             }
 
-            ProjectBuilderTemplate templateObject;
             var project = _builder.Contract(contract, true);
-            try
-            {
-                templateObject = project.Template(template, true);
-            }
-            catch (MockHttpException e)
-            {
-                _logger.LogError(e, e.Message);
-                return NotFound(e.Message);
-            }
+            if (project == null)
+                return NotFound(contract + " not found");
+
+            ProjectBuilderTemplate? templateObject = project.Template(template, true);
+            if (templateObject == null)
+                return NotFound(template + " not found");
 
             // Save contract
             templateObject.WriteOnDisk(upfile);
@@ -143,20 +139,12 @@ namespace Bb.ParrotServices.Controllers
             _logger.LogDebug("build root : {root}", _builder.Root);
 
             var project = _builder.Contract(contract);
-
             if (project == null)
                 return NotFound(contract + " not found");
 
-            ProjectBuilderTemplate templateObject;
-            try
-            {
-                templateObject = project.Template(template);
-            }
-            catch (MockHttpException e)
-            {
-                _logger.LogError(e, e.Message);
-                return NotFound(e.Message);
-            }
+            ProjectBuilderTemplate? templateObject = project.Template(template);
+            if (templateObject == null)
+                return NotFound(template + " not found");
 
             Compilers.AssemblyResult? result = default;
             try
@@ -202,22 +190,15 @@ namespace Bb.ParrotServices.Controllers
             var host = HttpContext.Request.Host.Host;
 
             var project = _builder.Contract(contract);
+            if (project == null)
+                return NotFound(contract + " not found");
 
-            ProjectBuilderTemplate templateObject;
-            try
-            {
-                templateObject = project.Template(template);
-            }
-            catch (MockHttpException e)
-            {
-                _logger.LogError(e, e.Message);
-                return NotFound(e.Message);
-            }
-
+            ProjectBuilderTemplate? templateObject = project.Template(template);
+            if (templateObject == null)
+                return NotFound(template + " not found");
 
             if (templateObject.IsRunnings())
                 return BadRequest("the service is already running");
-
 
             Compilers.AssemblyResult result = await templateObject.Build();
 
@@ -239,7 +220,7 @@ namespace Bb.ParrotServices.Controllers
             }
             catch (Exception ex)
             {
-                throw;
+                return BadRequest(ex.Message);
             }
 
 
@@ -267,17 +248,12 @@ namespace Bb.ParrotServices.Controllers
         {
 
             var project = _builder.Contract(contract);
+            if (project == null)
+                return NotFound(contract + " not found");
 
-            ProjectBuilderTemplate templateObject;
-            try
-            {
-                templateObject = project.Template(template);
-            }
-            catch (MockHttpException e)
-            {
-                _logger.LogError(e, e.Message);
-                return NotFound(e.Message);
-            }
+            ProjectBuilderTemplate? templateObject = project.Template(template);
+            if (templateObject == null)
+                return NotFound(template + " not found");
 
             var result = await templateObject.Kill();
 
@@ -369,17 +345,12 @@ namespace Bb.ParrotServices.Controllers
             }
 
             var project = _builder.Contract(contract);
+            if (project == null)
+                return NotFound(contract + " not found");
 
-            ProjectBuilderTemplate templateObject;
-            try
-            {
-                templateObject = project.Template(template);
-            }
-            catch (MockHttpException e)
-            {
-                _logger.LogError(e, e.Message);
-                return NotFound(e.Message);
-            }
+            ProjectBuilderTemplate? templateObject = project.Template(template);
+            if (templateObject == null)
+                return NotFound(template + " not found");
 
             var dir = templateObject.GetDirectoryProject("Templates");
             var files = templateObject.GetFiles(dir, upfile.FileName);

@@ -44,8 +44,7 @@
 		<PackageReference Include="Black.Beard.Helpers" Version="2.0.31" />
 		<PackageReference Include="Black.Beard.Helpers.ContentLoaders.Compress" Version="2.0.31" />
 		<PackageReference Include="Black.Beard.Http" Version="1.0.16" />
-		<PackageReference Include="Black.Beard.OpenApi" Version="1.0.6" />
-		<PackageReference Include="Black.Beard.OpenApiServices" Version="1.0.6" />
+		<PackageReference Include="Black.Beard.OpenApiServices" Version="1.0.8" />
 		<PackageReference Include="Black.Beard.Process" Version="1.0.112" />
 		<PackageReference Include="Black.Beard.Projects.Models" Version="1.0.112" />
 		<PackageReference Include="Black.Beard.Roslyn" Version="1.0.112" />

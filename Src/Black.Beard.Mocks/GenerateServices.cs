@@ -33,7 +33,7 @@ namespace Bb.OpenApiServices
         protected override void GenerateMethod(KeyValuePair<OperationType, OpenApiOperation> self, CodeBlock code, string typeReturn, CsMethodDeclaration method)
         {
 
-            var templateName = Context.GetDataFor(self).GetData<string>("templateName");
+            var templateName = Context.GetDataFor(self.Value).GetData<string>("templateName");
 
             if (string.IsNullOrEmpty(templateName))
             {

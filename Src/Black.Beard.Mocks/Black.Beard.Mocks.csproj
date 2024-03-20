@@ -33,8 +33,8 @@
     <PackageReference Include="Black.Beard.Helpers" Version="2.0.31" />
     <PackageReference Include="Black.Beard.Helpers.ContentLoaders" Version="2.0.31" />
     <PackageReference Include="Black.Beard.Helpers.ContentLoaders.Files" Version="2.0.31" />
-    <PackageReference Include="Black.Beard.OpenApi" Version="1.0.6" />
-    <PackageReference Include="Black.Beard.OpenApiServices" Version="1.0.6" />
+    <PackageReference Include="Black.Beard.OpenApi" Version="1.0.8" />
+    <PackageReference Include="Black.Beard.OpenApiServices" Version="1.0.8" />
     <PackageReference Include="Black.Beard.Roslyn" Version="1.0.112" />
   </ItemGroup>
 
