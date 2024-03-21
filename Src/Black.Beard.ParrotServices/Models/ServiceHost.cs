@@ -15,8 +15,10 @@ namespace Bb.Models
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceHost"/> class.
         /// </summary>
-        /// <param name="assemblyFile"></param>
-        /// <param name="references"></param>
+        /// <param name="assemblyFile">assembly to launch</param>
+        /// <param name="references">Assembly referential for resolve assembly by assembly name</param>
+        /// <param name="publicHost">host public name</param>
+        /// <param name="listeners"></param>
         public ServiceHost(string assemblyFile, AssemblyReferences references, string publicHost, params (string, string, int)[] listeners)
         {
             this._publicHost = publicHost;
@@ -135,7 +137,7 @@ namespace Bb.Models
         /// <returns></returns>
         public dynamic? Start()
         {
-            var result = _service.Start();
+            var result = _service.Start(_isolated);
             if (result != null)
             {
 
@@ -167,7 +169,7 @@ namespace Bb.Models
         /// <value>
         /// The contract.
         /// </value>
-        public string Contract { get; set; }
+        public string? Contract { get; set; }
 
         /// <summary>
         /// Gets or sets the template name for generating the project.
@@ -175,7 +177,7 @@ namespace Bb.Models
         /// <value>
         /// The template.
         /// </value>
-        public string Template { get; set; }
+        public string? Template { get; set; }
 
         /// <summary>
         /// Gets a value indicating whether the service is started.
@@ -195,7 +197,7 @@ namespace Bb.Models
         private readonly EmbeddedWebService _service;
         private readonly string _publicHost;
         private Dictionary<string, Listener> _listeners = new Dictionary<string, Listener>();
-
+        private bool _isolated;
 
     }
 

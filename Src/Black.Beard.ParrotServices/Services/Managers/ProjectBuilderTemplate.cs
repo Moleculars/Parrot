@@ -589,7 +589,7 @@ namespace Bb.Services.Managers
         private readonly ILogger<ProjectBuilderProvider> _logger;
         private readonly ProjectBuilderProvider _rootParent;
         private readonly ProjectBuilderContract _parent;
-        private readonly Type _generatorType;
+        private readonly Type? _generatorType;
         private static readonly JsonSerializerOptions jsonSerializerSettings;
         private readonly Type _configurationType;
         private readonly string _defaultConfig;

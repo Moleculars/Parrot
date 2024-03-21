@@ -16,7 +16,8 @@ namespace Bb.Services.Runnings
         /// Initializes a new instance of the <see cref="EmbeddedAssemblyLoadContext"/> class.
         /// </summary>
         /// <param name="references"></param>
-        public EmbeddedAssemblyLoadContext(AssemblyReferences references) : base(isCollectible: true)
+        public EmbeddedAssemblyLoadContext(AssemblyReferences references)
+            : base(isCollectible: true)
         {
             _references = references;
             //_resolver = new AssemblyDependencyResolver(mainAssemblyToLoadPath);

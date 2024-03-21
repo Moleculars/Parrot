@@ -8,6 +8,7 @@ using System.Diagnostics.Contracts;
 using System.Collections.Generic;
 using SharpCompress;
 using Bb.Mock;
+using System.Diagnostics;
 
 namespace Bb.Services.Managers
 {
@@ -195,17 +196,17 @@ namespace Bb.Services.Managers
                             }
 
 
-                        if (infos != null)
-                            foreach (var item1 in infos.Infos)
-                                prj.Infos.Add(item1);
+                            if (infos != null)
+                                foreach (var item1 in infos.Infos)
+                                    prj.Infos.Add(item1);
 
-                        result.Add(prj);
+                            result.Add(prj);
+                        }
                     }
                 }
             }
-        }
 
-        await Task.Yield();
+            await Task.Yield();
 
             return result;
 
@@ -213,118 +214,121 @@ namespace Bb.Services.Managers
 
 
 
-    /// <summary>
-    /// Gets a value indicating whether contract exists in the referential.
-    /// </summary>
-    /// <value>
-    ///   <c>true</c> if [contract exists]; otherwise, <c>false</c>.
-    /// </value>
-    public bool ContractExists
-    {
-        get
+        /// <summary>
+        /// Gets a value indicating whether contract exists in the referential.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [contract exists]; otherwise, <c>false</c>.
+        /// </value>
+        public bool ContractExists
         {
-            return Directory.Exists(_root)
-                && File.Exists(_root.Combine("contract.json"))
-                ;
+            get
+            {
+                return Directory.Exists(_root)
+                    && File.Exists(_root.Combine("contract.json"))
+                    ;
+            }
         }
-    }
 
 
-    #region generators
+        #region generators
 
-    internal Type ResolveGenerator(string template)
-    {
-
-        if (_generators.TryGetValue(template, out var generator))
-            return generator;
-
-        return null;
-
-    }
-
-
-    /// <summary>
-    /// Writes the document on disk and register the new plugin.
-    /// </summary>
-    /// <param name="upfile">The upload document.</param>
-    public void AddGeneratorAssembly(IFormFile upfile)
-    {
-
-        DirectoryInfo directoryPath = _manager.GetPlugInDirectory(Path.GetFileNameWithoutExtension(upfile.FileName));
-
-        string filePath = directoryPath.Combine(upfile.FileName);
-        var f = upfile.Save();
-        var md5 = f.Md5();
-
-        var directoryPath2 = directoryPath.Combine(md5);
-        var targetDirectory = new DirectoryInfo(directoryPath2);
-        targetDirectory.Refresh();
-        if (!targetDirectory.Exists)
+        internal Type? ResolveGenerator(string template)
         {
 
-            targetDirectory.Create();
-            f.Uncompress(targetDirectory);
+            if (_generators != null)
+                if (_generators.TryGetValue(template, out var generator))
+                    return generator;
 
-            TypeDiscovery.Instance.AddDirectories(targetDirectory.FullName);
-            BuildGeneratorList();
-
-        }
-        else
-        {
+            return null;
 
         }
 
-    }
 
-    /// <summary>
-    /// Builds or rebuild the list of generator.
-    /// </summary>
-    public void BuildGeneratorList()
-    {
-
-        var generators = new Dictionary<string, Type>();
-        var list = _manager.DiscoverPlugInList().ToList();
-        foreach (var type in list)
+        /// <summary>
+        /// Writes the document on disk and register the new plugin.
+        /// </summary>
+        /// <param name="upfile">The upload document.</param>
+        public void AddGeneratorAssembly(IFormFile upfile)
         {
 
-            var name = type.Name;
-            if (name.EndsWith("Generator"))
-                name = name.Substring(0, name.Length - "Generator".Length);
+            DirectoryInfo directoryPath = _manager.GetPlugInDirectory(Path.GetFileNameWithoutExtension(upfile.FileName));
 
-            if (name.EndsWith("Service"))
-                name = name.Substring(0, name.Length - "Service".Length);
+            string filePath = directoryPath.Combine(upfile.FileName);
+            var f = upfile.Save();
+            var md5 = f.Md5();
 
-            generators.Add(name.ToLower(), type);
+            var directoryPath2 = directoryPath.Combine(md5);
+            var targetDirectory = new DirectoryInfo(directoryPath2);
+            targetDirectory.Refresh();
+            if (!targetDirectory.Exists)
+            {
+
+                targetDirectory.Create();
+                f.Uncompress(targetDirectory);
+
+                TypeDiscovery.Instance.AddDirectories(targetDirectory.FullName);
+                BuildGeneratorList();
+
+            }
+            else
+            {
+
+            }
 
         }
 
-        if (generators.Count == 0)
-            this._logger.LogWarning("No generator found");
+        /// <summary>
+        /// Builds or rebuild the list of generator.
+        /// </summary>
+        public void BuildGeneratorList()
+        {
 
-        else
-            _generators = generators;
+            var generators = new Dictionary<string, Type>();
+            var list = _manager.DiscoverPlugInList().ToList();
+            foreach (var type in list)
+            {
+
+                Trace.TraceInformation($"plug in {type.Name} append like {_manager.Type.Name}");
+
+                var name = type.Name;
+                if (name.EndsWith("Generator"))
+                    name = name.Substring(0, name.Length - "Generator".Length);
+
+                if (name.EndsWith("Service"))
+                    name = name.Substring(0, name.Length - "Service".Length);
+
+                generators.Add(name.ToLower(), type);
+
+            }
+
+            if (generators.Count == 0)
+                this._logger.LogWarning("No generator found");
+
+            else
+                _generators = generators;
+
+        }
+
+
+        #endregion generators
+
+        /// <summary>
+        /// Gets the root path for access to the resource.
+        /// </summary>
+        /// <value>
+        /// The root.
+        /// </value>
+        public string Root => _root;
+
+        internal readonly ILogger<ProjectBuilderProvider> _logger;
+        internal readonly ServiceReferential _referential;
+        private readonly Dictionary<string, ProjectBuilderContract> _items;
+        private readonly PluginManager<ServiceGenerator> _manager;
+        private string _root;
+        private static Dictionary<string, Type>? _generators;
+        private volatile object _lock = new object();
 
     }
-
-
-    #endregion generators
-
-    /// <summary>
-    /// Gets the root path for access to the resource.
-    /// </summary>
-    /// <value>
-    /// The root.
-    /// </value>
-    public string Root => _root;
-
-    internal readonly ILogger<ProjectBuilderProvider> _logger;
-    internal readonly ServiceReferential _referential;
-    private readonly Dictionary<string, ProjectBuilderContract> _items;
-    private readonly PluginManager<ServiceGenerator> _manager;
-    private string _root;
-    private static Dictionary<string, Type> _generators;
-    private volatile object _lock = new object();
-
-}
 
 }

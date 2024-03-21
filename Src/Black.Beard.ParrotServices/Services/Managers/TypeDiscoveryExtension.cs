@@ -7,8 +7,7 @@
 
         static TypeDiscoveryExtension()
         {
-
-            TypeDiscoveryExtension._AspNetDirectory = new FileInfo(typeof(Microsoft.AspNetCore.Antiforgery.AntiforgeryTokenSet).Assembly.Location).Directory;
+            TypeDiscoveryExtension.AspNetDirectory = new FileInfo(typeof(Microsoft.AspNetCore.Antiforgery.AntiforgeryTokenSet).Assembly.Location).Directory;
         }
 
 
@@ -110,7 +109,7 @@
 
         }
 
-        internal static readonly DirectoryInfo? _AspNetDirectory;
+        internal static readonly DirectoryInfo? AspNetDirectory;
 
     }
 

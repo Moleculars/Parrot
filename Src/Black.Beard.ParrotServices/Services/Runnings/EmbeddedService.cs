@@ -2,6 +2,7 @@
 using Bb.Builds;
 using NLog.Filters;
 using OpenTelemetry.Trace;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -34,19 +35,22 @@ namespace Bb.Services.Runnings
         /// <summary>
         /// Start the service
         /// </summary>
-        public virtual dynamic? Start()
+        public virtual dynamic? Start(bool isolated, Action<dynamic>? action = null)
         {
-            _instance = StartService(null);
+            if (isolated)
+            _instance = StartIsolatedService(action);
+            else
+            _instance = StartService(action);
             return _instance;
         }
 
         /// <summary>
         /// Start the service
         /// </summary>
-        protected dynamic? StartService(Action<dynamic>? action)
+        protected dynamic? StartIsolatedService(Action<dynamic>? action)
         {
 
-            if (ExecuteAndUnload(_assemblyPath, out var assemblyWeakRef, out var type))
+            if (ExecuteIsolated(_assemblyPath, out var assemblyWeakRef, out var type))
             {
 
                 _typeWeakRef = type;
@@ -65,6 +69,29 @@ namespace Bb.Services.Runnings
 
         }
 
+        /// <summary>
+        /// Start the service
+        /// </summary>
+        protected dynamic? StartService(Action<dynamic>? action)
+        {
+
+            if (Execute(_assemblyPath, out var type))
+            {
+
+                _typeWeakRef = type;
+
+                _instance = Execute(_startingMethod, [new string[] { }]);
+
+                if (action != null && _instance != null)
+                    action(_instance);
+
+                return _instance;
+
+            }
+
+            return default;
+
+        }
 
         /// <summary>
         /// Stop the service
@@ -117,7 +144,27 @@ namespace Bb.Services.Runnings
 
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        bool ExecuteAndUnload(string assemblyPath, out WeakReference assemblyWeakRef, out WeakReference typeWeakRef)
+        bool Execute(string assemblyPath, out WeakReference? typeWeakRef)
+        {
+
+            typeWeakRef = null;
+            Assembly a = Assembly.LoadFrom(assemblyPath);
+            if (a == null)
+            {
+                Trace.TraceError("Loading the {assemblyPath} failed");
+                return false;
+            }
+
+            Type type = _filter(a);
+            typeWeakRef = new WeakReference(type);
+
+            return true;
+
+        }
+
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        bool ExecuteIsolated(string assemblyPath, out WeakReference assemblyWeakRef, out WeakReference? typeWeakRef)
         {
 
             _alc = new EmbeddedAssemblyLoadContext(_references);
@@ -127,7 +174,7 @@ namespace Bb.Services.Runnings
             Assembly a = _alc.LoadFromAssemblyPath(assemblyPath);
             if (a == null)
             {
-                Console.WriteLine("Loading the test assembly failed");
+                Trace.TraceError("Loading the {assemblyPath} failed");
                 return false;
             }
 

@@ -1,14 +1,15 @@
 ﻿using Bb.ComponentModel;
 using Bb.ComponentModel.Attributes;
 using Microsoft.OpenApi.Validations;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace Bb.Services.Managers
 {
 
 
-    public class PluginManager<T>
-        where T : class //, IPlugin
+    public class PluginManager<TPlugin>
+        where TPlugin : class //, IPlugin
     {
 
 
@@ -55,27 +56,41 @@ namespace Bb.Services.Managers
         }
 
         /// <summary>
+        /// Type to discovering
+        /// </summary>
+        public Type Type { get => typeof(TPlugin); }
+
+        /// <summary>
         /// Discovers the plugIn's list.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<Type> DiscoverPlugInList()
         {
 
+            var typeReference = Type;
+            HashSet<Assembly> assemblies = new HashSet<Assembly>();
             var instance = AssemblyDirectoryResolver.Instance;
 
-            var typeReference = typeof(T);
-            var dir = TypeDiscoveryExtension._AspNetDirectory.FullName;
+            var dir = TypeDiscoveryExtension.AspNetDirectory?.FullName;
             var dir2 = AssemblyDirectoryResolver.SystemDirectory.FullName;
             var dirs = AssemblyDirectoryResolver.Instance.GetDirectories().Where(c => c.FullName != dir && c.FullName != dir2).ToList();
 
-            HashSet<Assembly> assemblies = new HashSet<Assembly>();
+            Trace.TraceInformation($"DiscoverPlugInList is looking in {dirs.Count} directories");
             foreach (var folder in dirs)
-                foreach (var item in folder.GetAssembliesFromFolder(c => Evaluate(c)).Where(c => c != null).ToList())
-                    assemblies.Add(item);
+                if (folder.Exists)
+                    foreach (var item in folder.GetAssembliesFromFolder(Evaluate).Where(c => c != null).ToList())
+                    {
+                        assemblies.Add(item);
+                        Trace.TraceInformation($"Append assembly '{item.FullName}'");
+                    }
+                else
+                    Trace.TraceInformation($"Directory '{folder.FullName}' don't exists.");
+
 
             foreach (var assembly in assemblies)
                 foreach (var typeitem in assembly.GetTypes().GetTypesWithAttributes<ExposeClassAttribute>(null, c => c.Context == Constants.Models.Plugin))
-                    yield return typeitem;
+                    if (typeReference.IsAssignableFrom(typeitem))
+                        yield return typeitem;
 
         }
 

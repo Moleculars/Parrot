@@ -46,13 +46,15 @@ namespace Bb.Services.Runnings
         /// Start the service
         /// </summary>
         /// <returns></returns>
-        public override dynamic? Start()
+        public dynamic? Start(bool isolated)
         {
 
-            dynamic? instance = base.StartService(c =>
+            bool running = false;
+
+            dynamic? instance;
+            Action<dynamic>? action = c =>
             {
 
-                bool running = false;
                 var _task = Task.Run(() =>
                 {
                     running = true;
@@ -70,23 +72,24 @@ namespace Bb.Services.Runnings
 
                     s.Wait();
 
-                    instance = null;
-
                 });
 
                 // wait task running.
                 while (!running) Task.Yield();
 
-            });
+            };
+
+            instance = base.Start(isolated, action);
 
             if (instance != null)
             {
-                
                 // wait the service running or fail.
                 var timeOut = DateTime.Now.AddMinutes(1);
                 while (_names.Contains(instance.Status.ToString()) && timeOut > DateTime.Now) Task.Yield();
-
             }
+
+            if (!running)
+                instance = null;    
 
             return instance;
 

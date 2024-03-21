@@ -13,10 +13,9 @@ using System.Xml.Linq;
 
 namespace Bb
 {
+
     public class ServiceRunnerBase
     {
-
-
 
 
         /// <summary>
@@ -57,7 +56,7 @@ namespace Bb
         /// <value>
         /// The build.
         /// </value>
-        public IHost Build { get; protected set; }
+        public IHost? Build { get; protected set; }
 
         /// <summary>
         /// Gets the addresses service listener.
@@ -65,7 +64,7 @@ namespace Bb
         /// <value>
         /// The addresses.
         /// </value>
-        public List<Uri> Addresses { get; protected set; }
+        public List<Uri>? Addresses { get; protected set; }
 
         /// <summary>
         /// Gets the logger.
@@ -370,30 +369,25 @@ namespace Bb
         private static void InitializeByOs()
         {
 
-            Console.WriteLine("Current directory : " + Directory.GetCurrentDirectory());
+            Trace.TraceInformation("Current directory : " + Directory.GetCurrentDirectory());
 
             var currentAssembly = Assembly.GetEntryAssembly();
             Directory.SetCurrentDirectory(Path.GetDirectoryName(currentAssembly.Location));
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                //Configuration.CurrentDirectoryToWriteProjects = "c:\\".Combine("tmp", "parrot", "projects");
                 Configuration.CurrentDirectoryToWriteGenerators = "c:\\".Combine("tmp", "parrot", "contracts");
                 Configuration.TraceLogToWrite = "c:\\".Combine("tmp", "parrot", "logs");
             }
 
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                //Configuration.CurrentDirectoryToWriteProjects = "tmp".Combine("parrot", "projects");
                 Configuration.CurrentDirectoryToWriteGenerators = "tmp".Combine("parrot", "contracts");
                 Configuration.TraceLogToWrite = "tmp".Combine("parrot", "logs");
             }
 
             else
                 throw new Exception($"Os {RuntimeInformation.OSDescription} not managed");
-
-            //if (!Directory.Exists(Configuration.CurrentDirectoryToWriteProjects))
-            //    Directory.CreateDirectory(Configuration.CurrentDirectoryToWriteProjects);
 
             if (!Directory.Exists(Configuration.CurrentDirectoryToWriteGenerators))
                 Directory.CreateDirectory(Configuration.CurrentDirectoryToWriteGenerators);
@@ -418,9 +412,9 @@ namespace Bb
         }
 
 
-        private Task _task;
-        private Exception _exception;
-        protected List<Url> _urls;
+        private Task? _task;
+        private Exception? _exception;
+        protected List<Url>? _urls;
         private readonly string[] _args;
         private readonly CancellationTokenSource _tokenSource;
         private readonly CancellationToken _token;

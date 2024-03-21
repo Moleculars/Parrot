@@ -7,13 +7,13 @@ the service runs under linux docker.
 
 For launch the docker container
 ```batch    
-    sudo docker run -p 80:80 blackbeardteam/parrot
+    sudo docker run -p 80:8080 blackbeardteam/parrot
 ```
 
 Or in interactive mode
 ```batch
 -- enter in the container
-    sudo docker run -p 80:80 -it --entrypoint /bin/bash blackbeardteam/parrot
+    sudo docker run -p 80:8080 -it --entrypoint /bin/bash blackbeardteam/parrot
 
 -- launch the server
     dotnet Black.Beard.ParrotServices.dll
