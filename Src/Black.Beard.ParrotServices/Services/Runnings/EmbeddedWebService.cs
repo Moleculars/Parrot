@@ -1,4 +1,5 @@
 ﻿using Bb.Builds;
+using Bb.Servers.Web;
 using System;
 using System.Reflection;
 using static Refs.System.Private;
@@ -57,8 +58,8 @@ namespace Bb.Services.Runnings
 
                 var _task = Task.Run(() =>
                 {
-                    running = true;
 
+                    running = true;
 
                     // apply the listeners
                     foreach (var l in _listeners)

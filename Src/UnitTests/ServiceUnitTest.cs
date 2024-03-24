@@ -1,5 +1,6 @@
 using Bb;
 using Bb.Curls;
+using Bb.Models;
 using Bb.ParrotServices;
 
 namespace UnitTests
@@ -20,13 +21,13 @@ namespace UnitTests
         {
 
 
-            Configuration.UseSwagger = true;
-            Configuration.TraceAll = true;
+            //GlobalConfiguration.UseSwagger = true;
+            //GlobalConfiguration.TraceAll = true;
 
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
 
             int port = 5000;
-            using (var service = new Bb.ServiceRunner<Startup>()
+            using (var service = new Bb.Servers.Web.ServiceRunner<Startup>()
                 .AddLocalhostUrlWithDynamicPort("http", null, ref port)
                 //.AddLocalhostUrlWithDynamicPort("https", ref port) // Créer un certificat pour utilisation
                 )

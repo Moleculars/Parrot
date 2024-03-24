@@ -1,5 +1,7 @@
 ﻿using Bb.Extensions;
-
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using Bb.Servers.Web.Models;
 namespace Bb.ParrotServices
 {
 
@@ -7,7 +9,7 @@ namespace Bb.ParrotServices
     /// <summary>
     /// Startup class par parameter
     /// </summary>
-    public class Startup : StartupBase
+    public class Startup : Bb.Servers.Web.StartupBase
     {
 
         /// <summary>
@@ -19,6 +21,41 @@ namespace Bb.ParrotServices
         {
       
         }
+
+        public override void ConfigureServices(IServiceCollection services)
+        {
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                GlobalConfiguration.CurrentDirectoryToWriteGenerators = "c:\\".Combine("tmp", "parrot", "contracts");
+                GlobalConfiguration.DirectoryToTrace = "c:\\".Combine("tmp", "parrot", "logs");
+            }
+            else 
+            {
+                GlobalConfiguration.CurrentDirectoryToWriteGenerators = "tmp".Combine("parrot", "contracts");
+                GlobalConfiguration.DirectoryToTrace = "tmp".Combine("parrot", "logs");
+            }
+
+
+            if (!Directory.Exists(GlobalConfiguration.CurrentDirectoryToWriteGenerators))
+                Directory.CreateDirectory(GlobalConfiguration.CurrentDirectoryToWriteGenerators);
+
+            if (!Directory.Exists(GlobalConfiguration.DirectoryToTrace))
+                Directory.CreateDirectory(GlobalConfiguration.DirectoryToTrace);
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                GlobalConfiguration.DirectoryToTrace += "\\";
+
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                GlobalConfiguration.DirectoryToTrace += "/";
+
+            //Trace.TraceInformation("setting directory to generate projects in : " + Configuration.CurrentDirectoryToWriteProjects);
+            Trace.TraceInformation("setting directory to output logs : " + GlobalConfiguration.DirectoryToTrace);
+
+            base.ConfigureServices(services);
+
+        }
+
 
         /// <summary>
         /// Configures the custom services.

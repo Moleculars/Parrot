@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using Bb.Servers.Exceptions;
+using System.Runtime.Serialization;
 
 namespace Bb.ParrotServices.Exceptions
 {

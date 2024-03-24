@@ -1,14 +1,13 @@
-﻿using Bb.OpenApiServices;
+﻿
 using Bb.Models;
 using Bb.ComponentModel.Attributes;
 using Bb.ComponentModel.Factories;
 using Bb.Services.ProcessHosting;
 using Bb.ComponentModel;
-using System.Diagnostics.Contracts;
-using System.Collections.Generic;
-using SharpCompress;
 using Bb.Mock;
 using System.Diagnostics;
+using Bb.Extensions;
+using Bb.Servers.Web.Models;
 
 namespace Bb.Services.Managers
 {
@@ -35,7 +34,7 @@ namespace Bb.Services.Managers
             _logger = logger;
             _referential = referential;
             _items = new Dictionary<string, ProjectBuilderContract>();
-            _manager = new PluginManager<ServiceGenerator>("Microsoft.", "System.", "Antlr4.", "NLog.", "OpenTelemetry", "Swashbuckle.AspNetCore.");
+            _manager = new PluginManager<OpenApiServices.ServiceGenerator>("Microsoft.", "System.", "Antlr4.", "NLog.", "OpenTelemetry", "Swashbuckle.AspNetCore.");
 
         }
 
@@ -46,7 +45,7 @@ namespace Bb.Services.Managers
         /// <param name="services">The service provider.</param>
         public virtual void Initialize(IServiceProvider services)
         {
-            Initialize(Configuration.CurrentDirectoryToWriteGenerators);
+            Initialize(GlobalConfiguration.CurrentDirectoryToWriteGenerators);
         }
 
 
@@ -324,7 +323,7 @@ namespace Bb.Services.Managers
         internal readonly ILogger<ProjectBuilderProvider> _logger;
         internal readonly ServiceReferential _referential;
         private readonly Dictionary<string, ProjectBuilderContract> _items;
-        private readonly PluginManager<ServiceGenerator> _manager;
+        private readonly PluginManager<OpenApiServices.ServiceGenerator> _manager;
         private string _root;
         private static Dictionary<string, Type>? _generators;
         private volatile object _lock = new object();

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Authorization;
 using Bb.Services.Managers;
 using Bb.Analysis.DiagTraces;
+using Bb.Servers.Exceptions;
 
 namespace Bb.ParrotServices.Controllers
 {

@@ -1,5 +1,6 @@
 ﻿using Bb.ComponentModel.Attributes;
 using Bb.Models;
+using Bb.Servers.Web.Models;
 
 namespace Bb.Services.ProcessHosting
 {

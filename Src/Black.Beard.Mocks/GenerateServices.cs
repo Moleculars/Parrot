@@ -1,13 +1,9 @@
 ﻿using Bb.Codings;
-using Bb.ComponentModel.Attributes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.OpenApi.Models;
-using Microsoft.VisualBasic;
-using System.Diagnostics.Contracts;
 
 namespace Bb.OpenApiServices
 {
-
 
     public class GenerateServices : OpenApiGenerateServices
     {

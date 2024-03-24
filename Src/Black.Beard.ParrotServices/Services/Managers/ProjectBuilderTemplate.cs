@@ -10,6 +10,8 @@ using Bb.Nugets;
 using Bb.Analysis;
 using System.Reflection;
 using Bb.ComponentModel;
+using Bb.Extensions;
+using Bb.Servers.Web;
 
 namespace Bb.Services.Managers
 {
@@ -174,32 +176,14 @@ namespace Bb.Services.Managers
         /// <summary>
         /// Writes the document on disk.
         /// </summary>
-        /// <param name="upfile">The upfile.</param>
-        public void WriteOnDisk(IFormFile upfile)
+        /// <param name="upFile">The uploaded file.</param>
+        public void WriteOnDisk(IFormFile upFile)
         {
-            WriteOnDisk(upfile, _templateFilename);
+            upFile.Save(_templateFilename, true);
         }
 
 
-        /// <summary>
-        /// Writes the document on disk.
-        /// </summary>
-        /// <param name="upFile">The upload document.</param>
-        /// <param name="filePath">The file path.</param>
-        public void WriteOnDisk(IFormFile upFile, string filePath)
-        {
 
-            if (!Directory.Exists(Root))
-                Directory.CreateDirectory(Root);
-
-            RemoveTemplateIfExists();
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-                upFile.CopyTo(stream);
-
-            _templateFilename = filePath;
-
-        }
 
 
         /// <summary>
